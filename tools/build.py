@@ -24,7 +24,7 @@ def run(args,cwd=None,stdout=None):
  print('+ '+' '.join(map(str,args)),flush=True)
  subprocess.run(list(map(str,args)),cwd=cwd,stdout=stdout,check=True)
 def main():
- ap=argparse.ArgumentParser();ap.add_argument('--dump',required=True);ap.add_argument('--output',required=True);ap.add_argument('--toolchain',required=True);ap.add_argument('--jobs',type=int,default=4);ap.add_argument('--validate-only',action='store_true');a=ap.parse_args()
+ ap=argparse.ArgumentParser();ap.add_argument('--dump',required=True);ap.add_argument('--output',required=True);ap.add_argument('--toolchain',required=True);ap.add_argument('--jobs',type=int,default=4);ap.add_argument('--validate-only',action='store_true');ap.add_argument('--openxr',action='store_true');a=ap.parse_args()
  dump=find_dump(Path(a.dump));print('Verified normal HOTD4 arcade dump:',dump,flush=True)
  if a.validate_only:return
  out=Path(a.output).resolve()
@@ -51,11 +51,21 @@ def main():
    s,n=re.subn(r'static void th_'+name+r'\(CPU \*c\)\n\{.*?\n\}',lambda m:body,s,count=1,flags=re.S)
    if n!=1:raise ValueError('GL wrapper generation changed: '+name)
   thunk.write_text(s,encoding='utf-8');marker.write_text(signature)
- build=ROOT/'build'
- run([bin/'cmake.exe','-S',source,'-B',build,'-G','Ninja','-DCMAKE_BUILD_TYPE=Release','-DCMAKE_C_FLAGS_RELEASE=','-DLINDBERGH_GAMES=hotd4','-DLINDBERGH_OPENXR=OFF','-DLINDBERGH_RENDERER=OPENGL','-DCMAKE_C_COMPILER='+str(bin/'gcc.exe'),'-DCMAKE_MAKE_PROGRAM='+str(bin/'ninja.exe'),'-DCMAKE_PREFIX_PATH='+str(bin.parent)])
- run([bin/'cmake.exe','--build',build,'--target','hotd4','--parallel',max(1,min(a.jobs,16))])
+ builds = {}
+ for name, folder, openxr in [('hotd4-desktop.exe', 'build', False),
+                             ('hotd4-vr.exe', 'build-openxr', True)]:
+  if openxr and not a.openxr:
+   continue
+  build = ROOT/folder
+  run([bin/'cmake.exe','-S',source,'-B',build,'-G','Ninja','-DCMAKE_BUILD_TYPE=Release',
+       '-DCMAKE_C_FLAGS_RELEASE=','-DLINDBERGH_GAMES=hotd4',
+       '-DLINDBERGH_OPENXR='+('ON' if openxr else 'OFF'),'-DLINDBERGH_RENDERER=OPENGL',
+       '-DCMAKE_C_COMPILER='+str(bin/'gcc.exe'),'-DCMAKE_MAKE_PROGRAM='+str(bin/'ninja.exe'),
+       '-DCMAKE_PREFIX_PATH='+str(bin.parent)])
+  run([bin/'cmake.exe','--build',build,'--target','hotd4','--parallel',max(1,min(a.jobs,16))])
+  builds[name] = build/'hotd4.exe'
  # Resolve runtime DLLs recursively, including indirect OpenAL/SDL dependencies.
- dlls={};pending=[build/'hotd4.exe'];seen=set();system=Path(os.environ.get('WINDIR','C:/Windows'))/'System32'
+ dlls={};pending=list(builds.values());seen=set();system=Path(os.environ.get('WINDIR','C:/Windows'))/'System32'
  while pending:
   file=pending.pop()
   text=subprocess.check_output([str(bin/'objdump.exe'),'-p',str(file)],text=True,errors='replace')
@@ -65,7 +75,9 @@ def main():
    if dependency.is_file():dlls[name]=dependency;pending.append(dependency)
    elif not (system/name).is_file() and not name.lower().startswith(('api-ms-','ext-ms-')):raise ValueError('Unresolved DLL: '+name)
  out.mkdir(parents=True,exist_ok=True);app=out/'HOTD4_Recomp';app.mkdir(exist_ok=True)
- shutil.copy2(build/'hotd4.exe',app/'hotd4-desktop.exe');run([bin/'strip.exe',app/'hotd4-desktop.exe'])
+ for name, executable in builds.items():
+  shutil.copy2(executable,app/name)
+  run([bin/'strip.exe',app/name])
  for name,p in dlls.items():shutil.copy2(p,app/name)
  # No source game data was packaged: the following copies happen only here.
  localdump=out/'game/disk0';(localdump/'elf').mkdir(parents=True,exist_ok=True)
@@ -73,7 +85,10 @@ def main():
  for part in ['fs','drv']:shutil.copytree(dump/part,localdump/part,dirs_exist_ok=True)
  for p in (ROOT/'ui').rglob('*'):
   if p.is_file():
-   rel=p.relative_to(ROOT/'ui');dest=(out if p.name=='Play HOTD4.cmd' else app)/rel
+   rel=p.relative_to(ROOT/'ui')
+   if p.name=='Play HOTD4 (VR OpenXR).cmd' and not a.openxr:
+    continue
+   dest=(out if p.name in ('Play HOTD4.cmd', 'Play HOTD4 (VR OpenXR).cmd') else app)/rel
    if p.name=='lindbergh.ini' and dest.exists():continue
    dest.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(p,dest)
  (out/'dump-path.txt').write_text(str(localdump),encoding='utf-8')
@@ -82,7 +97,7 @@ def main():
  # Toolchain package license notices for libraries, including indirect DLLs.
  for p in (bin.parent/'share/licenses').glob('*'):
   if p.is_dir():shutil.copytree(p,licenses/'dependencies'/p.name,dirs_exist_ok=True)
- (out/'local-build.json').write_text(json.dumps({'built_locally':True,'elf_sha256':EXPECTED,'generator_signature':signature,'package_manifest_sha256':digest(ROOT/'package-manifest.json'),'executable_sha256':digest(app/'hotd4-desktop.exe'),'built_utc':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime())},indent=2))
+ (out/'local-build.json').write_text(json.dumps({'built_locally':True,'elf_sha256':EXPECTED,'generator_signature':signature,'package_manifest_sha256':digest(ROOT/'package-manifest.json'),'executable_sha256':digest(app/'hotd4-desktop.exe'),**({'openxr_executable_sha256':digest(app/'hotd4-vr.exe')} if (app/'hotd4-vr.exe').is_file() else {}),'built_utc':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime())},indent=2))
  print('\nBuild complete. Start: '+str(out/'Play HOTD4.cmd'),flush=True)
 if __name__=='__main__':
  try:main()

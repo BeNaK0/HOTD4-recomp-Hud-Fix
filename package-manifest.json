@@ -7,11 +7,11 @@
     },
     {
       "path": "README.md",
-      "sha256": "aecab9aca417230a0d7f362708014d99271c84b93b07fad34996c87205ccdc37"
+      "sha256": "8d6076835f567a24a4a3261fd75ccac725fe00b28da8663217e385edf8223728"
     },
     {
       "path": "RELEASE-NOTES.md",
-      "sha256": "be0c8e17f2661655c5dd420d3ebcd7d71174dfa5fcb0e816afd256cb2166584e"
+      "sha256": "dcbe2d645f8a854a1c901107786df48aa600f3516369b62ff1bf5afc219e2637"
     },
     {
       "path": "Setup.cmd",
@@ -19,11 +19,15 @@
     },
     {
       "path": "setup.ps1",
-      "sha256": "242a0193212deea534f83998a57b7498a0e09fc0927961f65cb0e148d908e7a4"
+      "sha256": "ebda51615eadc47119158bc2a7426a98d1b5314d72ce39eb2293a2f6abecdd2e"
     },
     {
       "path": "source/CMakeLists.txt",
       "sha256": "62f16575a6590c28b22a3fdb422b23964d30ea881cc85cc22a64715aa772e4ce"
+    },
+    {
+      "path": "source/LICENSE",
+      "sha256": "969c26f4e5da359fea84127dfecd3057729cfed75211fb324bdb42af6c087614"
     },
     {
       "path": "source/games/hotd4/src/achievement_hooks.h",
@@ -44,10 +48,6 @@
     {
       "path": "source/games/hotd4/src/hotd4_lighting.c",
       "sha256": "9274720564cff0471cb26514e5d043faca840c0fabd2a7feafd981e6d6cc034e"
-    },
-    {
-      "path": "source/LICENSE",
-      "sha256": "969c26f4e5da359fea84127dfecd3057729cfed75211fb324bdb42af6c087614"
     },
     {
       "path": "source/lindberghrecomp/CMakeLists.txt",
@@ -91,7 +91,7 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/crash_report.c",
-      "sha256": "e5674bfc4bea5b9629a58805fffbf95a1cca87b0117b8b9c8cf37bdf1913807b"
+      "sha256": "93d4f7b1fd2608e0db191e9cbd458188bd87ff646785c2b94d41d72da4c261e4"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/dispatch.c",
@@ -235,7 +235,7 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/host_sdl.c",
-      "sha256": "6fd5466721b07c429f56154c699cad748ece724b5d9fb0dd52f098c3c38ca33a"
+      "sha256": "6b5d19f6cf1791eb39c06da7c4caa604d3c96e08653d4d1ca2d325da452b31fd"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/host_settings.c",
@@ -511,7 +511,7 @@
     },
     {
       "path": "tools/build.py",
-      "sha256": "fb5c05006f76837757c546e1b5926d617feeebe68565740b1a7474c30d8982c4"
+      "sha256": "72f44be6cdbcd94d161d69677b0a51b14efa7ee53fed507e70e360e56786f83f"
     },
     {
       "path": "tools/gl-enhancements.h",
@@ -524,6 +524,14 @@
     {
       "path": "tools/menu_background.py",
       "sha256": "42d12f0a27b8b968092a5eaf29e71e72f9927c278bb1a20b273da247b369b110"
+    },
+    {
+      "path": "ui/Play HOTD4 (VR OpenXR).cmd",
+      "sha256": "2bf7d717e21521c8b0f403c3e28375fa54d5739d0d13f9d8de1128963dac721c"
+    },
+    {
+      "path": "ui/Play HOTD4.cmd",
+      "sha256": "1cb4961ca02dd6e25c6d161dba801c4955074cf322e978cddec4b3a2e53784e7"
     },
     {
       "path": "ui/achievement-assets/bronze.png",
@@ -1408,10 +1416,6 @@
     {
       "path": "ui/lindbergh.ini",
       "sha256": "7d87bdd6b40e9787d5a8345b5f3070cf541e3102fb84d020c0d907b13ff2d97c"
-    },
-    {
-      "path": "ui/Play HOTD4.cmd",
-      "sha256": "1cb4961ca02dd6e25c6d161dba801c4955074cf322e978cddec4b3a2e53784e7"
     },
     {
       "path": "ui/raw-input-devices.ps1",

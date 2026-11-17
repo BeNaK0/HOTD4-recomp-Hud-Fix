@@ -1,5 +1,5 @@
 ﻿[CmdletBinding()]
-param([string]$DumpPath,[string]$InstallDir,[string]$ToolchainPath,[int]$Jobs=4,[switch]$ValidateOnly,[switch]$NoDownload)
+param([string]$DumpPath,[string]$InstallDir,[string]$ToolchainPath,[int]$Jobs=4,[switch]$ValidateOnly,[switch]$NoDownload,[switch]$OpenXR)
 $ErrorActionPreference='Stop'
 $ProgressPreference='SilentlyContinue'
 [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12
@@ -17,7 +17,8 @@ try {
         $path=Join-Path $PSScriptRoot $file.path
         if(!(Test-Path -LiteralPath $path -PathType Leaf) -or (Get-Sha256 $path) -ne $file.sha256){throw "Package integrity check failed: $($file.path). Extract a fresh copy."}
     }
-    if(!$DumpPath){
+    $interactive = !$DumpPath
+    if($interactive){
         Add-Type -AssemblyName System.Windows.Forms
         $picker=New-Object Windows.Forms.FolderBrowserDialog
         $picker.Description='Select your extracted normal HOTD4 arcade dump (disk0 or its parent folder)'
@@ -37,6 +38,12 @@ try {
     }
     Write-Host 'Verified: The House of the Dead 4 (normal arcade version).'
     if($ValidateOnly){Write-Host 'Package and dump validation passed. Nothing was installed.';exit 0}
+    if($interactive -and !$OpenXR){
+        $choice = [Windows.Forms.MessageBox]::Show(
+            'Build the optional OpenXR version alongside the desktop game? You will need a compatible PC VR headset and an active OpenXR runtime to play it.',
+            'HOTD4 Setup', 'YesNo', 'Question', 'Button2')
+        $OpenXR = $choice -eq [Windows.Forms.DialogResult]::Yes
+    }
     if(!$InstallDir){$InstallDir=Join-Path $PSScriptRoot 'HOTD4-PC'}
     if(!$ToolchainPath){$ToolchainPath=Join-Path $env:LOCALAPPDATA 'HOTD4-Builder\msys64'}
     $ToolchainPath=[IO.Path]::GetFullPath($ToolchainPath)
@@ -67,15 +74,23 @@ try {
         Invoke-Checked $bash @('--login','-c','pacman -Syu --noconfirm && pacman -S --needed --noconfirm mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja mingw-w64-x86_64-python mingw-w64-x86_64-python-capstone mingw-w64-x86_64-python-pyelftools mingw-w64-x86_64-SDL2 mingw-w64-x86_64-glew mingw-w64-x86_64-openal mingw-w64-x86_64-zlib')
         Set-Content -LiteralPath $ready -Value '1'
     }
+    if($OpenXR -and !(Test-Path -LiteralPath (Join-Path $ToolchainPath 'mingw64\lib\cmake\openxr\OpenXRConfig.cmake'))){
+        if($NoDownload){throw 'OpenXR SDK is missing. Run without -NoDownload to install it automatically.'}
+        Write-Host 'Installing the OpenXR build dependency...'
+        Invoke-Checked $bash @('--login','-c','pacman -S --needed --noconfirm mingw-w64-x86_64-openxr-sdk')
+    }
     $python=Join-Path $ToolchainPath 'mingw64\bin\python.exe'
     Write-Host 'Generating and compiling HOTD4 locally. This can take several minutes...'
-    Invoke-Checked $python @((Join-Path $PSScriptRoot 'tools\build.py'),'--dump',$dump,'--output',$InstallDir,'--toolchain',$ToolchainPath,'--jobs',[string]$Jobs)
+    $buildArgs = @((Join-Path $PSScriptRoot 'tools\build.py'),'--dump',$dump,'--output',$InstallDir,'--toolchain',$ToolchainPath,'--jobs',[string]$Jobs)
+    if($OpenXR){$buildArgs += '--openxr'}
+    Invoke-Checked $python $buildArgs
     $installedRoot=[IO.Path]::GetFullPath($InstallDir)
     try {
         Invoke-Checked $python @((Join-Path $PSScriptRoot 'tools\menu_background.py'),'--app',(Join-Path $installedRoot 'HOTD4_Recomp'),'--dump',(Join-Path $installedRoot 'game\disk0'))
     } catch {
         Write-Warning 'The game was installed, but the optional menu background could not be rendered. See HOTD4_Recomp\menu-background.log. Run Setup again to retry; the plain menu remains available.'
     }
+    if($OpenXR){Write-Host "VR launcher: $(Join-Path $InstallDir 'Play HOTD4 (VR OpenXR).cmd')"}
     Write-Host "Ready. Open: $(Join-Path $InstallDir 'Play HOTD4.cmd')"
 } catch {
     [Console]::Error.WriteLine($_.Exception.Message)

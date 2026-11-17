@@ -1196,8 +1196,13 @@ int host_gl_context(void)
     initialize_gl4es();
 #endif
     if (!xr_init()) {
-        fprintf(stderr, "[window] no headset session - nothing to show the game on\n");
+        fprintf(stderr, "[window] OpenXR startup failed. Check the active runtime and headset connection.\n");
+#ifdef _WIN32
+        /* The arcade game continues with invalid GL state after a failed context request. */
+        exit(EXIT_FAILURE);
+#else
         return 0;
+#endif
     }
     xr_frame_begin();
 #else

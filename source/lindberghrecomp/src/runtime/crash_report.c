@@ -179,7 +179,9 @@ void guest_report_state(const char *why)
 static LONG CALLBACK on_exception(EXCEPTION_POINTERS *ep)
 {
     const EXCEPTION_RECORD *er = ep->ExceptionRecord;
-    if (er->ExceptionCode == 0xE06D7363 || er->ExceptionCode == 0x406D1388)
+    /* OutputDebugString uses debugger notifications, including OpenXR loader logs. */
+    if (er->ExceptionCode == 0x40010006 || er->ExceptionCode == 0x4001000A ||
+        er->ExceptionCode == 0xE06D7363 || er->ExceptionCode == 0x406D1388)
         return EXCEPTION_CONTINUE_SEARCH;
     char why[160];
 
