@@ -1,0 +1,182 @@
+#ifndef HOTD4_INPUT_OPTIONS_H
+#define HOTD4_INPUT_OPTIONS_H
+/* Windows desktop preferences and per-device lightgun input. Included by host_sdl. */
+#include <SDL_syswm.h>
+static int input_pref_mode, input_active_mode, input_pref_aa, input_prefs_loaded;
+static int raw_suspended;
+static unsigned raw_held;
+static char input_guns[2][1024];
+static char raw_active_guns[2][1024];
+static HANDLE raw_assigned[2];
+static WNDPROC raw_previous_proc;
+static HWND raw_window;
+static const wchar_t *input_mode_names[] = {L"Mouse (Absolute)", L"Mouse (Raw Relative)", L"Lightgun (Raw Input)"};
+static void input_path(char *out, size_t cap, const char *file)
+{
+    const char *dir = getenv("HOTD4_SETTINGS_DIR");
+    if (dir && *dir) snprintf(out,cap,"%s\\%s",dir,file);
+    else {
+        GetModuleFileNameA(NULL,out,(DWORD)cap);
+        char *slash = strrchr(out,'\\');
+        if (slash) snprintf(slash+1,cap-(size_t)(slash+1-out),"%s",file);
+    }
+}
+static int input_read(const char *file, char *out, size_t cap)
+{
+    char path[2048]; input_path(path,sizeof path,file);
+    FILE *f=fopen(path,"rb"); if(!f)return 0;
+    int ok=fgets(out,(int)cap,f)!=NULL; fclose(f);
+    if(ok)out[strcspn(out,"\r\n")]=0;
+    return ok;
+}
+static void input_write(const char *file, const char *value)
+{
+    char path[2048]; input_path(path,sizeof path,file);
+    FILE *f=fopen(path,"wb");
+    if(f){fputs(value,f);fclose(f);}else fprintf(stderr,"[input] Cannot save %s\n",path);
+}
+static void input_options_load(void)
+{
+    if(input_prefs_loaded)return;
+    input_prefs_loaded=1;
+    input_pref_mode=settings()->raw_mouse?1:0;
+    input_pref_aa=settings()->aa;
+    char value[32];
+    if(input_read("input-profile.txt",value,sizeof value) && strlen(value)==1 && value[0]>='0' && value[0]<='2')input_pref_mode=atoi(value);
+    if(input_read("aa-profile.txt",value,sizeof value)){
+        int n=atoi(value); if(n==0 || n==2 || n==4 || n==8)input_pref_aa=n;
+    }
+    input_read("raw-gun1.txt",input_guns[0],sizeof input_guns[0]);
+    input_read("raw-gun2.txt",input_guns[1],sizeof input_guns[1]);
+    if(!*input_guns[0])strcpy(input_guns[0],"auto");
+    if(!*input_guns[1])strcpy(input_guns[1],"disabled");
+    memcpy(raw_active_guns,input_guns,sizeof raw_active_guns);
+    input_active_mode=input_pref_mode;
+    settings()->raw_mouse=input_active_mode==1;
+    if(input_active_mode==2)settings()->mouse_grab=0;
+    settings()->aa=input_pref_aa;
+}
+static void input_option_cycle(int row, int delta)
+{
+    char value[32]; delta=delta<0?-1:1;
+    if(row==0){input_pref_mode=(input_pref_mode+3+delta)%3;snprintf(value,sizeof value,"%d",input_pref_mode);input_write("input-profile.txt",value);}
+    if(row==3){
+        const int samples[]={0,2,4,8}; int at=0;
+        for(int i=0;i<4;i++)if(samples[i]==input_pref_aa)at=i;
+        input_pref_aa=samples[(at+4+delta)%4];snprintf(value,sizeof value,"%d",input_pref_aa);input_write("aa-profile.txt",value);
+    }
+    if(row==1 || row==2){
+        int pl=row-1; UINT count=0;
+        if(GetRawInputDeviceList(NULL,&count,sizeof(RAWINPUTDEVICELIST))==(UINT)-1)return;
+        RAWINPUTDEVICELIST *list=calloc(count?count:1,sizeof *list);
+        if(!list)return;
+        UINT got=GetRawInputDeviceList(list,&count,sizeof *list);
+        char paths[66][1024]; int n=2,at=0;
+        strcpy(paths[0],"auto");strcpy(paths[1],"disabled");
+        if(got!=(UINT)-1)for(UINT i=0;i<got && n<66;i++)if(list[i].dwType==RIM_TYPEMOUSE){
+            UINT len=sizeof paths[0];
+            if(GetRawInputDeviceInfoA(list[i].hDevice,RIDI_DEVICENAME,paths[n],&len)!=(UINT)-1){paths[n][1023]=0;n++;}
+        }
+        for(int i=0;i<n;i++)if(!_stricmp(paths[i],input_guns[pl]))at=i;
+        strcpy(input_guns[pl],paths[(at+n+delta)%n]);
+        input_write(pl?"raw-gun2.txt":"raw-gun1.txt",input_guns[pl]);free(list);
+    }
+}
+static void input_gun_label(int pl, wchar_t *out, size_t cap)
+{
+    if(!_stricmp(input_guns[pl],"auto")){swprintf(out,cap,L"P%d Device  < Auto: absolute gun >",pl+1);return;}
+    if(!_stricmp(input_guns[pl],"disabled")){swprintf(out,cap,L"P%d Device  < Disabled >",pl+1);return;}
+    /* VID/PID and interface identify the same device in both menus. */
+    const char *id=strstr(input_guns[pl],"VID_"); if(!id)id=input_guns[pl];
+    swprintf(out,cap,L"P%d Device  < %.32hs >",pl+1,id);
+}
+static int raw_select_player(HANDLE device, const char *path, int absolute)
+{
+    if(!device)return -1;
+    /* Explicit assignments always take priority over automatic assignment. */
+    for(int p=0;p<2;p++)if(!_stricmp(raw_active_guns[p],path))return p;
+    for(int p=0;p<2;p++)if(raw_assigned[p]==device)return p;
+    if(!absolute)return -1;
+    for(int p=0;p<2;p++)if(!_stricmp(raw_active_guns[p],"auto") && !raw_assigned[p]){
+        raw_assigned[p]=device;fprintf(stderr,"[raw-gun] P%d assigned %s\n",p+1,path);return p;
+    }
+    return -1;
+}
+static int raw_player(HANDLE device, int absolute)
+{
+    char path[1024];UINT len=sizeof path;
+    if(GetRawInputDeviceInfoA(device,RIDI_DEVICENAME,path,&len)==(UINT)-1)return -1;
+    path[1023]=0;
+    return raw_select_player(device,path,absolute);
+}
+static int raw_normalized(LONG value, int origin, int span)
+{
+    return origin+(int)((int64_t)value*(span-1)/65535);
+}
+static void raw_release(void)
+{
+    raw_held=0;g_buttons=0;
+}
+static void raw_decode(int player, const RAWMOUSE *mouse)
+{
+    int x=player?g_gun2_px:g_mouse_x,y=player?g_gun2_py:g_mouse_y;
+    if(mouse->usFlags&MOUSE_MOVE_ABSOLUTE){
+        int virt=(mouse->usFlags&MOUSE_VIRTUAL_DESKTOP)!=0;
+        POINT point={raw_normalized(mouse->lLastX,virt?GetSystemMetrics(SM_XVIRTUALSCREEN):0,GetSystemMetrics(virt?SM_CXVIRTUALSCREEN:SM_CXSCREEN)),
+                     raw_normalized(mouse->lLastY,virt?GetSystemMetrics(SM_YVIRTUALSCREEN):0,GetSystemMetrics(virt?SM_CYVIRTUALSCREEN:SM_CYSCREEN))};
+        ScreenToClient(raw_window,&point);
+        RECT rect;GetClientRect(raw_window,&rect);
+        int dw,dh;SDL_GL_GetDrawableSize(g_win.win,&dw,&dh);
+        /* Native client coordinates -> drawable -> game viewport, without SDL's DPI conversion. */
+        double px=(double)point.x*dw/(rect.right?rect.right:1),py=(double)point.y*dh/(rect.bottom?rect.bottom:1);
+        x=(int)floor((px-g_vp_x)*g_win.w/(g_vp_w?g_vp_w:dw));
+        y=(int)floor((py-g_vp_y)*g_win.h/(g_vp_h?g_vp_h:dh));
+    }else if(mouse->lLastX || mouse->lLastY){
+        if(x<0 || x>=g_win.w)x=g_win.w/2;if(y<0 || y>=g_win.h)y=g_win.h/2;
+        x+=(int)(mouse->lLastX*settings()->mouse_sens);y+=(int)(mouse->lLastY*settings()->mouse_sens);
+        x=x<0?0:x>=g_win.w?g_win.w-1:x;y=y<0?0:y>=g_win.h?g_win.h-1:y;
+    }
+    if(player){g_gun2_on=1;g_gun2_px=x;g_gun2_py=y;}else{g_mouse_x=x;g_mouse_y=y;}
+    const unsigned bits[3]={player?CAB_P2_TRIGGER:CAB_P1_TRIGGER,player?CAB_P2_RELOAD:CAB_P1_RELOAD,player?CAB_P2_ACTION:CAB_P1_ACTION};
+    for(int b=0;b<3;b++){
+        if(mouse->usButtonFlags&(1u<<(b*2))){raw_held|=bits[b];g_cab_latch|=bits[b];}
+        if(mouse->usButtonFlags&(2u<<(b*2)))raw_held&=~bits[b];
+    }
+    if((mouse->usButtonFlags&RI_MOUSE_LEFT_BUTTON_DOWN) && (x<0 || y<0 || x>=g_win.w || y>=g_win.h))
+        g_cab_latch|=bits[1];
+    if(!player)g_buttons=(raw_held&CAB_P1_TRIGGER?1:0)|(raw_held&CAB_P1_RELOAD?4:0);
+}
+static LRESULT CALLBACK raw_window_proc(HWND window, UINT msg, WPARAM wp, LPARAM lp)
+{
+    if(msg==WM_INPUT && !raw_suspended && GetForegroundWindow()==window){
+        RAWINPUT input;UINT size=sizeof input;
+        if(GetRawInputData((HRAWINPUT)lp,RID_INPUT,&input,&size,sizeof(RAWINPUTHEADER))!=(UINT)-1 && input.header.dwType==RIM_TYPEMOUSE){
+            int p=raw_player(input.header.hDevice,input.data.mouse.usFlags&MOUSE_MOVE_ABSOLUTE);
+            if(p>=0)raw_decode(p,&input.data.mouse);
+        }
+    }
+    if(msg==WM_KILLFOCUS)raw_release();
+    if(msg==WM_INPUT_DEVICE_CHANGE && wp==GIDC_REMOVAL){
+        raw_release();for(int p=0;p<2;p++)if(raw_assigned[p]==(HANDLE)lp)raw_assigned[p]=NULL;
+    }
+    /* SDL/DefWindowProc must receive WM_INPUT for Windows to free the packet. */
+    return CallWindowProc(raw_previous_proc,window,msg,wp,lp);
+}
+static int raw_install(void)
+{
+    if(input_active_mode!=2)return 1;
+    SDL_SysWMinfo info;SDL_VERSION(&info.version);
+    if(!SDL_GetWindowWMInfo(g_win.win,&info))return 0;
+    raw_window=info.info.win.window;
+    SetLastError(0);
+    raw_previous_proc=(WNDPROC)SetWindowLongPtr(raw_window,GWLP_WNDPROC,(LONG_PTR)raw_window_proc);
+    if(!raw_previous_proc)return 0;
+    RAWINPUTDEVICE device={1,2,RIDEV_DEVNOTIFY,raw_window};
+    if(!RegisterRawInputDevices(&device,1,sizeof device)){
+        SetWindowLongPtr(raw_window,GWLP_WNDPROC,(LONG_PTR)raw_previous_proc);return 0;
+    }
+    g_mouse_x=g_mouse_y=-100000;
+    fprintf(stderr,"[raw-gun] Windows Raw Input active; absolute coordinates, per-device players, no mouse lock\n");
+    return 1;
+}
+#endif

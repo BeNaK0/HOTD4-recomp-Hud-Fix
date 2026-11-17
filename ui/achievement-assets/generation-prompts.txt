@@ -1,0 +1,9 @@
+Tool: built-in image_gen, transparent_background=true. Three separate generation calls.
+
+Exact prompt template (replace METAL with each material below):
+
+Use case: stylized-concept. Asset type: premium achievement badge icon for The House of the Dead 4 desktop game menu and unlock notification. Generate ONE centered five-point metallic star made from METAL, front-facing orthographic view, a single point up, thick sculpted 3D bevels, fine brushed metal with restrained wear, crisp engraved secondary inset star outline, dark recessed bevel edges and brilliant clean metal highlights from upper left. The star silhouette must remain clearly readable at 64 pixels. Mature arcade horror aesthetic, luxurious machined metal, no gore, no gems, no wings, no wreath, no platform or medallion behind star, no background, no text or letters, no watermark. Balanced five-point geometry, entirely inside frame with generous 15% transparent padding on all sides. The image must have a genuinely transparent alpha background. Square composition, high resolution.
+
+bronze.png: METAL = warm copper bronze
+silver.png: METAL = cool polished silver
+gold.png: METAL = rich warm gold

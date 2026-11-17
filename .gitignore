@@ -1,0 +1,20 @@
+# Game input, generated code, builds and local settings must never be committed.
+/build/
+/HOTD4-PC/
+/generated/
+**/generated/
+**/__pycache__/
+*.pyc
+*.exe
+*.dll
+*.obj
+*.elf
+*.iso
+*.sfd
+*.adx
+*.dds
+*.nvram
+controls-profile.txt
+input-profile.txt
+trophies-profile.txt
+hotd4-menu.jpg

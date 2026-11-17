@@ -1,0 +1,22 @@
+name: Private release
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: hotd4-private-release
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: github.event.repository.private == true && startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out the tagged source
+        uses: actions/checkout@v4
+      - name: Verify privacy, package and publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 .release/publish.py
