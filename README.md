@@ -42,6 +42,10 @@ Select **Yes** when Setup asks whether to build the OpenXR version. For unattend
 
 Connect your PC VR headset and start an OpenXR runtime that supports OpenGL before using the VR launcher. Aim with a tracked controller, pull the trigger to shoot, squeeze the grip to reload and click the thumbstick to start. VR uses its own headset menu, controller bindings and cabinet save.
 
+## Lower GPU load
+
+On the desktop, select **960 × 540 (performance, windowed)** or **1280 × 720** under **Settings > Resolution**. Turn MSAA off under **Settings > Input & Anti-Aliasing** and restart the game to apply it.
+
 ## Command-line options
 
 ```powershell

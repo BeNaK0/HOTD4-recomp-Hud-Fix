@@ -448,10 +448,10 @@
         if ($saved -match '^(0|75|100|125)$') { $state.Hud = $saved }
     }
     $available = [ordered]@{ auto = "Desktop resolution ($DesktopWidth × $DesktopHeight)" }
-    foreach ($size in @(@(1280,720), @(1920,1080), @(2560,1440), @(3840,2160))) {
+    foreach ($size in @(@(960,540), @(1280,720), @(1920,1080), @(2560,1440), @(3840,2160))) {
         $width, $height = $size
         if ($width -le ($DesktopWidth - 32) -and $height -le ($DesktopHeight - 72)) {
-            $available["${width}x${height}"] = "$width × $height (windowed)"
+            $available["${width}x${height}"] = if ($height -eq 540) { "$width × $height (performance, windowed)" } else { "$width × $height (windowed)" }
         }
     }
     if ([IO.File]::Exists($resolutionPath)) {

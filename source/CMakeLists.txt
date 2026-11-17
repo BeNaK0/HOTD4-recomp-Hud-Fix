@@ -77,9 +77,12 @@ function(lindbergh_game id)
         file(GLOB solib "${gen}/recomp_solib_*.c")
         target_sources(${id} PRIVATE ${solib})
     endif()
-    # HOTD4's generated Sofdec/MPEG and ADX code needs optimization for
-    # real-time playback, including local builds with empty release flags.
+    # The local builder clears the toolchain's default release flags.
+    # Optimize lifted gameplay code on Windows without requiring a newer CPU.
     if(id STREQUAL "hotd4" AND WIN32 AND NOT LINDBERGH_OPENXR AND CMAKE_C_COMPILER_ID STREQUAL "GNU")
+        set_property(SOURCE ${lifted} APPEND PROPERTY
+            COMPILE_OPTIONS "$<$<CONFIG:Release>:-O1>")
+        # Sofdec/MPEG and ADX chunks need extra optimization for real-time playback.
         foreach(chunk IN ITEMS 0058 0059 0060 0062 0066)
             set_property(SOURCE "${gen}/recomp_funcs_${chunk}.c" APPEND PROPERTY
                 COMPILE_OPTIONS "$<$<CONFIG:Release>:-O2>")

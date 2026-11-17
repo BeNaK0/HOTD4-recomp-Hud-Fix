@@ -7,7 +7,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "8d6076835f567a24a4a3261fd75ccac725fe00b28da8663217e385edf8223728"
+      "sha256": "87583b96b62926936a3d5c6fe0f742e31f9d01354b76fc21677b879a3f7ad8ed"
     },
     {
       "path": "RELEASE-NOTES.md",
@@ -23,7 +23,7 @@
     },
     {
       "path": "source/CMakeLists.txt",
-      "sha256": "62f16575a6590c28b22a3fdb422b23964d30ea881cc85cc22a64715aa772e4ce"
+      "sha256": "af1f1e9daeddb32d27692d1adcc99fd95c70623e755bf4a239e744ddce771b17"
     },
     {
       "path": "source/LICENSE",
@@ -1411,7 +1411,7 @@
     },
     {
       "path": "ui/hotd4-startmenu.ps1",
-      "sha256": "c449fc5952b7d95cea956afb22d25a9d1cfce7b5bd745b33679ba80c27707fc2"
+      "sha256": "e244b7125bcf02f272cff9aa71fd0dbddc6e006d1f4d86947850931264cef373"
     },
     {
       "path": "ui/lindbergh.ini",
