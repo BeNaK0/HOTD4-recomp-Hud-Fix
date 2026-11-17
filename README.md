@@ -46,6 +46,15 @@ Connect your PC VR headset and start an OpenXR runtime that supports OpenGL befo
 
 On the desktop, select **960 × 540 (performance, windowed)** or **1280 × 720** under **Settings > Resolution**. Turn MSAA off under **Settings > Input & Anti-Aliasing** and restart the game to apply it.
 
+## Recording the Chapter 1 elevator slowdown
+
+1. Run **Play HOTD4 (Performance Log).cmd** from your installed game folder.
+2. Use the settings you want to test. For the reported elevator slowdown, select 1080p (Desktop resolution on a 1080p display) and turn MSAA **Off** under **Settings > Input & Anti-Aliasing**.
+3. Choose **Chapter Select > Chapter 1** and play through the elevator fight. If FPS drops, finish the fight or stop just afterwards, then use **Pause > Main Menu** and **Quit** so the game writes the recording.
+4. Open **Performance Logs** in your installation folder and share the newest CSV. The launcher opens the folder when it closes. Mention where the slowdown started, your CPU and GPU, graphics settings, and whether you were playing in fullscreen. GPU utilization during the dip is useful if you already have it.
+
+Each game run writes a separate CSV with frame numbers and `frame_ms`, the time in milliseconds between completed presents. The file records timing data only. Long pauses appear as gaps in the timeline.
+
 ## Command-line options
 
 ```powershell

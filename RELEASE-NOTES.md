@@ -1,27 +1,14 @@
-# HOTD4 Local Builder OpenXR Preview
+# HOTD4 Windows Performance Test
 
-Local Windows builder for the original The House of the Dead 4 arcade game.
+This preview focuses on the Windows desktop build. It includes optimized lifted gameplay code, a selectable 960 × 540 performance resolution, and bit-exact SSE2 operations for the video decoder. The decoder reduced CPU time per frame from 6.01 to 4.81 ms in one 4K cutscene test. The Chapter 1 elevator slowdown reported at 1080p with MSAA off is under investigation.
 
-- Optional OpenXR PC VR build with a separate launcher. Setup builds the desktop game and, when selected, also builds the VR version from the same local dump.
-- Configurable keyboard controls in Settings and in the native pause menu, with duplicate protection, mouse button capture, default reset and saved profiles.
-- Always-visible start-menu overview of Add Coin, Start and all configured controls.
-- Resolution up to 4K, selectable MSAA, AF, cutscene pacing/aspect corrections and adjustable HUD.
-- Native pause menu, chapter practice, 12 local trophies with metallic stars and galleries.
-- Sinden border with four widths, Raw Input device selection, crosshair style/size/color and live preview.
-- Menu background rendered locally from the user's dump. No game image is distributed.
+Download the **HOTD4 Local Builder ZIP**, extract it, and run **Setup.cmd** with your own supported, extracted HOTD4 arcade dump. Setup builds the game locally. The ZIP includes the installer and source code. It contains no arcade game data, Sega artwork or compiled game executable.
 
-Download **HOTD4-Local-Builder ZIP**, extract the entire folder and run **Setup.cmd**. The only game input is your own supported extracted arcade dump; setup obtains the build tools and creates the executable locally. See README.md for the required dump layout and SHA-256.
+## Recording the Chapter 1 elevator slowdown
 
-The archive contains no game executable, lifted game code or Sega assets. Experimental RTX Remix is excluded. Local trophies do not connect to PSN.
+1. Run **Play HOTD4 (Performance Log).cmd** from your installed game folder.
+2. Use the settings you want to test. For the reported elevator slowdown, select 1080p (Desktop resolution on a 1080p display) and turn MSAA **Off** under **Settings > Input & Anti-Aliasing**.
+3. Choose **Chapter Select > Chapter 1** and play through the elevator fight. If FPS drops, finish the fight or stop just afterwards, then use **Pause > Main Menu** and **Quit** so the game writes the recording.
+4. Open **Performance Logs** in your installation folder and share the newest CSV. The launcher opens the folder when it closes. Mention where the slowdown started, your CPU and GPU, graphics settings, and whether you were playing in fullscreen. GPU utilization during the dip is useful if you already have it.
 
-Validation: complete clean local build from the supported dump; actual WPF input capture and save/reload; live runtime remapping, native conflict protection, restart persistence, fullscreen/crosshair controls. Earlier full clean-install checks cover trophies, pause, Sinden, Raw Input and AA. Physical lightgun calibration is not part of these automated checks.
-
-For PC VR, use a compatible headset with an active OpenXR runtime that supports OpenGL. The installer and startup checks have been exercised on Windows. Headset rendering and tracked controller play still need hardware verification.
-
-### What to test in VR
-
-1. Download and extract the builder ZIP. Run `Setup.cmd`, select your own extracted HOTD4 arcade dump, and choose **Yes** to build OpenXR.
-2. Connect your headset, start an OpenGL-compatible OpenXR runtime, and run `Play HOTD4 (VR OpenXR).cmd`.
-3. Check rendering in both eyes, head tracking, aiming, trigger, grip reload, thumbstick Start, and the VR menu. Watch for black screens, stutter or crashes in gameplay and cutscenes.
-
-Please include your headset, OpenXR runtime and GPU when reporting results.
+Each game run writes a separate CSV with frame numbers and `frame_ms`, the time in milliseconds between completed presents. The file records timing data only. Long pauses appear as gaps in the timeline.

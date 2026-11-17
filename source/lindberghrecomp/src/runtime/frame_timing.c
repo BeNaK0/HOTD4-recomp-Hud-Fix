@@ -11,7 +11,7 @@ static size_t count, capacity;
 static unsigned first, last;
 static uint64_t clock_hz;
 static const char *destination, *renderer;
-static int truncated;
+static int truncated, log_interval_ms;
 int frame_timing_on;
 
 static unsigned setting(const char *name, unsigned fallback)
@@ -33,9 +33,20 @@ static void finish(void)
     FILE *out=fopen(temporary,"w");
     if (!out) { fprintf(stderr,"[frame-timing] cannot write %s\n",destination); free(temporary);free(samples);samples=NULL;return; }
     fprintf(out,"# boundary=cpu_present_return\n# backend=%s\n# clock_hz=%" PRIu64
-                "\n# requested_from=%u\n# requested_to=%u\n# truncated=%d\nframe,present_ticks\n",
-                renderer,clock_hz,first,last,truncated);
-    for (size_t i=0;i<count;++i) fprintf(out,"%u,%" PRIu64 "\n",samples[i].frame,samples[i].ticks);
+                "\n# requested_from=%u\n# requested_to=%u\n# truncated=%d\nframe,present_ticks%s\n",
+                renderer,clock_hz,first,last,truncated,log_interval_ms ? ",frame_ms" : "");
+    for (size_t i=0;i<count;++i) {
+        fprintf(out,"%u,%" PRIu64,samples[i].frame,samples[i].ticks);
+        if (log_interval_ms) {
+            if (i && clock_hz) {
+                uint64_t ticks = samples[i].ticks - samples[i-1].ticks;
+                fprintf(out,",%.3f",1000.0 * (double)ticks / (double)clock_hz);
+            } else {
+                fputc(',',out);
+            }
+        }
+        fputc('\n',out);
+    }
     int failed=ferror(out);
     if (fclose(out) || failed || rename(temporary,destination)) {
         fprintf(stderr,"[frame-timing] failed to finish %s\n",destination);
@@ -50,6 +61,7 @@ void frame_timing_init(const char *backend)
     initialized=1;
     destination=getenv("LINDBERGH_FRAME_TIMINGS");
     if (!destination || !*destination) return;
+    log_interval_ms=setting("HOTD4_PERFORMANCE_LOG",0)==1;
     first=setting("LINDBERGH_TIMING_FROM",0);
     last=setting("LINDBERGH_TIMING_TO",UINT_MAX);
     capacity=setting("LINDBERGH_TIMING_SAMPLES",60000);

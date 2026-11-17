@@ -7,11 +7,11 @@
     },
     {
       "path": "README.md",
-      "sha256": "87583b96b62926936a3d5c6fe0f742e31f9d01354b76fc21677b879a3f7ad8ed"
+      "sha256": "65ad579b0f3c70a7e41e85007f6253d376e37cc0a89c2499cacd75f2d5679f9a"
     },
     {
       "path": "RELEASE-NOTES.md",
-      "sha256": "208833e5a61a14396ff79df0465fd72bee3b4bb5e4f0bb3ea0abbd0cb08bf3c2"
+      "sha256": "b4cf62c7b40e94bb42d4535ebf6ebfe77463f11db3e337fcfc01631c5b05c70d"
     },
     {
       "path": "Setup.cmd",
@@ -107,7 +107,7 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/frame_timing.c",
-      "sha256": "551e9248e6cdf0cde6b3f66ec1d6fb2f68a98acc368265cb6ff78d77dddde17f"
+      "sha256": "d105f85f4c468012455d382844a452e110553455f946d00eac0ac56a1040eb1b"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/frame_timing.h",
@@ -511,7 +511,7 @@
     },
     {
       "path": "tools/build.py",
-      "sha256": "72f44be6cdbcd94d161d69677b0a51b14efa7ee53fed507e70e360e56786f83f"
+      "sha256": "5f608f596c90340ddc26177729e170890c411cea33cffaa9a2c522c14978470e"
     },
     {
       "path": "tools/gl-enhancements.h",
@@ -526,12 +526,16 @@
       "sha256": "42d12f0a27b8b968092a5eaf29e71e72f9927c278bb1a20b273da247b369b110"
     },
     {
+      "path": "ui/Play HOTD4 (Performance Log).cmd",
+      "sha256": "1b85609fa667141cf7c36afefcb2b2f149ad62f3e6e9c529ae728bf2c4ee1bd3"
+    },
+    {
       "path": "ui/Play HOTD4 (VR OpenXR).cmd",
       "sha256": "2bf7d717e21521c8b0f403c3e28375fa54d5739d0d13f9d8de1128963dac721c"
     },
     {
       "path": "ui/Play HOTD4.cmd",
-      "sha256": "1cb4961ca02dd6e25c6d161dba801c4955074cf322e978cddec4b3a2e53784e7"
+      "sha256": "2ac1c418e8178d808c9e73a741b0659facc7a46c68cae44fb140f794e141257b"
     },
     {
       "path": "ui/achievement-assets/bronze.png",

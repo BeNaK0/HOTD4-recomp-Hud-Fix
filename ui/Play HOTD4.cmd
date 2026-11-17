@@ -119,8 +119,30 @@ function Invoke-Hotd4 {
                         [IO.File]::Copy($savedNvram, $practiceNvram, $false)
                     }
                 }
-                & $desktopExe $tempElf | Out-Host
-                $exitCode = $LASTEXITCODE
+                $previousTimingPath = $env:LINDBERGH_FRAME_TIMINGS
+                $timingPath = $null
+                try {
+                    if ($env:HOTD4_PERFORMANCE_LOG -eq '1') {
+                        $logDir = Join-Path $gameRoot 'Performance Logs'
+                        [void][IO.Directory]::CreateDirectory($logDir)
+                        $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+                        $suffix = [Guid]::NewGuid().ToString('N').Substring(0,8)
+                        $timingPath = Join-Path $logDir "HOTD4-$stamp-${width}x${height}-$suffix.csv"
+                        $env:LINDBERGH_FRAME_TIMINGS = $timingPath
+                        Write-Host "Recording frame times. Exit the game normally to save: $timingPath"
+                    }
+                    & $desktopExe $tempElf | Out-Host
+                    $exitCode = $LASTEXITCODE
+                } finally {
+                    $env:LINDBERGH_FRAME_TIMINGS = $previousTimingPath
+                }
+                if ($timingPath) {
+                    if ([IO.File]::Exists($timingPath)) {
+                        Write-Host "Saved performance log: $timingPath"
+                    } else {
+                        Write-Warning 'The game did not save a performance log.'
+                    }
+                }
                 if ($exitCode -eq 74 -and [IO.File]::Exists($hudFile)) {
                     $savedHud = [IO.File]::ReadAllText($hudFile).Trim()
                     if ($savedHud -match '^(0|75|100|125)$') {

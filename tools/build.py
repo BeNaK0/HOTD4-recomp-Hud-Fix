@@ -88,7 +88,7 @@ def main():
    rel=p.relative_to(ROOT/'ui')
    if p.name=='Play HOTD4 (VR OpenXR).cmd' and not a.openxr:
     continue
-   dest=(out if p.name in ('Play HOTD4.cmd', 'Play HOTD4 (VR OpenXR).cmd') else app)/rel
+   dest=(out if p.name in ('Play HOTD4.cmd', 'Play HOTD4 (Performance Log).cmd', 'Play HOTD4 (VR OpenXR).cmd') else app)/rel
    if p.name=='lindbergh.ini' and dest.exists():continue
    dest.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(p,dest)
  (out/'dump-path.txt').write_text(str(localdump),encoding='utf-8')
