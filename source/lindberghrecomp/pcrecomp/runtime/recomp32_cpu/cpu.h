@@ -160,6 +160,41 @@ static inline uint64_t mmx_psrad(uint64_t a, uint64_t n)
 {   int k = n > 31 ? 31 : (int)n; int32x2_t r = vshl_s32(MM_S32(a), vdup_n_s32(-k)); return MM_U64(s32(r)); }
 static inline uint64_t mmx_psraw(uint64_t a, uint64_t n)
 {   int k = n > 15 ? 15 : (int)n; int16x4_t r = vshl_s16(MM_S16(a), vdup_n_s16((int16_t)-k)); return MM_U64(s16(r)); }
+#elif defined(RECOMP_MMX_SSE2) && defined(__x86_64__) && !defined(RECOMP_MMX_SCALAR)
+/* The Windows HOTD4 movie decoder can use baseline x64 SSE2. Its four
+ * MMX word lanes or two dword lanes occupy the low half of each XMM value. */
+#include <emmintrin.h>
+
+static inline __m128i mm_sse2_load(uint64_t bits)
+{
+    return _mm_cvtsi64_si128((long long)bits);
+}
+static inline uint64_t mm_sse2_bits(__m128i lanes)
+{
+    return (uint64_t)_mm_cvtsi128_si64(lanes);
+}
+
+static inline uint64_t mmx_paddd(uint64_t a, uint64_t b)
+{ return mm_sse2_bits(_mm_add_epi32(mm_sse2_load(a), mm_sse2_load(b))); }
+static inline uint64_t mmx_psubd(uint64_t a, uint64_t b)
+{ return mm_sse2_bits(_mm_sub_epi32(mm_sse2_load(a), mm_sse2_load(b))); }
+static inline uint64_t mmx_paddsw(uint64_t a, uint64_t b)
+{ return mm_sse2_bits(_mm_adds_epi16(mm_sse2_load(a), mm_sse2_load(b))); }
+static inline uint64_t mmx_psubsw(uint64_t a, uint64_t b)
+{ return mm_sse2_bits(_mm_subs_epi16(mm_sse2_load(a), mm_sse2_load(b))); }
+static inline uint64_t mmx_pmulhw(uint64_t a, uint64_t b)
+{ return mm_sse2_bits(_mm_mulhi_epi16(mm_sse2_load(a), mm_sse2_load(b))); }
+static inline uint64_t mmx_pmaddwd(uint64_t a, uint64_t b)
+{ return mm_sse2_bits(_mm_madd_epi16(mm_sse2_load(a), mm_sse2_load(b))); }
+static inline uint64_t mmx_packssdw(uint64_t a, uint64_t b)
+{
+    __m128i packed = _mm_unpacklo_epi64(mm_sse2_load(a), mm_sse2_load(b));
+    return mm_sse2_bits(_mm_packs_epi32(packed, _mm_setzero_si128()));
+}
+static inline uint64_t mmx_psrad(uint64_t a, uint64_t n)
+{ return mm_sse2_bits(_mm_sra_epi32(mm_sse2_load(a), mm_sse2_load(n))); }
+static inline uint64_t mmx_psraw(uint64_t a, uint64_t n)
+{ return mm_sse2_bits(_mm_sra_epi16(mm_sse2_load(a), mm_sse2_load(n))); }
 #else
 static inline uint64_t mmx_paddd(uint64_t a, uint64_t b) { return mm_d2((int32_t)((uint32_t)mmd(a,0) + (uint32_t)mmd(b,0)), (int32_t)((uint32_t)mmd(a,1) + (uint32_t)mmd(b,1))); }
 static inline uint64_t mmx_psubd(uint64_t a, uint64_t b) { return mm_d2((int32_t)((uint32_t)mmd(a,0) - (uint32_t)mmd(b,0)), (int32_t)((uint32_t)mmd(a,1) - (uint32_t)mmd(b,1))); }

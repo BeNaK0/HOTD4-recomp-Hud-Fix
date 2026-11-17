@@ -23,7 +23,7 @@
     },
     {
       "path": "source/CMakeLists.txt",
-      "sha256": "af1f1e9daeddb32d27692d1adcc99fd95c70623e755bf4a239e744ddce771b17"
+      "sha256": "b8079abb18c3ddf4fce50c07737fa7baabf3870d256ad1874bb3fd2fe946af71"
     },
     {
       "path": "source/LICENSE",
@@ -63,7 +63,7 @@
     },
     {
       "path": "source/lindberghrecomp/pcrecomp/runtime/recomp32_cpu/cpu.h",
-      "sha256": "24deddb4813819a489714ac7c99613c0282b6ba3498f21eba83f1e1fc444dda0"
+      "sha256": "a7234398f4996287904debe4f161fa03278fe6df5d6d19115dd257c62f3ef8ac"
     },
     {
       "path": "source/lindberghrecomp/pcrecomp/tools/lift/lift32_cpu.py",

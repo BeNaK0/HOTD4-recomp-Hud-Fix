@@ -87,6 +87,9 @@ function(lindbergh_game id)
             set_property(SOURCE "${gen}/recomp_funcs_${chunk}.c" APPEND PROPERTY
                 COMPILE_OPTIONS "$<$<CONFIG:Release>:-O2>")
         endforeach()
+        # The supported dump's lifted CRI decoder is in this translation unit.
+        set_property(SOURCE "${gen}/recomp_funcs_0062.c" APPEND PROPERTY
+            COMPILE_DEFINITIONS RECOMP_MMX_SSE2)
     endif()
     if(id STREQUAL "hotd4" AND WIN32 AND CMAKE_SIZEOF_VOID_P EQUAL 8 AND
        NOT LINDBERGH_OPENXR AND NOT LINDBERGH_RENDERER STREQUAL "VULKAN")
