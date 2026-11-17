@@ -41,6 +41,7 @@ def status_write(status):
 def main():
     out,sums,digest=package()
     if '--package-only' in __import__('sys').argv:print(str(out),digest);return
+    prerelease = '-' in TAG.split('+', 1)[0]
     status={'tag':TAG,'commit':os.environ['GITHUB_SHA'],'run_url':'https://github.com/'+REPO+'/actions/runs/'+os.environ['GITHUB_RUN_ID']}
     try:
         repo=api('GET','/repos/'+REPO)
@@ -48,7 +49,7 @@ def main():
         try:release=api('GET','/repos/'+REPO+'/releases/tags/'+TAG)
         except urllib.error.HTTPError as e:
             if e.code!=404:raise
-            release=api('POST','/repos/'+REPO+'/releases',{'tag_name':TAG,'name':'HOTD4 Local Builder '+TAG,'draft':True,'prerelease':False,'body':(ROOT/'RELEASE-NOTES.md').read_text(encoding='utf-8')})
+            release=api('POST','/repos/'+REPO+'/releases',{'tag_name':TAG,'name':'HOTD4 Local Builder '+TAG,'draft':True,'prerelease':prerelease,'body':(ROOT/'RELEASE-NOTES.md').read_text(encoding='utf-8')})
         assert release['draft'],'Refusing to replace an already published release'
         for old in release['assets']:api('DELETE','/repos/'+REPO+'/releases/assets/'+str(old['id']))
         assets=[]
@@ -60,10 +61,12 @@ def main():
             assert asset['state']=='uploaded' and asset['size']==path.stat().st_size
             assert asset.get('digest')=='sha256:'+expected,'Uploaded asset digest mismatch'
             assets.append({'name':path.name,'sha256':expected,'size':asset['size'],'url':asset['browser_download_url']})
-        release=api('PATCH','/repos/'+REPO+'/releases/'+str(release['id']),{'draft':False})
+        release=api('PATCH','/repos/'+REPO+'/releases/'+str(release['id']),{'draft':False,'prerelease':prerelease})
         verify=api('GET','/repos/'+REPO+'/releases/tags/'+TAG)
         assert not verify['draft'] and len(verify['assets'])==2
-        status.update(success=True,release_url=verify['html_url'],assets=assets,private=api('GET','/repos/'+REPO)['private'])
+        assert verify['prerelease'] is prerelease, 'GitHub release type does not match the version tag'
+        status.update(success=True,release_url=verify['html_url'],assets=assets,prerelease=prerelease,
+                      private=api('GET','/repos/'+REPO)['private'])
     except Exception as e:
         status.update(success=False,error=str(e));status_write(status);raise
     status_write(status);print(json.dumps(status,indent=2))

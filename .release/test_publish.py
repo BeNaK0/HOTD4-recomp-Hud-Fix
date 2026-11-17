@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+import urllib.error
 from unittest.mock import patch
 
 spec = importlib.util.spec_from_file_location('publisher', Path(__file__).with_name('publish.py'))
@@ -13,7 +14,7 @@ publisher = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(publisher)
 
 class ReleaseTests(unittest.TestCase):
-    def run_release(self, private, *, bad_digest=False, published=False):
+    def run_release(self, private, *, bad_digest=False, published=False, tag='v1.0.0', prerelease=False):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
             (root / 'RELEASE-NOTES.md').write_text('Test release', encoding='utf-8')
@@ -25,12 +26,18 @@ class ReleaseTests(unittest.TestCase):
             def api(method, path, data=None):
                 if path == '/repos/' + publisher.REPO:
                     return {'private': private}
+                if method == 'POST':
+                    self.assertIs(data['prerelease'], prerelease)
+                    self.assertTrue(data['draft'])
+                    return draft
                 if method == 'PATCH':
-                    self.assertEqual(data, {'draft': False})
+                    self.assertEqual(data, {'draft': False, 'prerelease': prerelease})
                     return {'draft': False}
                 if method == 'GET':
                     if uploaded:
-                        return {'draft': False, 'assets': uploaded, 'html_url': 'https://example/release'}
+                        return {'draft': False, 'prerelease': prerelease, 'assets': uploaded, 'html_url': 'https://example/release'}
+                    if prerelease:
+                        raise urllib.error.HTTPError(path, 404, 'Not found', None, io.BytesIO())
                     return draft
                 raise AssertionError((method, path))
             def upload(request, timeout):
@@ -42,6 +49,7 @@ class ReleaseTests(unittest.TestCase):
                 uploaded.append(asset)
                 return io.BytesIO(json.dumps(asset).encode())
             with patch.object(publisher, 'ROOT', root), \
+                 patch.object(publisher, 'TAG', tag), \
                  patch.object(publisher, 'package', return_value=(*paths, 'unused')), \
                  patch.object(publisher, 'api', side_effect=api), \
                  patch.object(publisher.urllib.request, 'urlopen', side_effect=upload), \
@@ -58,11 +66,15 @@ class ReleaseTests(unittest.TestCase):
                     self.assertTrue(result['success'])
                     self.assertIs(result['private'], private)
                     self.assertEqual(len(result['assets']), 2)
+                    self.assertIs(result['prerelease'], prerelease)
 
     def test_private_and_public_repositories(self):
         for private in (True, False):
             with self.subTest(private=private):
                 self.run_release(private)
+
+    def test_preview_tag_publishes_as_prerelease(self):
+        self.run_release(False, tag='v1.1.0-openxr-preview', prerelease=True)
 
     def test_bad_asset_digest_is_rejected(self):
         self.run_release(False, bad_digest=True)

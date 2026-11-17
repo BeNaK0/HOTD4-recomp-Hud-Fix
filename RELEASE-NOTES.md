@@ -1,4 +1,4 @@
-# HOTD4 Local Builder
+# HOTD4 Local Builder OpenXR Preview
 
 Local Windows builder for the original The House of the Dead 4 arcade game.
 
@@ -17,3 +17,11 @@ The archive contains no game executable, lifted game code or Sega assets. Experi
 Validation: complete clean local build from the supported dump; actual WPF input capture and save/reload; live runtime remapping, native conflict protection, restart persistence, fullscreen/crosshair controls. Earlier full clean-install checks cover trophies, pause, Sinden, Raw Input and AA. Physical lightgun calibration is not part of these automated checks.
 
 For PC VR, use a compatible headset with an active OpenXR runtime that supports OpenGL. The installer and startup checks have been exercised on Windows. Headset rendering and tracked controller play still need hardware verification.
+
+### What to test in VR
+
+1. Download and extract the builder ZIP. Run `Setup.cmd`, select your own extracted HOTD4 arcade dump, and choose **Yes** to build OpenXR.
+2. Connect your headset, start an OpenGL-compatible OpenXR runtime, and run `Play HOTD4 (VR OpenXR).cmd`.
+3. Check rendering in both eyes, head tracking, aiming, trigger, grip reload, thumbstick Start, and the VR menu. Watch for black screens, stutter or crashes in gameplay and cutscenes.
+
+Please include your headset, OpenXR runtime and GPU when reporting results.
