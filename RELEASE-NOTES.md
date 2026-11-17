@@ -1,8 +1,14 @@
-# HOTD4 Windows Performance Test
+# HOTD4 Local Builder v1.1.0
 
-This preview focuses on the Windows desktop build. It includes optimized lifted gameplay code, a selectable 960 × 540 performance resolution, and bit-exact SSE2 operations for the video decoder. The decoder reduced CPU time per frame from 6.01 to 4.81 ms in one 4K cutscene test. The Chapter 1 elevator slowdown reported at 1080p with MSAA off is under investigation.
+This Windows release improves desktop performance and adds a launcher that records frame times for troubleshooting.
 
-Download the **HOTD4 Local Builder ZIP**, extract it, and run **Setup.cmd** with your own supported, extracted HOTD4 arcade dump. Setup builds the game locally. The ZIP includes the installer and source code. It contains no arcade game data, Sega artwork or compiled game executable.
+- Optimized recompiled gameplay code in the Windows desktop build. The video decoder now uses bit-exact SSE2 operations. In one 4K cutscene test, game-thread CPU time fell from 6.01 to 4.81 ms per frame.
+- New **960 × 540** windowed option for lower GPU load, alongside existing resolutions up to 4K and selectable MSAA.
+- **Play HOTD4 (Performance Log).cmd** saves a separate CSV per game session, including frame times in milliseconds.
+- Includes Chapter Select, the in-game pause and trophies menus, customizable keyboard and mouse bindings, HUD and crosshair settings, and Sinden border and Raw Input options.
+- Optional OpenXR PC VR remains experimental. The Windows desktop build is the default.
+
+Download **HOTD4-Local-Builder-v1.1.0.zip**, extract it, and run **Setup.cmd**. Select your own supported, extracted arcade dump. After setup finishes, run **HOTD4-PC/Play HOTD4.cmd**. To update, run the new setup with the same dump and installation folder. Setup builds the executable and renders the menu background locally. The ZIP contains the installer, source code and project artwork. Game files, lifted game code and prebuilt game executables stay on the user's PC.
 
 ## Recording the Chapter 1 elevator slowdown
 
