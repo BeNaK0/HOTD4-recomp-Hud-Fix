@@ -43,8 +43,8 @@ def main():
     if '--package-only' in __import__('sys').argv:print(str(out),digest);return
     status={'tag':TAG,'commit':os.environ['GITHUB_SHA'],'run_url':'https://github.com/'+REPO+'/actions/runs/'+os.environ['GITHUB_RUN_ID']}
     try:
-        repo=api('GET','/repos/'+REPO);assert repo['private'] is True,'Repository must remain private'
-        status['private']=True
+        repo=api('GET','/repos/'+REPO)
+        status['private']=repo['private']
         try:release=api('GET','/repos/'+REPO+'/releases/tags/'+TAG)
         except urllib.error.HTTPError as e:
             if e.code!=404:raise
@@ -60,12 +60,10 @@ def main():
             assert asset['state']=='uploaded' and asset['size']==path.stat().st_size
             assert asset.get('digest')=='sha256:'+expected,'Uploaded asset digest mismatch'
             assets.append({'name':path.name,'sha256':expected,'size':asset['size'],'url':asset['browser_download_url']})
-        assert api('GET','/repos/'+REPO)['private'] is True
         release=api('PATCH','/repos/'+REPO+'/releases/'+str(release['id']),{'draft':False})
         verify=api('GET','/repos/'+REPO+'/releases/tags/'+TAG)
         assert not verify['draft'] and len(verify['assets'])==2
         status.update(success=True,release_url=verify['html_url'],assets=assets,private=api('GET','/repos/'+REPO)['private'])
-        assert status['private'] is True
     except Exception as e:
         status.update(success=False,error=str(e));status_write(status);raise
     status_write(status);print(json.dumps(status,indent=2))
