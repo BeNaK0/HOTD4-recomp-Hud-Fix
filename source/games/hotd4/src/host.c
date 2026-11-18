@@ -330,7 +330,6 @@ static void h_hud_render_env(CPU *c)
 static void install_hud(void)
 {
     const char *name = "_ZN7CEnvMgr9RenderEnvEi";
-    if (hud_custom_scale() <= 0 && !getenv("HOTD4_PAUSE_MENU")) return;
     lifted_render_env = dispatch_lifted(guest_symbol(name));
     if (lifted_render_env) guest_override(name, h_hud_render_env);
 }
@@ -385,6 +384,107 @@ static void install_cutscene_pacing(void)
 
 #if defined(_WIN64) && !defined(LINDBERGH_OPENXR) && !defined(LINDBERGH_VULKAN)
 #include "achievement_hooks.h"
+
+enum {
+    PLAYER_INDEX = 0x34,
+    PLAYER_MODE = 0x38,
+    PLAYER_RELOAD_PROMPT = 0x1d4,
+    PLAYER_RELOAD_VOICE_TIMER = 0x1dc,
+    PLAYER_AMMO = 0x274,
+    PLAYER_RELOAD_TIME = 0x284,
+    SPRITE_FRAME = 0x28
+};
+extern void hud_route_mark(void);
+static HleHandler lifted_player_sound, lifted_sprite_next, lifted_sprite_draw, lifted_resolution;
+
+static void h_player_sound(CPU *c)
+{
+    static struct { uint32_t player; int played; } state[2];
+    const uint32_t player = c->eax;
+    const unsigned index = rd8(player + PLAYER_INDEX);
+    uint32_t original_prompt = rd32(player + PLAYER_RELOAD_PROMPT);
+    int request = 0;
+    if (index < 2) {
+        int empty = (int32_t)rd32(player + PLAYER_AMMO) <= 0;
+        if (state[index].player != player || !empty) {
+            state[index].player = player;
+            state[index].played = 0;
+        }
+        uint32_t reload_bits = rd32(player + PLAYER_RELOAD_TIME);
+        float reload_time;
+        memcpy(&reload_time, &reload_bits, sizeof reload_time);
+        request = empty && rd32(player + PLAYER_MODE) == 3 &&
+                  reload_time <= 0.0f && !state[index].played;
+        // Reuse the voice branch and its original checks for grabs and scripted
+        // scenes. Keep the stock prompt state outside this sound update.
+        wr32(player + PLAYER_RELOAD_PROMPT, request);
+        if (request) wr32(player + PLAYER_RELOAD_VOICE_TIMER, 0);
+    }
+    push32(c, rd32(c->esp - 4));
+    lifted_player_sound(c);
+    if (index < 2) {
+        wr32(player + PLAYER_RELOAD_PROMPT, original_prompt);
+        // The original sound branch reloads the countdown to 120.0.
+        if (request && rd32(player + PLAYER_RELOAD_VOICE_TIMER) == 0x42f00000u)
+            state[index].played = 1;
+    }
+}
+
+static void h_reload_sprite_next(CPU *c)
+{
+    // CPlayer::SprMain advances the original red prompt through a blink loop.
+    // Keep an opaque frame; its original CalcScene and Draw still run.
+    if (rd32(c->esp - 4) == 0x08164e9au) {
+        wr32(c->eax + SPRITE_FRAME, 0x41400000u); // 12.0
+        return;
+    }
+    push32(c, rd32(c->esp - 4));
+    lifted_sprite_next(c);
+}
+
+static void h_route_sprite_draw(CPU *c)
+{
+    // The five route sprites use the same 640x480 canvas as their hit boxes.
+    const int route = rd32(c->esp - 4) == 0x081800b1u;
+    if (route) hud_route_mark();
+    push32(c, rd32(c->esp - 4));
+    lifted_sprite_draw(c);
+}
+
+static void h_route_resolution(CPU *c)
+{
+    // CBRANCH00::GetSelectSide converts normalized gun aim into sprite units.
+    if (rd32(c->esp - 4) == 0x0817ff72u) {
+        wr32(c->eax, 640);
+        wr32(c->edx, 480);
+        c->eax = 480;
+        return;
+    }
+    push32(c, rd32(c->esp - 4));
+    lifted_resolution(c);
+}
+
+static void install_reload_feedback(void)
+{
+    const char *sound = "_ZN7CPlayer7SndMainEv";
+    const char *next = "_ZN9CCsPlayer13NextFrameSkipEf";
+    lifted_player_sound = dispatch_lifted(guest_symbol(sound));
+    lifted_sprite_next = dispatch_lifted(guest_symbol(next));
+    if (lifted_player_sound) guest_override(sound, h_player_sound);
+    if (lifted_sprite_next) guest_override(next, h_reload_sprite_next);
+}
+
+static void install_route_layout(void)
+{
+    const char *draw = "_ZN9CCsPlayer12_DrawProcessEjP12KfMatrixNNGL";
+    const char *resolution = "_Z13GetResolutionPjS_";
+    lifted_sprite_draw = dispatch_lifted(guest_symbol(draw));
+    lifted_resolution = dispatch_lifted(guest_symbol(resolution));
+    if (lifted_sprite_draw && lifted_resolution) {
+        guest_override(draw, h_route_sprite_draw);
+        guest_override(resolution, h_route_resolution);
+    }
+}
 #endif
 
 int main(int argc, char **argv)
@@ -417,6 +517,7 @@ int main(int argc, char **argv)
     install_practice();
 #if defined(_WIN64) && !defined(LINDBERGH_VULKAN)
     install_achievements();
+    install_reload_feedback();
 #endif
 #if defined(_WIN64) && !defined(LINDBERGH_VULKAN)
     install_lighting();
@@ -432,6 +533,7 @@ int main(int argc, char **argv)
             fprintf(stderr, "[hotd4] 16:9 widescreen layout active (%dx%d)\n", w, h);
 #if defined(_WIN64) && !defined(LINDBERGH_OPENXR) && !defined(LINDBERGH_VULKAN)
             install_hud();
+            install_route_layout();
 #endif
             hud_widen_enable(0.75f, hud_anchored);
             /* the 2D is laid out in 640x480 pixels from the top left, and

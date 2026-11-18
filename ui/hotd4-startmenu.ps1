@@ -231,6 +231,16 @@
                         <ComboBox Height="36" Margin="0,4,0,6" Name="Gun2"/>
                         <Label Content="Anti-Aliasing" Foreground="#F0EFEB" FontSize="15" Padding="0" Target="{Binding ElementName=AntiAliasing}"/>
                         <ComboBox Height="36" Margin="0,4,0,8" Name="AntiAliasing"/>
+                        <Grid Margin="0,0,0,6"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
+                            <StackPanel Margin="0,0,5,0">
+                                <Label Content="Raw Mouse Speed" Foreground="#F0EFEB" FontSize="15" Padding="0" Target="{Binding ElementName=MouseSpeed}"/>
+                                <ComboBox Height="36" Margin="0,4,0,0" Name="MouseSpeed"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1">
+                                <Label Content="Raw Mouse Smoothing" Foreground="#F0EFEB" FontSize="15" Padding="0" Target="{Binding ElementName=MouseSmoothing}"/>
+                                <ComboBox Height="36" Margin="0,4,0,0" Name="MouseSmoothing"/>
+                            </StackPanel>
+                        </Grid>
                         <Button Name="SaveInput" Height="38" Margin="0,0,0,6" Content="Save"/>
                         <Button Name="InputBack" Height="38" Content="Back"/>
                     </StackPanel>
@@ -381,7 +391,7 @@
 
     $controls = @{}
     foreach ($name in 'MainPage','ChapterPage','OptionsPage','Arcade','Chapters','Options','Quit','ChapterList',
-            'BindingsPage','BindingsOpen','BindingsList','BindingsStatus','SaveBindings','BindingsBack','ResetBindings','CancelBinding','ControlSummary','ControlSummaryList','ChapterHelp','AaGuide','Achievements','AchievementsPage','AchievementProgress','AchievementList','AchievementScroll','AchievementsBack','AchievementTotal','AchievementPercent','AchievementProgressFill','AchievementEndings','AchievementBronzeIcon','AchievementBronzeCount','AchievementSilverIcon','AchievementSilverCount','AchievementGoldIcon','AchievementGoldCount','AchievementAll','AchievementUnlocked','AchievementLocked','AchievementEmptyPanel','AchievementEmpty','AchievementEmptyHint','AchievementEmptyStar','InputGuide','InputPage','InputOptions','InputMode','Gun1','Gun2','AntiAliasing','SaveInput','InputBack','ChapterBack','OptionsBack','SaveOptions','Resolution','Hud','CrosshairStyle','CrosshairSize','CrosshairColor','CrosshairPreview','CrosshairPreviewImage','CrosshairPreviewLabel','Sinden','SindenWidth','SindenFrame','SindenInner','Hint') {
+            'BindingsPage','BindingsOpen','BindingsList','BindingsStatus','SaveBindings','BindingsBack','ResetBindings','CancelBinding','ControlSummary','ControlSummaryList','ChapterHelp','AaGuide','Achievements','AchievementsPage','AchievementProgress','AchievementList','AchievementScroll','AchievementsBack','AchievementTotal','AchievementPercent','AchievementProgressFill','AchievementEndings','AchievementBronzeIcon','AchievementBronzeCount','AchievementSilverIcon','AchievementSilverCount','AchievementGoldIcon','AchievementGoldCount','AchievementAll','AchievementUnlocked','AchievementLocked','AchievementEmptyPanel','AchievementEmpty','AchievementEmptyHint','AchievementEmptyStar','InputGuide','InputPage','InputOptions','InputMode','Gun1','Gun2','AntiAliasing','MouseSpeed','MouseSmoothing','SaveInput','InputBack','ChapterBack','OptionsBack','SaveOptions','Resolution','Hud','CrosshairStyle','CrosshairSize','CrosshairColor','CrosshairPreview','CrosshairPreviewImage','CrosshairPreviewLabel','Sinden','SindenWidth','SindenFrame','SindenInner','Hint') {
         $controls[$name] = $window.FindName($name)
     }
 
@@ -480,21 +490,42 @@
         Gun1 = (Join-Path $RecompDir 'raw-gun1.txt')
         Gun2 = (Join-Path $RecompDir 'raw-gun2.txt')
         AntiAliasing = (Join-Path $RecompDir 'aa-profile.txt')
+        MouseSpeed = (Join-Path $RecompDir 'mouse-speed.txt')
+        MouseSmoothing = (Join-Path $RecompDir 'mouse-smoothing.txt')
     }
-    $inputState = @{ InputMode='1'; Gun1='auto'; Gun2='disabled'; AntiAliasing='4' }
+    $inputDefaults = @{ InputMode='1'; Gun1='auto'; Gun2='disabled'; AntiAliasing='4'; MouseSpeed='1.00'; MouseSmoothing='0' }
+    $inputState = $inputDefaults.Clone()
     $choices = @{
         InputMode = [ordered]@{'0'='Mouse (Absolute)'; '1'='Mouse (Raw Relative)'; '2'='Lightgun (Raw Input)'}
+        MouseSpeed = [ordered]@{}
+        MouseSmoothing = [ordered]@{'0'='Off'; '1'='Low'; '2'='High'}
         AntiAliasing = [ordered]@{'0'='Off'; '2'='MSAA 2x'; '4'='MSAA 4x'; '8'='MSAA 8x'}
     }
+    foreach($speed in '0.50','0.75','1.00','1.25','1.50','2.00','2.50','3.00','4.00','5.00','6.00','8.00') {
+        $choices.MouseSpeed[$speed] = "${speed}x"
+    }
+    $mouseIni = Join-Path $RecompDir 'lindbergh.ini'
+    if ([IO.File]::Exists($mouseIni)) {
+        $legacySpeed = Select-String -LiteralPath $mouseIni -Pattern '^\s*(?:mouse_sens|sensitivity)\s*=\s*([0-9]+(?:\.[0-9]+)?)' |
+            Select-Object -Last 1
+        if ($legacySpeed) {
+            $value = [double]::Parse($legacySpeed.Matches[0].Groups[1].Value, [Globalization.CultureInfo]::InvariantCulture)
+            if ($value -ge 0.50 -and $value -le 8.00) {
+                $id = $value.ToString('0.00', [Globalization.CultureInfo]::InvariantCulture)
+                $inputState.MouseSpeed = $inputDefaults.MouseSpeed = $id
+                if (!$choices.MouseSpeed.Contains($id)) { $choices.MouseSpeed[$id] = "${id}x" }
+            }
+        }
+    }
     $devices = @(Get-Hotd4RawDevices)
-    foreach($field in 'InputMode','Gun1','Gun2','AntiAliasing') {
+    foreach($field in 'InputMode','Gun1','Gun2','AntiAliasing','MouseSpeed','MouseSmoothing') {
         if([IO.File]::Exists($inputPaths[$field])) { $inputState[$field]=[IO.File]::ReadAllText($inputPaths[$field]).Trim() }
         if($field -in 'Gun1','Gun2') {
             $choices[$field]=[ordered]@{auto='Auto - absolute gun';disabled='Disabled'}
             foreach($device in $devices){$choices[$field][$device.Path]=$device.Name}
             if(-not $choices[$field].Contains($inputState[$field])){$choices[$field][$inputState[$field]]='Saved device (not connected)'}
         } elseif(-not $choices[$field].Contains($inputState[$field])) {
-            $inputState[$field]=if($field -eq 'InputMode'){'1'}else{'4'}
+            $inputState[$field]=$inputDefaults[$field]
         }
         foreach($id in $choices[$field].Keys) {
             $item=[Windows.Controls.ComboBoxItem]::new();$item.Tag=$id;$item.Content=$choices[$field][$id]
@@ -506,6 +537,8 @@
     $updateDeviceFields = {
         $enabled=$null -ne $controls.InputMode.SelectedItem -and $controls.InputMode.SelectedItem.Tag -eq '2'
         $controls.Gun1.IsEnabled=$enabled;$controls.Gun2.IsEnabled=$enabled
+        $rawMouse=$null -ne $controls.InputMode.SelectedItem -and $controls.InputMode.SelectedItem.Tag -eq '1'
+        $controls.MouseSpeed.IsEnabled=$rawMouse;$controls.MouseSmoothing.IsEnabled=$rawMouse
     }
     $controls.InputMode.Add_SelectionChanged({ & $updateDeviceFields })
     & $updateDeviceFields
@@ -647,9 +680,11 @@
     $controls.InputOptions.Add_Click({ & $showPage 'InputPage' })
     $controls.InputBack.Add_Click({ & $showPage 'OptionsPage' })
     $controls.SaveInput.Add_Click({
-        foreach($field in 'InputMode','Gun1','Gun2','AntiAliasing') {
-            $inputState[$field]=[string]$controls[$field].SelectedItem.Tag
-            [IO.File]::WriteAllText($inputPaths[$field],$inputState[$field])
+        foreach($field in 'InputMode','Gun1','Gun2','AntiAliasing','MouseSpeed','MouseSmoothing') {
+            $selected = [string]$controls[$field].SelectedItem.Tag
+            if ($field -in 'MouseSpeed','MouseSmoothing' -and $selected -eq $inputState[$field]) { continue }
+            $inputState[$field] = $selected
+            [IO.File]::WriteAllText($inputPaths[$field], $selected)
         }
         & $showPage 'OptionsPage'
     })
@@ -700,7 +735,7 @@
             if ($browse) { $eventArgs.Handled = $true; return }
         }
         if ($eventArgs.Key -eq 'Escape') {
-            if ($controls.InputMode.IsDropDownOpen -or $controls.Gun1.IsDropDownOpen -or $controls.Gun2.IsDropDownOpen -or $controls.AntiAliasing.IsDropDownOpen) { return }
+            if ($controls.InputMode.IsDropDownOpen -or $controls.Gun1.IsDropDownOpen -or $controls.Gun2.IsDropDownOpen -or $controls.AntiAliasing.IsDropDownOpen -or $controls.MouseSpeed.IsDropDownOpen -or $controls.MouseSmoothing.IsDropDownOpen) { return }
             if ($controls.Resolution.IsDropDownOpen -or $controls.Hud.IsDropDownOpen -or $controls.Sinden.IsDropDownOpen -or $controls.SindenWidth.IsDropDownOpen -or $controls.CrosshairStyle.IsDropDownOpen -or $controls.CrosshairSize.IsDropDownOpen -or $controls.CrosshairColor.IsDropDownOpen) { return }
             if ($controls.MainPage.IsVisible) { $window.Close() }
             elseif ($controls.AchievementsPage.IsVisible) { & $showPage 'MainPage'; [void]$controls.Achievements.Focus() }

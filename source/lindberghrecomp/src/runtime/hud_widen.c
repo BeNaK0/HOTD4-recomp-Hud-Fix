@@ -38,6 +38,7 @@
 /* CEnvMgr::RenderEnv indices in the retail HOTD4 executable. */
 enum { HUD_PLAYER_SPRITES = 15, HUD_ARCADE_TEXT = 16 };
 static int g_render_env = -1;
+static unsigned g_route_frame = ~0u;
 static float g_hud_scale;
 static int g_hud_scale_set;
 
@@ -71,12 +72,23 @@ int hud_custom_render_env(int id)
 
 extern unsigned g_frame;
 static float g_f;
+
+void hud_route_mark(void)
+{
+    g_route_frame = g_frame;
+}
+
+static int route_layout_active(void)
+{
+    // The game's sprite commands are queued and submitted later by RenderEnv.
+    return g_route_frame == g_frame && g_render_env == HUD_PLAYER_SPRITES;
+}
 static int (*g_anchored)(void);
 int hud_custom_draw_viewport(int viewport[4])
 {
     /* The ammunition models are drawn as indexed geometry in the separate
      * player UI pass. Scale them in screen space, around the player's edge. */
-    if (g_render_env != HUD_PLAYER_SPRITES || g_hud_scale <= 0 || g_hud_scale == 1)
+    if (route_layout_active() || g_render_env != HUD_PLAYER_SPRITES || g_hud_scale <= 0 || g_hud_scale == 1)
         return 0;
 
     GLint framebuffer, vp[4];
@@ -150,7 +162,7 @@ static void push(int op, GLenum target, float a, float b, float cc, float d)
 
 static void w_glBegin(CPU *c)
 {
-    if (g_f > 0 && g_mv_identity && A32(0) == GL_QUADS) {
+    if (g_f > 0 && (g_mv_identity || route_layout_active()) && A32(0) == GL_QUADS) {
         g_recording = 1; g_nops = 0; g_overflow = 0; g_prim = A32(0);
         return;
     }
@@ -380,6 +392,24 @@ static void w_glEnd(CPU *c)
 
     GLfloat p[16];
     glGetFloatv(GL_PROJECTION_MATRIX, p);
+    if (route_layout_active()) {
+        // This is an interactive screen. Keep the full normalized gun area
+        // aligned with the stock logical canvas, without HUD edge anchors.
+        for (int col = 0; col < 4; ++col) {
+            p[col * 4] = g_lx * p[col * 4] + g_lox * p[col * 4 + 3];
+            p[col * 4 + 1] = g_ly * p[col * 4 + 1] + g_loy * p[col * 4 + 3];
+        }
+        GLint mode;
+        glGetIntegerv(GL_MATRIX_MODE, &mode);
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glLoadMatrixf(p);
+        replay();
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix();
+        glMatrixMode((GLenum)mode);
+        return;
+    }
     float box[4] = { 1e9f, -1e9f, 1e9f, -1e9f };
     int nv = 0;
     for (int i = 0; i < g_nops; i++) {

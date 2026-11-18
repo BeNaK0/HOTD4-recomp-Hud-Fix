@@ -4,6 +4,10 @@
 #include <SDL_syswm.h>
 static int input_pref_mode, input_active_mode, input_pref_aa, input_prefs_loaded;
 static int raw_suspended;
+static float input_mouse_speed;
+static int input_mouse_smoothing;
+static const float mouse_speeds[] = {0.50f, 0.75f, 1.00f, 1.25f, 1.50f, 2.00f, 2.50f, 3.00f, 4.00f, 5.00f, 6.00f, 8.00f};
+static const wchar_t *mouse_smoothing_names[] = {L"Off", L"Low", L"High"};
 static unsigned raw_held;
 static char input_guns[2][1024];
 static char raw_active_guns[2][1024];
@@ -41,7 +45,16 @@ static void input_options_load(void)
     input_prefs_loaded=1;
     input_pref_mode=settings()->raw_mouse?1:0;
     input_pref_aa=settings()->aa;
+    input_mouse_speed = settings()->mouse_sens;
+    if (!isfinite(input_mouse_speed) || input_mouse_speed <= 0.0f) input_mouse_speed = 1.0f;
     char value[32];
+    if (input_read("mouse-speed.txt", value, sizeof value)) {
+        float speed = (float)atof(value);
+        if (speed >= 0.5f && speed <= 8.0f) input_mouse_speed = speed;
+    }
+    if (input_read("mouse-smoothing.txt", value, sizeof value) &&
+        strlen(value) == 1 && value[0] >= '0' && value[0] <= '2')
+        input_mouse_smoothing = value[0] - '0';
     if(input_read("input-profile.txt",value,sizeof value) && strlen(value)==1 && value[0]>='0' && value[0]<='2')input_pref_mode=atoi(value);
     if(input_read("aa-profile.txt",value,sizeof value)){
         int n=atoi(value); if(n==0 || n==2 || n==4 || n==8)input_pref_aa=n;
@@ -60,6 +73,20 @@ static void input_option_cycle(int row, int delta)
 {
     char value[32]; delta=delta<0?-1:1;
     if(row==0){input_pref_mode=(input_pref_mode+3+delta)%3;snprintf(value,sizeof value,"%d",input_pref_mode);input_write("input-profile.txt",value);}
+    if (row == 4 && input_pref_mode == 1) {
+        int count = sizeof mouse_speeds / sizeof *mouse_speeds;
+        int at = 0;
+        for (int i = 1; i < count; ++i)
+            if (fabsf(mouse_speeds[i] - input_mouse_speed) < fabsf(mouse_speeds[at] - input_mouse_speed)) at = i;
+        input_mouse_speed = mouse_speeds[(at + count + delta) % count];
+        snprintf(value, sizeof value, "%.2f", (double)input_mouse_speed);
+        input_write("mouse-speed.txt", value);
+    }
+    if (row == 5 && input_pref_mode == 1) {
+        input_mouse_smoothing = (input_mouse_smoothing + 3 + delta) % 3;
+        snprintf(value, sizeof value, "%d", input_mouse_smoothing);
+        input_write("mouse-smoothing.txt", value);
+    }
     if(row==3){
         const int samples[]={0,2,4,8}; int at=0;
         for(int i=0;i<4;i++)if(samples[i]==input_pref_aa)at=i;

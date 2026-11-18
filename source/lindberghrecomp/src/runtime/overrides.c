@@ -24,7 +24,7 @@
 #include "lindbergh_rt.h"
 #include "recomp_symbols.h"
 
-#define MAX_OVERRIDES 64
+#define MAX_OVERRIDES 128
 
 typedef struct { uint32_t va; HleHandler fn; const char *name; } Override;
 

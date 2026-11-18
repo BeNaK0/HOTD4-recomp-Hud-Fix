@@ -42,3 +42,10 @@ Actual WPF routed-key and mouse events verified capture, duplicate rejection, mo
 The installed executable from that clean source build was exercised through SDL input and observed through its GL framebuffer. Custom Coin/Start/Shoot/Grenade/Pause/Restart/Crosshair/Fullscreen/Mouse Lock actions worked, old aliases were disabled after saving a custom profile, and the native editor rejected conflicts without firing Restart. Reload was rebound to B, applied immediately and persisted across a new process. The resumed game rendered normally. Custom Start also auto-started Chapter 1 practice; binding capture while paused did not trigger the practice restart watcher. The executable hash on disk was unchanged by observation. No desktop capture service was used. Tests used isolated profiles and did not replace the player's control preferences.
 
 Both the desktop and experimental Remix targets compiled; Remix remains outside this stable builder release. All distribution files are enumerated and hash-checked; the package audit excludes game ELF/data, game images/audio/movies, generated/lifted game C, compiled executables, runtime DLLs and player saves.
+
+
+## Windows desktop v1.2.0 (2026-11-18)
+
+Scripted Chapter 1 gameplay verified an immediate reload voice request at each of two empty-magazine events, with a refill in between and one request per empty magazine. Frame captures confirmed a steady red warning. Both route choices registered at their visible targets, and 3840x2160 framebuffer captures verified centered panels and aligned route previews.
+
+Windows SDL tests verified fractional mouse movement, proportional speed changes and convergence to the same aim point with smoothing enabled. The WPF menu correctly enabled the controls for Mouse (Raw Relative) and saved the selected speed and smoothing level. A clean desktop executable built from the release source completed a scripted 4K gameplay smoke test with the existing arcade dump.

@@ -1,14 +1,13 @@
-# HOTD4 Local Builder v1.1.0
+# HOTD4 Local Builder v1.2.0
 
-This Windows release improves desktop performance and adds a launcher that records frame times for troubleshooting.
+This stable Windows release improves reload feedback, route selection and raw mouse controls.
 
-- Optimized recompiled gameplay code in the Windows desktop build. The video decoder now uses bit-exact SSE2 operations. In one 4K cutscene test, game-thread CPU time fell from 6.01 to 4.81 ms per frame.
-- New **960 × 540** windowed option for lower GPU load, alongside existing resolutions up to 4K and selectable MSAA.
-- **Play HOTD4 (Performance Log).cmd** saves a separate CSV per game session, including frame times in milliseconds.
-- Includes Chapter Select, the in-game pause and trophies menus, customizable keyboard and mouse bindings, HUD and crosshair settings, and Sinden border and Raw Input options.
-- Optional OpenXR PC VR remains experimental. The Windows desktop build is the default.
+- The reload voice plays once as soon as the magazine runs empty during play. The red RELOAD warning stays visible while the gun needs a reload and gameplay allows it.
+- Route selection panels are centered at widescreen resolutions. Each preview fits its frame, and the on-screen choices align with their hit targets.
+- **Raw Mouse Speed** (0.50x to 8.00x) and **Raw Mouse Smoothing** (Off, Low, High) are available under **Settings > Input & Anti-Aliasing** in **Mouse (Raw Relative)** mode. Changes made from the pause menu apply immediately.
+- Includes the v1.1.0 performance improvements and the **Play HOTD4 (Performance Log).cmd** launcher for recording frame times as a CSV.
 
-Download **HOTD4-Local-Builder-v1.1.0.zip**, extract it, and run **Setup.cmd**. Select your own supported, extracted arcade dump. After setup finishes, run **HOTD4-PC/Play HOTD4.cmd**. To update, run the new setup with the same dump and installation folder. Setup builds the executable and renders the menu background locally. The ZIP contains the installer, source code and project artwork. Game files, lifted game code and prebuilt game executables stay on the user's PC.
+Download and extract **HOTD4-Local-Builder-v1.2.0.zip**, then run **Setup.cmd**. To update, select the same supported, extracted arcade dump and the same installation folder. Setup rebuilds the game locally and preserves your settings and trophies. The release ZIP contains no game assets or executable. Windows desktop is the default build, with experimental OpenXR available as an optional build.
 
 ## Recording the Chapter 1 elevator slowdown
 

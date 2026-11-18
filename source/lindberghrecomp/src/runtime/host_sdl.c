@@ -107,7 +107,11 @@ void host_mac_fix_surface(SDL_Window *win, int w, int h);   /* host_menu_mac.m *
 #endif
 
 static int g_vp_x = 0, g_vp_y = 0, g_vp_w = 0, g_vp_h = 0;
-static int g_raw_x = -1, g_raw_y = -1;
+static float g_raw_x = -1, g_raw_y = -1;
+#ifdef HOTD4_DESKTOP_PAUSE
+static float g_raw_filtered_x, g_raw_filtered_y;
+static Uint64 g_raw_update_tick;
+#endif
 static int g_relative_mode = 0;
 
 /* A pointer position in the window, in the game's pixels. */
@@ -807,6 +811,36 @@ static void set_title(const char *msg)
     if (g_win.win) SDL_SetWindowTitle(g_win.win, msg ? msg : g_title);
 }
 
+#ifdef HOTD4_DESKTOP_PAUSE
+static void raw_mouse_publish(void)
+{
+    if (g_scripted || !settings()->raw_mouse || !g_relative_mode || !SDL_GetRelativeMouseMode()) {
+        g_raw_update_tick = 0;
+        return;
+    }
+    Uint64 now = input_mouse_smoothing ? SDL_GetPerformanceCounter() : 0;
+    if (!now || !g_raw_update_tick) {
+        g_raw_filtered_x = g_raw_x;
+        g_raw_filtered_y = g_raw_y;
+    } else if (g_raw_filtered_x != g_raw_x || g_raw_filtered_y != g_raw_y) {
+        float dt = (float)((double)(now - g_raw_update_tick) / SDL_GetPerformanceFrequency());
+        float time_constant = input_mouse_smoothing == 1 ? 0.008f : 0.016f;
+        float weight = 1.0f - expf(-dt / time_constant);
+        g_raw_filtered_x += (g_raw_x - g_raw_filtered_x) * weight;
+        g_raw_filtered_y += (g_raw_y - g_raw_filtered_y) * weight;
+        if (fabsf(g_raw_x - g_raw_filtered_x) < 0.25f) g_raw_filtered_x = g_raw_x;
+        if (fabsf(g_raw_y - g_raw_filtered_y) < 0.25f) g_raw_filtered_y = g_raw_y;
+    }
+    g_raw_update_tick = now;
+    int x = (int)lroundf(g_raw_filtered_x), y = (int)lroundf(g_raw_filtered_y);
+    if (x != g_mouse_x || y != g_mouse_y) {
+        g_mouse_x = x;
+        g_mouse_y = y;
+        in_push(HOST_IN_MOTION, x, y, g_buttons, 0);
+    }
+}
+#endif
+
 static void pump(void)
 {
     SDL_Event e;
@@ -848,7 +882,7 @@ static void pump(void)
                 fprintf(stderr, "[window] pointer left\n");
                 /* Pointing a real gun off the screen is the reload; the
                  * nearest thing a mouse can do is leave the window. */
-                if (input_active_mode != 2 && g_pointer_in && settings()->leave_reload && !game_profile()->joystick && !g_capture_or_calib()) g_cab_latch |= CAB_P1_RELOAD;
+                if (input_active_mode != 2 && !g_relative_mode && g_pointer_in && settings()->leave_reload && !game_profile()->joystick && !g_capture_or_calib()) g_cab_latch |= CAB_P1_RELOAD;
                 g_pointer_in = 0;
             }
             break;
@@ -856,16 +890,23 @@ static void pump(void)
             if (input_active_mode == 2) break;
             if (settings()->raw_mouse && g_relative_mode) {
                 float sens = settings()->mouse_sens > 0.0f ? settings()->mouse_sens : 1.0f;
+#ifdef HOTD4_DESKTOP_PAUSE
+                sens = input_mouse_speed;
+#endif
                 if (g_raw_x < 0) {
                     g_raw_x = g_win.w / 2;
                     g_raw_y = g_win.h / 2;
                 }
-                g_raw_x += (int)(e.motion.xrel * sens);
-                g_raw_y += (int)(e.motion.yrel * sens);
+                g_raw_x += e.motion.xrel * sens;
+                g_raw_y += e.motion.yrel * sens;
                 if (g_raw_x < 0) g_raw_x = 0;
-                if (g_raw_x >= g_win.w) g_raw_x = g_win.w - 1;
+                if (g_raw_x > g_win.w - 1) g_raw_x = g_win.w - 1;
                 if (g_raw_y < 0) g_raw_y = 0;
-                if (g_raw_y >= g_win.h) g_raw_y = g_win.h - 1;
+                if (g_raw_y > g_win.h - 1) g_raw_y = g_win.h - 1;
+#ifdef HOTD4_DESKTOP_PAUSE
+                if (!input_mouse_smoothing) raw_mouse_publish();
+                break;
+#endif
                 g_mouse_x = g_raw_x;
                 g_mouse_y = g_raw_y;
             } else {
@@ -960,6 +1001,9 @@ static void pump(void)
         }
         }
     }
+#ifdef HOTD4_DESKTOP_PAUSE
+    raw_mouse_publish();
+#endif
     pad_poll();
 }
 
@@ -1688,10 +1732,10 @@ static const wchar_t *achievement_descriptions[12];
 static GLuint achievement_star_texture(int metal);
 static int achievement_is_unlocked(int id);
 static int achievement_count(void);
-static int menu_row_count(const PauseMenu *menu) { return menu->settings_page >= 2 ? 7 : menu->settings_page ? 8 : 5; }
+static int menu_row_count(const PauseMenu *menu) { return menu->settings_page == 2 ? 9 : menu->settings_page >= 2 ? 7 : menu->settings_page ? 8 : 5; }
 
-static int menu_step(const PauseMenu *menu){return menu->settings_page==1?48:ROW_STEP;}
-static int menu_height(const PauseMenu *menu){return menu->settings_page==1?40:ROW_HEIGHT;}
+static int menu_step(const PauseMenu *menu){return menu->settings_page==2?42:menu->settings_page==1?48:ROW_STEP;}
+static int menu_height(const PauseMenu *menu){return menu->settings_page==2?36:menu->settings_page==1?40:ROW_HEIGHT;}
 
 static int pause_row_at(const PauseMenu *menu, SDL_Window *window, int x, int y)
 {
@@ -1773,12 +1817,14 @@ static int pause_panel(PauseMenu *menu)
         swprintf(color,64,L"Crosshair Color  < %ls >",crosshair_color_names[crosshair_color_get()]);
         wchar_t border_width[96];swprintf(border_width,96,L"Border Width   < %ls >",sinden_width_names[sinden_border_width_index()]);
         const wchar_t *settings_items[] = {hud, reticle, style, size, color, sinden, border_width, L"Input & Anti-Aliasing..."};
-        wchar_t mode[96],gun1[128],gun2[128],aa[80];
+        wchar_t mode[96],gun1[128],gun2[128],aa[80],mouse_speed[80],smoothing[80];
         swprintf(mode,96,L"Input  < %ls >",input_mode_names[input_pref_mode]);
         input_gun_label(0,gun1,128);input_gun_label(1,gun2,128);
         if(input_pref_aa)swprintf(aa,80,L"Anti-Aliasing  < MSAA %dx >",input_pref_aa);
         else wcscpy(aa,L"Anti-Aliasing  < Off >");
-        const wchar_t *input_items[]={mode,gun1,gun2,aa,L"Key Bindings...",L"Apply & Restart",L"Back"};
+        swprintf(mouse_speed,80,L"Raw Mouse Speed  < %.2fx >", (double)input_mouse_speed);
+        swprintf(smoothing,80,L"Raw Mouse Smoothing  < %ls >", mouse_smoothing_names[input_mouse_smoothing]);
+        const wchar_t *input_items[]={mode,gun1,gun2,aa,mouse_speed,smoothing,L"Key Bindings...",L"Apply & Restart",L"Back"};
         const wchar_t **items = menu->settings_page == 2 ? input_items : menu->settings_page ? settings_items : main_items;
         for (int i = 0; i < menu_row_count(menu); ++i) {
             int y = ROW_TOP + i * menu_step(menu);
@@ -1786,10 +1832,11 @@ static int pause_panel(PauseMenu *menu)
             pause_fill(dc, 31, y, PANEL_W - 62, menu_height(menu),
                        selected ? RGB(116, 34, 39) : RGB(38, 38, 45));
             if (selected) pause_fill(dc, 31, y, 3, menu_height(menu), RGB(245, 115, 93));
-            pause_text(dc, item, 49, y + 9, items[i], white);
+            int available = menu->settings_page != 2 || (i != 4 && i != 5) || input_pref_mode == 1;
+            pause_text(dc, item, 49, y + 9, items[i], available ? white : muted);
         }
         pause_text(dc, hint, 32, 515, menu->settings_page == 2 ?
-                   L"Saved for next launch. Apply & Restart restarts this game." : menu->settings_page ?
+                   L"Mouse tuning is live. Restart to apply input mode or MSAA." : menu->settings_page ?
                    L"Arrow keys to adjust     Enter to select     Esc to go back" :
                    L"Arrow keys or mouse     Enter to select     Esc to resume", muted);
         GdiFlush();
@@ -2002,10 +2049,10 @@ static int hotd4_pause_loop(int w, int h)
                 }
             }
             if (menu.settings_page == 2) {
-                if ((activate || delta) && menu.selected < 4) {
+                if ((activate || delta) && menu.selected < 6) {
                     input_option_cycle(menu.selected,delta);redraw=1;
-                } else if(activate && menu.selected==4){menu.settings_page=4;menu.selected=0;menu.binding_capture=-1;menu.binding_message[0]=0;redraw=1;}
-                else if(activate && menu.selected==5){action=RESTART;break;}
+                } else if(activate && menu.selected==6){menu.settings_page=4;menu.selected=0;menu.binding_capture=-1;menu.binding_message[0]=0;redraw=1;}
+                else if(activate && menu.selected==7){action=RESTART;break;}
                 else if(activate){menu.settings_page=1;menu.selected=7;redraw=1;}
             } else if (menu.settings_page) {
                 if ((activate || delta) && menu.selected == 0) {

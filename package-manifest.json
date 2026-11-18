@@ -3,15 +3,15 @@
   "files": [
     {
       "path": "BUILD-VERIFICATION.md",
-      "sha256": "9f8ced8974a90186ea169e6bf329d83f82712a1813febe9b9c27160914a84111"
+      "sha256": "473c260a6f6ef845918c259cc127d557ec17644d9412aa83d4cca0a618b95837"
     },
     {
       "path": "README.md",
-      "sha256": "65ad579b0f3c70a7e41e85007f6253d376e37cc0a89c2499cacd75f2d5679f9a"
+      "sha256": "3a41623c64a8a0c11388f95e34323451eb557aa89ad53a48ba08f1eb67dda5b5"
     },
     {
       "path": "RELEASE-NOTES.md",
-      "sha256": "8a8a955cd7e720660928601c9dd8b04432bbb8b5d34c6008870f7d58cecaa37d"
+      "sha256": "ec28a9ae3d5150e6fb2e3181c6dd9181ef10842d3cbb57a33533158142c0ec0a"
     },
     {
       "path": "Setup.cmd",
@@ -39,7 +39,7 @@
     },
     {
       "path": "source/games/hotd4/src/host.c",
-      "sha256": "682e0bf743001c1405914ba991bc605273d08e2bb9226d5fe32fd35c5de9e025"
+      "sha256": "088be068ace8494d5df5425f7ec6656a184863b936a3c6f0e33a33395f487c7d"
     },
     {
       "path": "source/games/hotd4/src/hotd4_hd_textures.c",
@@ -235,7 +235,7 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/host_sdl.c",
-      "sha256": "6b5d19f6cf1791eb39c06da7c4caa604d3c96e08653d4d1ca2d325da452b31fd"
+      "sha256": "0e0365afc42dde987da0ad446758f3ca470343822d0da559c79f8f7ce6f5a918"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/host_settings.c",
@@ -263,11 +263,11 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/hud_widen.c",
-      "sha256": "3d6f6f91eb73f55549dfd1b90f38ba54b0e172ce9c9c87eedbd3f4180bf2cf83"
+      "sha256": "c28731aa1ad38a2baa018b0e9504a3241dae3b5fb40feca218e9c43ac740aa41"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/input_options.h",
-      "sha256": "27d388116378e83bbae76eccb44cb1fb42c9ac12aeb0cf1f6d67daf212bd3cd1"
+      "sha256": "df4c10bba0cac62174925dfc9452c41b1550edff0873db528307e2698ee3dc28"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/lindbergh_rt.h",
@@ -283,7 +283,7 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/overrides.c",
-      "sha256": "a6bdf93dfcc13fc632198c1c503e631797cf9dd9e040cc1f121c3d7e3863c8d0"
+      "sha256": "4ebb1987ac5ca2880b624358fc63d7bd8ebc441e89bd16b4477fbc30bc17ae17"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/posix_compat.h",
@@ -1415,7 +1415,7 @@
     },
     {
       "path": "ui/hotd4-startmenu.ps1",
-      "sha256": "e244b7125bcf02f272cff9aa71fd0dbddc6e006d1f4d86947850931264cef373"
+      "sha256": "ff64146e2d8e51c4b427ff6b4869488c760cd8c9bbf54bdb6a6ae59329335e37"
     },
     {
       "path": "ui/lindbergh.ini",
