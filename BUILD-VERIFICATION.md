@@ -49,3 +49,10 @@ Both the desktop and experimental Remix targets compiled; Remix remains outside 
 Scripted Chapter 1 gameplay verified an immediate reload voice request at each of two empty-magazine events, with a refill in between and one request per empty magazine. Frame captures confirmed a steady red warning. Both route choices registered at their visible targets, and 3840x2160 framebuffer captures verified centered panels and aligned route previews.
 
 Windows SDL tests verified fractional mouse movement, proportional speed changes and convergence to the same aim point with smoothing enabled. The WPF menu correctly enabled the controls for Mouse (Raw Relative) and saved the selected speed and smoothing level. A clean desktop executable built from the release source completed a scripted 4K gameplay smoke test with the existing arcade dump.
+
+
+## Installer hotfix v1.2.1 (2026-11-18)
+
+Tested a clean Microsoft Windows 10 Enterprise LTSC 2021 x64 evaluation VM (build 19044.1288). Its system tar reported libarchive 3.3.2 and zlib without liblzma, and xz.exe was absent from PATH before Setup. The installer downloaded and verified the pinned self-extracting MSYS2 archive, installed the compiler and dependencies, lifted 26,636 functions from the supported arcade dump, and completed all 111 desktop build steps. The installed executable and launcher were verified. A cached reinstall with downloads disabled returned exit code 0.
+
+The optional menu background renderer exited with an access violation under the VM's virtual graphics. Setup finished with its plain-menu fallback. The VM test covers installer and build compatibility. Gameplay rendering was outside this test.

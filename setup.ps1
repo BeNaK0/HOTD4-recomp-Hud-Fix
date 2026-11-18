@@ -39,6 +39,7 @@ try {
     Write-Host 'Verified: The House of the Dead 4 (normal arcade version).'
     if($ValidateOnly){Write-Host 'Package and dump validation passed. Nothing was installed.';exit 0}
     if($interactive -and !$OpenXR){
+        Write-Host "Waiting for the OpenXR choice in the HOTD4 Setup dialog. Use Alt+Tab if it is behind this window."
         $choice = [Windows.Forms.MessageBox]::Show(
             'Build the optional OpenXR version alongside the desktop game? You will need a compatible PC VR headset and an active OpenXR runtime to play it.',
             'HOTD4 Setup', 'YesNo', 'Question', 'Button2')
@@ -52,16 +53,42 @@ try {
         if($NoDownload){throw 'Build tools are missing. Run without -NoDownload to install them automatically.'}
         $parent=Split-Path $ToolchainPath -Parent
         New-Item -ItemType Directory -Path $parent -Force | Out-Null
-        $archive=Join-Path $parent 'msys2-base-x86_64-20260927.tar.xz'
-        if(!(Test-Path -LiteralPath $archive)){
+        $name='msys2-base-x86_64-20260927.sfx.exe'
+        $archive=Join-Path $parent $name
+        $expected='AD336CCCFDA47758B5E15CDA993FBBA421115CB0B126697DAEF1EE4DFE37209F'
+        if (!(Test-Path -LiteralPath $archive) -or (Get-Sha256 $archive) -ne $expected) {
             Write-Host 'Downloading the isolated MSYS2 build tools...'
-            Invoke-WebRequest -UseBasicParsing -Uri 'https://repo.msys2.org/distrib/x86_64/msys2-base-x86_64-20260927.tar.xz' -OutFile "$archive.partial"
+            Invoke-WebRequest -UseBasicParsing -Uri "https://repo.msys2.org/distrib/x86_64/$name" -OutFile "$archive.partial"
+            if ((Get-Sha256 "$archive.partial") -ne $expected) {
+                throw 'Build-tools download failed its SHA-256 check.'
+            }
             Move-Item -LiteralPath "$archive.partial" -Destination $archive -Force
         }
-        if((Get-Sha256 $archive) -ne 'EA2F31A0B6ADE63914CE441FFB022F0F6AA96982BFEFA2326460A26D5FB01322'){throw 'Build-tools download failed its SHA-256 check.'}
-        # Extract directly into the explicitly selected isolated tool directory.
-        New-Item -ItemType Directory -Path $ToolchainPath -Force | Out-Null
-        Invoke-Checked "$env:WINDIR\System32\tar.exe" @('-xf',$archive,'-C',$ToolchainPath,'--strip-components=1')
+
+        Write-Host 'Extracting the isolated MSYS2 build tools...'
+        $stage=Join-Path $parent ('.hotd4-msys2-' + [Guid]::NewGuid().ToString('N'))
+        New-Item -ItemType Directory -Path $stage | Out-Null
+        $extractor=Start-Process -FilePath $archive -ArgumentList @('-y', ('-o"{0}"' -f $stage)) -WindowStyle Hidden -PassThru -Wait
+        $extracted=Join-Path $stage 'msys64'
+        if ($extractor.ExitCode -ne 0 -or !(Test-Path -LiteralPath (Join-Path $extracted 'usr\bin\bash.exe') -PathType Leaf)) {
+            throw "MSYS2 extraction failed (exit $($extractor.ExitCode)). Extraction folder: $stage"
+        }
+
+        # A previous failed extraction may have left this directory without bash.
+        # Keep that directory recoverable and install the complete verified tree.
+        $backup=$null
+        if (Test-Path -LiteralPath $ToolchainPath) {
+            $backup=Join-Path $parent ('.hotd4-msys2-incomplete-' + [Guid]::NewGuid().ToString('N'))
+            [IO.Directory]::Move((Resolve-Path -LiteralPath $ToolchainPath).Path, $backup)
+        }
+        try {
+            [IO.Directory]::Move((Resolve-Path -LiteralPath $extracted).Path, $ToolchainPath)
+        } catch {
+            if ($backup) { [IO.Directory]::Move($backup, $ToolchainPath) }
+            throw
+        }
+        [IO.Directory]::Delete($stage)
+        if ($backup) { Write-Host "Previous incomplete toolchain preserved at $backup" }
     }
     $env:MSYSTEM='MINGW64';$env:CHERE_INVOKING='1';$env:MSYS2_PATH_TYPE='minimal'
     $ready=Join-Path $ToolchainPath '.hotd4-tools-ready-v1'

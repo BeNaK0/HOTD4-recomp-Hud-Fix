@@ -13,7 +13,7 @@ Special, other revisions, patched executables, encrypted disc images and compres
 ## What happens on your PC
 
 1. Verify this package and your ELF.
-2. Download an isolated MSYS2 toolchain from the official MSYS2 repository, verify the pinned base archive hash, and install signed build dependencies using pacman.
+2. Download the official self-extracting MSYS2 archive, verify its pinned SHA-256, and install signed build dependencies using pacman. The archive extracts without a system xz utility.
 3. Lift your own ELF to C locally, generate OpenGL bindings, and compile the Windows executable locally.
 4. Copy your dump into the chosen installation folder and add the launcher, runtime DLLs, menus and original project artwork. The source dump stays unchanged.
 5. Run the locally built game in a hidden window with isolated temporary settings, muted audio and fresh temporary cabinet state. Render the Chapter 1 zombie scene at 1920x1080 and save it locally as the menu background. This usually adds about one minute. Your controls, trophies and cabinet saves are untouched.

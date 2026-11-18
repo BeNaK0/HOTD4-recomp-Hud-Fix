@@ -1,4 +1,6 @@
-# HOTD4 Local Builder v1.2.0
+# HOTD4 Local Builder v1.2.1
+
+This Windows installer hotfix uses the official self-extracting MSYS2 archive. Setup can bootstrap the compiler on Windows systems whose built-in tar cannot unpack XZ archives. Setup also prints a message while it waits for the optional OpenXR choice. The clean desktop install and a cached reinstall passed on Windows 10 Enterprise LTSC 2021 x64.
 
 This stable Windows release improves reload feedback, route selection and raw mouse controls.
 
@@ -7,7 +9,7 @@ This stable Windows release improves reload feedback, route selection and raw mo
 - **Raw Mouse Speed** (0.50x to 8.00x) and **Raw Mouse Smoothing** (Off, Low, High) are available under **Settings > Input & Anti-Aliasing** in **Mouse (Raw Relative)** mode. Changes made from the pause menu apply immediately.
 - Includes the v1.1.0 performance improvements and the **Play HOTD4 (Performance Log).cmd** launcher for recording frame times as a CSV.
 
-Download and extract **HOTD4-Local-Builder-v1.2.0.zip**, then run **Setup.cmd**. To update, select the same supported, extracted arcade dump and the same installation folder. Setup rebuilds the game locally and preserves your settings and trophies. The release ZIP contains no game assets or executable. Windows desktop is the default build, with experimental OpenXR available as an optional build.
+Download and extract **HOTD4-Local-Builder-v1.2.1.zip**, then run **Setup.cmd**. To update an existing installation, run `Setup.cmd -InstallDir "C:\path\to\HOTD4-PC"` with your existing installation path and select the same supported, extracted arcade dump. Setup rebuilds the game locally and preserves your settings and trophies. The release ZIP contains no game assets or executable. Windows desktop is the default build, with experimental OpenXR available as an optional build.
 
 ## Recording the Chapter 1 elevator slowdown
 

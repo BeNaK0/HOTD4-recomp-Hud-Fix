@@ -3,15 +3,15 @@
   "files": [
     {
       "path": "BUILD-VERIFICATION.md",
-      "sha256": "473c260a6f6ef845918c259cc127d557ec17644d9412aa83d4cca0a618b95837"
+      "sha256": "b9b8674b052e6cbd3adc7acbc40b94c26db420c07b9628ac70ba2aa084a4144a"
     },
     {
       "path": "README.md",
-      "sha256": "3a41623c64a8a0c11388f95e34323451eb557aa89ad53a48ba08f1eb67dda5b5"
+      "sha256": "0718a13f4d530e2a2d5b9c9fb0bc73f56dd35eada7003349c9582003a37fa6b1"
     },
     {
       "path": "RELEASE-NOTES.md",
-      "sha256": "ec28a9ae3d5150e6fb2e3181c6dd9181ef10842d3cbb57a33533158142c0ec0a"
+      "sha256": "aa68f9a81c0520fc2b1ac3959852095ffb11c55581f41027db0391109aefb95a"
     },
     {
       "path": "Setup.cmd",
@@ -19,7 +19,7 @@
     },
     {
       "path": "setup.ps1",
-      "sha256": "ebda51615eadc47119158bc2a7426a98d1b5314d72ce39eb2293a2f6abecdd2e"
+      "sha256": "7357c3f47e07501b6cc4be861fd1615b4948bde3cbdee29c70a68e3365a1292b"
     },
     {
       "path": "source/CMakeLists.txt",
