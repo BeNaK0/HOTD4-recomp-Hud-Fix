@@ -123,6 +123,22 @@ static void picture_size(int *w, int *h)
     if (!stereo_wide(w, h, NULL)) { *w = g_win.w; *h = g_win.h; }
 }
 
+typedef struct { int x, y, w, h; } GameViewport;
+
+static GameViewport fit_game_viewport(int draw_w, int draw_h)
+{
+    GameViewport viewport = {0, 0, draw_w, draw_h};
+    const float aspect = 16.0f / 9.0f;
+    const float drawable_aspect = (float)draw_w / draw_h;
+    if (fabsf(drawable_aspect - aspect) > 0.01f) {
+        if (drawable_aspect > aspect) viewport.w = (int)(draw_h * aspect + 0.5f);
+        else viewport.h = (int)(draw_w / aspect + 0.5f);
+        viewport.x = (draw_w - viewport.w) / 2;
+        viewport.y = (draw_h - viewport.h) / 2;
+    }
+    return viewport;
+}
+
 static void to_game(int *x, int *y)
 {
     int win_w = 0, win_h = 0, draw_w = 0, draw_h = 0;
@@ -136,10 +152,12 @@ static void to_game(int *x, int *y)
         py = (int)((long)py * draw_h / win_h);
     }
     if (g_vp_w > 0 && g_vp_h > 0 && g_win.w > 0 && g_win.h > 0) {
-        int vx = px - g_vp_x;
-        int vy = py - g_vp_y;
-        long gx = ((long)vx * g_win.w) / g_vp_w;
-        long gy = ((long)vy * g_win.h) / g_vp_h;
+        // SDL events can arrive before the next GL viewport after a resize.
+        GameViewport viewport = {g_vp_x, g_vp_y, g_vp_w, g_vp_h};
+        if (draw_w > 0 && draw_h > 0) viewport = fit_game_viewport(draw_w, draw_h);
+        int top = draw_h > 0 ? draw_h - viewport.y - viewport.h : viewport.y;
+        long gx = ((long)(px - viewport.x) * g_win.w) / viewport.w;
+        long gy = ((long)(py - top) * g_win.h) / viewport.h;
         *x = (int)(gx < 0 ? 0 : gx >= g_win.w ? g_win.w - 1 : gx);
         *y = (int)(gy < 0 ? 0 : gy >= g_win.h ? g_win.h - 1 : gy);
         return;
@@ -165,13 +183,16 @@ static void to_game(int *x, int *y)
 static void to_window(int *x, int *y)
 {
     if (g_vp_w > 0 && g_vp_h > 0 && g_win.w > 0 && g_win.h > 0) {
-        int px = g_vp_x + (int)((long)*x * g_vp_w / g_win.w);
-        int py = g_vp_y + (int)((long)*y * g_vp_h / g_win.h);
         int win_w = 0, win_h = 0, draw_w = 0, draw_h = 0;
         if (g_win.win) {
             SDL_GetWindowSize(g_win.win, &win_w, &win_h);
             SDL_GL_GetDrawableSize(g_win.win, &draw_w, &draw_h);
         }
+        GameViewport viewport = {g_vp_x, g_vp_y, g_vp_w, g_vp_h};
+        if (draw_w > 0 && draw_h > 0) viewport = fit_game_viewport(draw_w, draw_h);
+        int top = draw_h > 0 ? draw_h - viewport.y - viewport.h : viewport.y;
+        int px = viewport.x + (int)((long)*x * viewport.w / g_win.w);
+        int py = top + (int)((long)*y * viewport.h / g_win.h);
         if (win_w > 0 && win_h > 0 && draw_w > 0 && draw_h > 0 && (win_w != draw_w || win_h != draw_h)) {
             px = (int)((long)px * win_w / draw_w);
             py = (int)((long)py * win_h / draw_h);
@@ -1446,21 +1467,8 @@ void host_viewport_scale(int *x, int *y, int *w, int *h)
     SDL_GL_GetDrawableSize(g_win.win, &draw_w, &draw_h);
     if (draw_w <= 0 || draw_h <= 0) return;
 
-    float target_aspect = 16.0f / 9.0f;
-    float win_aspect = (float)draw_w / (float)draw_h;
-    int vp_w = draw_w, vp_h = draw_h;
-    int vp_x = 0, vp_y = 0;
-    if (fabsf(win_aspect - target_aspect) > 0.01f) {
-        if (win_aspect > target_aspect) {
-            vp_h = draw_h;
-            vp_w = (int)((float)draw_h * target_aspect + 0.5f);
-        } else {
-            vp_w = draw_w;
-            vp_h = (int)((float)draw_w / target_aspect + 0.5f);
-        }
-        vp_x = (draw_w - vp_w) / 2;
-        vp_y = (draw_h - vp_h) / 2;
-    }
+    GameViewport viewport = fit_game_viewport(draw_w, draw_h);
+    int vp_x = viewport.x, vp_y = viewport.y, vp_w = viewport.w, vp_h = viewport.h;
     g_vp_x = vp_x;
     g_vp_y = vp_y;
     g_vp_w = vp_w;
@@ -1559,7 +1567,7 @@ static void draw_crosshair_overlay(int win_w, int win_h)
     int vp_w = g_vp_w > 0 ? g_vp_w : win_w;
     int vp_h = g_vp_h > 0 ? g_vp_h : win_h;
     float cx = (float)g_vp_x + ((float)g_mouse_x + 0.5f) * (float)vp_w / (float)g_win.w;
-    float cy = (float)g_vp_y + ((float)g_mouse_y + 0.5f) * (float)vp_h / (float)g_win.h;
+    float cy = (float)(win_h - g_vp_y - vp_h) + ((float)g_mouse_y + 0.5f) * (float)vp_h / (float)g_win.h;
 
     glPushAttrib(GL_ALL_ATTRIB_BITS);
     glPushClientAttrib(GL_CLIENT_ALL_ATTRIB_BITS);

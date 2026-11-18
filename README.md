@@ -1,6 +1,6 @@
 # HOTD4 Local Builder
 
-Download and extract **HOTD4-Local-Builder-v1.3.0.zip** from the [v1.3.0 release](https://github.com/davidptrssvea/HOTD4-recomp/releases/tag/v1.3.0). Run **Setup.cmd**, select your own extracted arcade dump, then wait for the local build. Open **HOTD4-PC\Play HOTD4.exe** for the graphical menu or **Model Viewer.exe** to go directly to the viewer. All menus are in English.
+Download and extract **HOTD4-Local-Builder-v1.3.1.zip** from the [v1.3.1 release](https://github.com/davidptrssvea/HOTD4-recomp/releases/tag/v1.3.1). Run **Setup.cmd**, select your own extracted arcade dump, then wait for the local build. Open **HOTD4-PC\Play HOTD4.exe** for the graphical menu or **Model Viewer.exe** to go directly to the viewer. All menus are in English.
 
 To update, extract the new builder and run **Setup.cmd** with the same arcade dump. Select your existing installation folder to keep its settings, cabinet saves and trophies.
 
@@ -22,7 +22,7 @@ Setup verifies the input hash and checks that the locally prepared copy matches 
 
 ## System requirements
 
-- **Operating system:** Windows 10 or Windows 11 on an x64 (Intel or AMD) PC, with Windows PowerShell 5.1 and the Windows .NET Framework 4.x compiler available. The v1.3.0 clean setup was verified on Windows 11 x64. An earlier installer was verified on Windows 10 Enterprise LTSC 2021 x64 (build 19044.1288).
+- **Operating system:** Windows 10 or Windows 11 on an x64 (Intel or AMD) PC, with Windows PowerShell 5.1 and the Windows .NET Framework 4.x compiler available. The v1.3.1 clean setup was verified on Windows 11 x64. An earlier installer was verified on Windows 10 Enterprise LTSC 2021 x64 (build 19044.1288).
 - **Disk and permissions:** Allow around **10 GB of free space** beyond your existing dump for the toolchain, build files and installed copy of the game. Use writable folders for the extracted builder and game installation. The toolchain uses `%LOCALAPPDATA%\HOTD4-Builder\msys64` by default, so allow space there as well if the builder is on another drive. Setup can run under a regular user account.
 - **Internet:** Required for the first setup to download MSYS2 and its build dependencies. Setup installs its own compiler, Python and runtime dependencies. A separate xz tool is unnecessary.
 - **Graphics:** Desktop gameplay and the optional menu background use a GPU driver with desktop OpenGL compatibility support. The desktop build requests an OpenGL 2.1 context with the extensions it uses for rendering. The installer can compile on a VM without working 3D graphics. No minimum CPU, RAM or GPU for gameplay has been benchmarked.
@@ -85,7 +85,9 @@ Connect your PC VR headset and start an OpenXR runtime that supports OpenGL befo
 
 ## Lower GPU load
 
-On the desktop, select **960 × 540 (performance, windowed)** or **1280 × 720** under **Settings > Resolution**. Turn MSAA off under **Settings > Input & Anti-Aliasing** and restart the game to apply it.
+On the desktop, select **960 × 540** or **1280 × 720** under **Settings > Render Resolution**. **Display Mode** independently controls whether the game uses a window or borderless fullscreen. Turn MSAA off under **Settings > Input & Anti-Aliasing** and restart the game to apply it.
+
+**Render Resolution** accepts presets or a size you enter, such as **2560x1440**. **Desktop** uses the screen dimensions. The game fits its 16:9 picture within the window or desktop, with rendering capped at 3840 × 2160. Ultrawide screens show centered gameplay with side bars.
 
 ## Recording the Chapter 1 elevator slowdown
 

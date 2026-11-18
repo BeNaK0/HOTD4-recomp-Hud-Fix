@@ -1,12 +1,11 @@
-# HOTD4 Local Builder v1.3.0 for Windows
+# HOTD4 Local Builder v1.3.1 for Windows
 
-- **Photo Mode** opens from the desktop pause menu. Freeze the scene, move and roll the camera, hide the arcade HUD, and save a full-resolution PNG. Choose Original, Black & White, Film Noir, or High Saturation.
-- **Model Viewer** opens from the main menu or as a standalone app. Browse the characters, bosses and other models, inspect original textures, and play or scrub compatible arcade animations.
-- **HD textures** in Model Viewer upscales and sharpens the textures for James Taylor, Kate Green and Justice from your local dump. Switch back to the original textures at any time.
-- **Play HOTD4.exe** and **Model Viewer.exe** open without a command window. **Play HOTD4 (Performance Log).cmd** is still available for frame-time recordings.
+- **Render Resolution** now has presets and a custom size field. Choose **Borderless** or **Windowed** separately. For lower GPU load, try 1280 × 720 in borderless mode.
+- **Mouse aim and crosshair placement** now follow the same gameplay viewport when the window is resized or the game is displayed at a different size from its render resolution.
+- **Ultrawide HUD and framing** use a centered 16:9 gameplay area with side bars. This fixes the HUD shrinking into a corner at 3440 × 1440 and keeps the gameplay camera at the intended aspect ratio.
 
 ## Install or update
 
-Download **HOTD4-Local-Builder-v1.3.0.zip**, extract it, run **Setup.cmd** and select your own complete extracted **The House of the Dead 4 (Export), Rev A (DVP-0003A)** arcade dump. Setup supports the original Rev A and the previously supported HD ELF. When updating, reuse your dump and choose your existing installation folder to preserve settings, saves and trophies.
+Extract **HOTD4-Local-Builder-v1.3.1.zip** and run **Setup.cmd** with your own complete, extracted **The House of the Dead 4 (Export), Rev A (DVP-0003A)** arcade dump. Both the original Rev A and the previously supported HD ELF work. Reuse your existing install folder to keep your settings, saves and trophies. Open **Play HOTD4.exe**, then choose **Settings**.
 
-The ZIP contains the local builder and source. Setup compiles the Windows executables on your PC. The ZIP ships without game assets or prebuilt game executables. **SHA256SUMS.txt** covers the ZIP. See the [README](https://github.com/davidptrssvea/HOTD4-recomp/blob/v1.3.0/README.md) for system requirements, supported dump layouts and controls.
+The ZIP contains the local builder and source. Setup builds the Windows executables on your PC. The ZIP contains no game assets or prebuilt game executables. **SHA256SUMS.txt** covers the ZIP. See the [README](https://github.com/davidptrssvea/HOTD4-recomp/blob/v1.3.1/README.md) for system requirements and the supported dump layouts.

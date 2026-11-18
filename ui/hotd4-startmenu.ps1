@@ -5,6 +5,7 @@
         [Parameter(Mandatory)] [int] $DesktopHeight
     )
 
+    . (Join-Path $RecompDir 'hotd4-display.ps1')
     Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
     [xml] $xaml = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -77,9 +78,13 @@
                                     </ControlTemplate>
                                 </ToggleButton.Template>
                             </ToggleButton>
-                            <ContentPresenter IsHitTestVisible="False" Margin="12,0,35,0" VerticalAlignment="Center"
+                            <ContentPresenter x:Name="Selection" IsHitTestVisible="False" Margin="12,0,35,0" VerticalAlignment="Center"
                                 Content="{TemplateBinding SelectionBoxItem}"
                                 ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"/>
+                            <TextBox x:Name="PART_EditableTextBox" Visibility="Collapsed" Margin="11,1,32,1" Padding="0"
+                                     VerticalContentAlignment="Center" Background="Transparent" BorderThickness="0"
+                                     Foreground="{TemplateBinding Foreground}" CaretBrush="#F0EFEB"
+                                     IsReadOnly="{TemplateBinding IsReadOnly}"/>
                             <Border x:Name="FocusBorder" IsHitTestVisible="False" BorderBrush="Transparent" BorderThickness="1"/>
                             <Popup Name="PART_Popup" Placement="Bottom" AllowsTransparency="True"
                                    IsOpen="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}" Focusable="False">
@@ -92,6 +97,10 @@
                             </Popup>
                         </Grid>
                         <ControlTemplate.Triggers>
+                            <Trigger Property="IsEditable" Value="True">
+                                <Setter TargetName="Selection" Property="Visibility" Value="Collapsed"/>
+                                <Setter TargetName="PART_EditableTextBox" Property="Visibility" Value="Visible"/>
+                            </Trigger>
                             <Trigger Property="IsKeyboardFocusWithin" Value="True">
                                 <Setter TargetName="FocusBorder" Property="BorderBrush" Value="#FA745C"/>
                             </Trigger>
@@ -185,9 +194,19 @@
 
                     <StackPanel Name="OptionsPage" Visibility="Collapsed">
                         <TextBlock Text="Settings" FontSize="22" FontWeight="SemiBold" Margin="0,0,0,10"/>
-                        <Label Content="Resolution" Foreground="#F0EFEB" FontSize="15" Padding="0"
-                               Target="{Binding ElementName=Resolution}"/>
-                        <ComboBox Height="36" Margin="0,4,0,6" Name="Resolution" AutomationProperties.Name="Resolution"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="156"/></Grid.ColumnDefinitions>
+                            <StackPanel Margin="0,0,12,0">
+                                <Label Content="Render Resolution" Foreground="#F0EFEB" FontSize="15" Padding="0" Target="{Binding ElementName=Resolution}"/>
+                                <ComboBox Height="36" Margin="0,4,0,6" Name="Resolution" IsEditable="True"
+                                          ToolTip="Choose a preset or enter a resolution such as 2560x1440."
+                                          AutomationProperties.Name="Render Resolution"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1">
+                                <Label Content="Display Mode" Foreground="#F0EFEB" FontSize="15" Padding="0" Target="{Binding ElementName=DisplayMode}"/>
+                                <ComboBox Height="36" Margin="0,4,0,6" Name="DisplayMode" AutomationProperties.Name="Display Mode"/>
+                            </StackPanel>
+                        </Grid>
                         <Label Content="HUD" Foreground="#F0EFEB" FontSize="15" Padding="0" Target="{Binding ElementName=Hud}"/>
                         <ComboBox Height="36" Margin="0,4,0,6" Name="Hud" AutomationProperties.Name="HUD"/>
                         <Grid>
@@ -392,15 +411,16 @@
 
     $controls = @{}
     foreach ($name in 'MainPage','ChapterPage','OptionsPage','Arcade','Chapters','Options','Quit','ChapterList',
-            'BindingsPage','BindingsOpen','BindingsList','BindingsStatus','SaveBindings','BindingsBack','ResetBindings','CancelBinding','ControlSummary','ControlSummaryList','ChapterHelp','AaGuide','Achievements','ModelViewer','AchievementsPage','AchievementProgress','AchievementList','AchievementScroll','AchievementsBack','AchievementTotal','AchievementPercent','AchievementProgressFill','AchievementEndings','AchievementBronzeIcon','AchievementBronzeCount','AchievementSilverIcon','AchievementSilverCount','AchievementGoldIcon','AchievementGoldCount','AchievementAll','AchievementUnlocked','AchievementLocked','AchievementEmptyPanel','AchievementEmpty','AchievementEmptyHint','AchievementEmptyStar','InputGuide','InputPage','InputOptions','InputMode','Gun1','Gun2','AntiAliasing','MouseSpeed','MouseSmoothing','SaveInput','InputBack','ChapterBack','OptionsBack','SaveOptions','Resolution','Hud','CrosshairStyle','CrosshairSize','CrosshairColor','CrosshairPreview','CrosshairPreviewImage','CrosshairPreviewLabel','Sinden','SindenWidth','SindenFrame','SindenInner','Hint') {
+            'BindingsPage','BindingsOpen','BindingsList','BindingsStatus','SaveBindings','BindingsBack','ResetBindings','CancelBinding','ControlSummary','ControlSummaryList','ChapterHelp','AaGuide','Achievements','ModelViewer','AchievementsPage','AchievementProgress','AchievementList','AchievementScroll','AchievementsBack','AchievementTotal','AchievementPercent','AchievementProgressFill','AchievementEndings','AchievementBronzeIcon','AchievementBronzeCount','AchievementSilverIcon','AchievementSilverCount','AchievementGoldIcon','AchievementGoldCount','AchievementAll','AchievementUnlocked','AchievementLocked','AchievementEmptyPanel','AchievementEmpty','AchievementEmptyHint','AchievementEmptyStar','InputGuide','InputPage','InputOptions','InputMode','Gun1','Gun2','AntiAliasing','MouseSpeed','MouseSmoothing','SaveInput','InputBack','ChapterBack','OptionsBack','SaveOptions','Resolution','DisplayMode','Hud','CrosshairStyle','CrosshairSize','CrosshairColor','CrosshairPreview','CrosshairPreviewImage','CrosshairPreviewLabel','Sinden','SindenWidth','SindenFrame','SindenInner','Hint') {
         $controls[$name] = $window.FindName($name)
     }
 
     $hudPath = Join-Path $RecompDir 'hud-profile.txt'
     $resolutionPath = Join-Path $RecompDir 'display-profile.txt'
+    $displayModePath = Join-Path $RecompDir 'display-mode.txt'
     $sindenPath = Join-Path $RecompDir 'sinden-profile.txt'
     $sindenWidthPath = Join-Path $RecompDir 'sinden-width.txt'
-    $state = @{ SindenWidth='50'; Mode = $null; Hud = '0'; Resolution = 'auto'; Sinden = '0'; Crosshair = '0'; CrosshairSize = '100'; CrosshairColor = '0' }
+    $state = @{ SindenWidth='50'; Mode = $null; Hud = '0'; Resolution = 'auto'; DisplayMode = 'Borderless'; Sinden = '0'; Crosshair = '0'; CrosshairSize = '100'; CrosshairColor = '0' }
     if ([IO.File]::Exists($sindenPath) -and [IO.File]::ReadAllText($sindenPath).Trim() -eq '1') { $state.Sinden = '1' }
     $crosshairPath = Join-Path $RecompDir 'crosshair-profile.txt'
     if ([IO.File]::Exists($crosshairPath)) {
@@ -458,24 +478,21 @@
         $saved = [IO.File]::ReadAllText($hudPath).Trim()
         if ($saved -match '^(0|75|100|125)$') { $state.Hud = $saved }
     }
-    $available = [ordered]@{ auto = "Desktop resolution ($DesktopWidth × $DesktopHeight)" }
-    foreach ($size in @(@(960,540), @(1280,720), @(1920,1080), @(2560,1440), @(3840,2160))) {
-        $width, $height = $size
-        if ($width -le ($DesktopWidth - 32) -and $height -le ($DesktopHeight - 72)) {
-            $available["${width}x${height}"] = if ($height -eq 540) { "$width × $height (performance, windowed)" } else { "$width × $height (windowed)" }
+    if ([IO.File]::Exists($resolutionPath)) {
+        $saved = ConvertTo-Hotd4Resolution ([IO.File]::ReadAllText($resolutionPath))
+        if ($saved) {
+            $state.Resolution = $saved
+            if ($saved -ne 'auto') { $state.DisplayMode = 'Windowed' }
         }
     }
-    if ([IO.File]::Exists($resolutionPath)) {
-        $saved = [IO.File]::ReadAllText($resolutionPath).Trim()
-        if ($available.Contains($saved)) { $state.Resolution = $saved }
+    if ([IO.File]::Exists($displayModePath)) {
+        $saved = [IO.File]::ReadAllText($displayModePath).Trim()
+        if ($saved -in 'Borderless','Windowed') { $state.DisplayMode = $saved }
     }
-
-    foreach ($key in $available.Keys) {
-        $item = [Windows.Controls.ComboBoxItem]::new()
-        $item.Content = $available[$key]
-        $item.Tag = $key
-        [void] $controls.Resolution.Items.Add($item)
-    }
+    $controls.Resolution.ItemsSource = @('Desktop','960x540','1280x720','1366x768','1600x900','1920x1080',
+                                        '2560x1440','3200x1800','3840x2160')
+    $controls.Resolution.ToolTip = "Desktop is $DesktopWidth × $DesktopHeight. Choose a preset or enter width x height."
+    $controls.DisplayMode.ItemsSource = @('Borderless','Windowed')
     foreach ($key in '0','75','100','125') {
         $item = [Windows.Controls.ComboBoxItem]::new()
         $item.Tag = $key
@@ -627,9 +644,8 @@
                 [void] $controls.InputMode.Focus()
             }
             'OptionsPage' {
-                foreach ($item in $controls.Resolution.Items) {
-                    if ($item.Tag -eq $state.Resolution) { $controls.Resolution.SelectedItem = $item; break }
-                }
+                $controls.Resolution.Text = if ($state.Resolution -eq 'auto') { 'Desktop' } else { $state.Resolution }
+                $controls.DisplayMode.SelectedItem = $state.DisplayMode
                 foreach ($item in $controls.Hud.Items) {
                     if ($item.Tag -eq $state.Hud) { $controls.Hud.SelectedItem = $item; break }
                 }
@@ -709,9 +725,17 @@
     $controls.ChapterBack.Add_Click( { & $showPage 'MainPage'; [void] $controls.Chapters.Focus() } )
     $controls.OptionsBack.Add_Click( { & $updateSindenBorder; & $showPage 'MainPage'; [void] $controls.Options.Focus() } )
     $controls.SaveOptions.Add_Click( {
-        $state.Resolution = [string] $controls.Resolution.SelectedItem.Tag
+        $resolution = ConvertTo-Hotd4Resolution $controls.Resolution.Text
+        if (!$resolution) {
+            [void][Windows.MessageBox]::Show($window, 'Enter a resolution such as 2560x1440, or choose Desktop.', 'Render Resolution')
+            [void]$controls.Resolution.Focus()
+            return
+        }
+        $state.Resolution = $resolution
+        $state.DisplayMode = [string]$controls.DisplayMode.SelectedItem
         $state.Hud = [string] $controls.Hud.SelectedItem.Tag
         [IO.File]::WriteAllText($resolutionPath, $state.Resolution)
+        [IO.File]::WriteAllText($displayModePath, $state.DisplayMode)
         [IO.File]::WriteAllText($hudPath, $state.Hud)
         $state.CrosshairColor = [string] $controls.CrosshairColor.SelectedItem.Tag
         [IO.File]::WriteAllText($crosshairColorPath, $state.CrosshairColor)
@@ -748,7 +772,7 @@
         }
         if ($eventArgs.Key -eq 'Escape') {
             if ($controls.InputMode.IsDropDownOpen -or $controls.Gun1.IsDropDownOpen -or $controls.Gun2.IsDropDownOpen -or $controls.AntiAliasing.IsDropDownOpen -or $controls.MouseSpeed.IsDropDownOpen -or $controls.MouseSmoothing.IsDropDownOpen) { return }
-            if ($controls.Resolution.IsDropDownOpen -or $controls.Hud.IsDropDownOpen -or $controls.Sinden.IsDropDownOpen -or $controls.SindenWidth.IsDropDownOpen -or $controls.CrosshairStyle.IsDropDownOpen -or $controls.CrosshairSize.IsDropDownOpen -or $controls.CrosshairColor.IsDropDownOpen) { return }
+            if ($controls.Resolution.IsDropDownOpen -or $controls.DisplayMode.IsDropDownOpen -or $controls.Hud.IsDropDownOpen -or $controls.Sinden.IsDropDownOpen -or $controls.SindenWidth.IsDropDownOpen -or $controls.CrosshairStyle.IsDropDownOpen -or $controls.CrosshairSize.IsDropDownOpen -or $controls.CrosshairColor.IsDropDownOpen) { return }
             if ($controls.MainPage.IsVisible) { $window.Close() }
             elseif ($controls.AchievementsPage.IsVisible) { & $showPage 'MainPage'; [void]$controls.Achievements.Focus() }
             elseif ($controls.BindingsPage.IsVisible) {$controls.BindingsBack.RaiseEvent([Windows.RoutedEventArgs]::new([Windows.Controls.Button]::ClickEvent))}

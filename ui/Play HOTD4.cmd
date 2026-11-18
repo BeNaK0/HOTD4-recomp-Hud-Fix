@@ -43,7 +43,7 @@ public static class Hotd4Display {
 }
 
 function Invoke-Hotd4 {
-    param([string] $Mode, [string] $Hud, [int] $Width, [int] $Height, [bool] $Windowed)
+    param([string] $Mode, [string] $Hud, [int] $Width, [int] $Height, [bool] $Windowed, [int] $OutputWidth = $Width, [int] $OutputHeight = $Height, [switch] $Borderless)
 
     if ($mode -notmatch '^[0-6LT]$') { throw 'Choose 0 for Arcade, 1–6 for a chapter, L for the lighting test, or T for the HD texture test.' }
     $lighting = $mode -eq 'L'
@@ -62,11 +62,12 @@ function Invoke-Hotd4 {
     $env:HOTD4_HUD_SCALE = if ($hud -eq '0') { $null } else { $hud }
     $env:HOTD4_PAUSE_MENU = '1'
     $env:HOTD4_HUD_PROFILE = $hudFile
-    $env:LINDBERGH_FULLSCREEN = if ($windowed) { '0' } else { $defaultFullscreen }
+    $env:LINDBERGH_FULLSCREEN = if ($Windowed) { '0' } elseif ($Borderless) { '1' } else { $defaultFullscreen }
     $env:LINDBERGH_NVRAM = $defaultNvram
+    $width, $height = Get-Hotd4RenderSize $Width $Height
     $env:LINDBERGH_WIDTH = [string]$width
     $env:LINDBERGH_HEIGHT = [string]$height
-    $env:LINDBERGH_WINDOW = "${width}x${height}"
+    $env:LINDBERGH_WINDOW = '{0}x{1}' -f $OutputWidth, $OutputHeight
 
     try {
         if (-not (Test-Path -LiteralPath $desktopExe -PathType Leaf)) {
@@ -188,6 +189,7 @@ function Invoke-Hotd4 {
 try {
     $env:Path = "$recompDir;$env:Path"
     . (Join-Path $recompDir 'hotd4-controls.ps1')
+    . (Join-Path $recompDir 'hotd4-display.ps1')
     $env:TEA_DIR = $diskDir
     $env:LINDBERGH_DIPSW = 'e0'
     $env:LINDBERGH_HOTD4_PACE_CUTSCENES = '1'
@@ -200,11 +202,17 @@ try {
             if (!$selection) { exit 0 }
             $width = $desktopWidth
             $height = $desktopHeight
-            $windowed = $selection.Resolution -ne 'auto'
-            if ($windowed) {
+            $windowed = $selection.DisplayMode -eq 'Windowed'
+            if ($selection.Resolution -ne 'auto') {
                 $width, $height = $selection.Resolution.Split('x')
             }
-            $exitCode = Invoke-Hotd4 -Mode $selection.Mode -Hud $selection.Hud -Width $width -Height $height -Windowed $windowed
+            $outputWidth, $outputHeight = $width, $height
+            if ($windowed) {
+                $scale = [Math]::Min(1.0, [Math]::Min(($desktopWidth - 32) / $width, ($desktopHeight - 72) / $height))
+                $outputWidth = [int][Math]::Floor($width * $scale)
+                $outputHeight = [int][Math]::Floor($height * $scale)
+            }
+            $exitCode = Invoke-Hotd4 -Mode $selection.Mode -Hud $selection.Hud -Width $width -Height $height -Windowed $windowed -OutputWidth $outputWidth -OutputHeight $outputHeight -Borderless:(!$windowed)
         } while ($exitCode -eq 0)
     } else {
         $hud = '0'

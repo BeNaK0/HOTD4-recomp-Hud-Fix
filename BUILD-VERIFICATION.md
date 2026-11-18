@@ -74,3 +74,10 @@ Reproduced the v1.2.2 `hotd4-controls.ps1` startup error with a Restricted polic
 - Verified the graphical launchers without a console and validated 1,166 model records and 1,833 skeletal clips. The viewer applied locally enhanced textures to James Taylor, Kate Green and Justice in both static and animated previews. Three original diffuse texture references could not be resolved.
 - The changed host sources compiled with the optional OpenXR configuration. The new features were exercised on the Windows desktop. VR headset testing was outside this release check.
 - The manifest and ZIP were checked for game assets, lifted code and compiled binaries. The only bundled artwork is the existing trophy and crosshair illustrations.
+
+## Windows desktop v1.3.1
+
+- Built and installed from a freshly extracted builder on Windows 11 x64 with an original Rev A (DVP-0003A) dump and a cached MSYS2 toolchain. Setup compiled both graphical launchers and created the local menu background. The installed build completed 1,300 frames in Chapter 1 on both 2560 × 1440 and 3440 × 1440 outputs.
+- Exercised the resolution field and display mode in the packaged start menu. Verified custom input, saving and reopening settings, and migration of a saved v1.3.0 windowed resolution.
+- Checked the gameplay viewport and aim mapping at 1280 × 720, 2560 × 1440, 3440 × 1440, and 3840 × 2160. Verified 720p rendered into 1440p output. A 3440 × 1440 framebuffer capture showed a full-height 2560 × 1440 gameplay area with the HUD in its intended position and two 440-pixel side bars.
+- The updated SDL host also compiled in the optional OpenXR configuration. Display and aim checks used the desktop build.
