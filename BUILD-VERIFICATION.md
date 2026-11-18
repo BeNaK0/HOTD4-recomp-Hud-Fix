@@ -81,3 +81,9 @@ Reproduced the v1.2.2 `hotd4-controls.ps1` startup error with a Restricted polic
 - Exercised the resolution field and display mode in the packaged start menu. Verified custom input, saving and reopening settings, and migration of a saved v1.3.0 windowed resolution.
 - Checked the gameplay viewport and aim mapping at 1280 × 720, 2560 × 1440, 3440 × 1440, and 3840 × 2160. Verified 720p rendered into 1440p output. A 3440 × 1440 framebuffer capture showed a full-height 2560 × 1440 gameplay area with the HUD in its intended position and two 440-pixel side bars.
 - The updated SDL host also compiled in the optional OpenXR configuration. Display and aim checks used the desktop build.
+
+## Windows desktop v1.3.2
+
+- Captured the SEGA startup screen in the desktop build at 1920 × 1080 and 3840 × 2160. The startup artwork and serial numbers share a centered 4:3 canvas.
+- Triggered the native grab state during Chapter 1 using a local test hook. Before-and-after 1280 × 720 captures show the gauge end caps, track, fill and target label aligned, with the shake prompt centered.
+- Entered the Justice encounter directly and shot through its shield. The health and cancel gauge sprites stayed together as the game applied damage.

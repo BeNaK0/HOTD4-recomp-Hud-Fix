@@ -1,6 +1,6 @@
 # HOTD4 Local Builder
 
-Download and extract **HOTD4-Local-Builder-v1.3.1.zip** from the [v1.3.1 release](https://github.com/davidptrssvea/HOTD4-recomp/releases/tag/v1.3.1). Run **Setup.cmd**, select your own extracted arcade dump, then wait for the local build. Open **HOTD4-PC\Play HOTD4.exe** for the graphical menu or **Model Viewer.exe** to go directly to the viewer. All menus are in English.
+Download and extract **HOTD4-Local-Builder-v1.3.2.zip** from the [v1.3.2 release](https://github.com/davidptrssvea/HOTD4-recomp/releases/tag/v1.3.2). Run **Setup.cmd**, select your own extracted arcade dump, then wait for the local build. Open **HOTD4-PC\Play HOTD4.exe** for the graphical menu or **Model Viewer.exe** to go directly to the viewer. All menus are in English.
 
 To update, extract the new builder and run **Setup.cmd** with the same arcade dump. Select your existing installation folder to keep its settings, cabinet saves and trophies.
 

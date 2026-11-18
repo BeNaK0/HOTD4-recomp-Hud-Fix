@@ -580,13 +580,90 @@ static void h_reload_sprite_next(CPU *c)
     lifted_sprite_next(c);
 }
 
-static void h_route_sprite_draw(CPU *c)
+static HleHandler lifted_hud_begin_frame, lifted_primitive_begin, lifted_primitive_draw, lifted_boss_sprite_draw;
+static unsigned hud_primitive_count;
+static struct {
+    uint32_t work;
+    HudSpriteLayout layout;
+} hud_primitives[64]; // The startup serial screen also queues one sprite per glyph.
+static HudSpriteLayout queuing_layout;
+
+static void h_hud_begin_frame(CPU *c)
 {
-    // The five route sprites use the same 640x480 canvas as their hit boxes.
-    const int route = rd32(c->esp - 4) == 0x081800b1u;
-    if (route) hud_route_mark();
+    hud_primitive_count = 0;
     push32(c, rd32(c->esp - 4));
+    lifted_hud_begin_frame(c);
+}
+
+static void h_primitive_begin(CPU *c)
+{
+    push32(c, rd32(c->esp - 4));
+    lifted_primitive_begin(c);
+    // HyPrimitiveBegin returns success and sets the current primitive work pointer.
+    if (queuing_layout != HUD_LAYOUT_DEFAULT && c->eax &&
+        hud_primitive_count < sizeof hud_primitives / sizeof *hud_primitives) {
+        hud_primitives[hud_primitive_count].work = rd32(0x0a73410c);
+        hud_primitives[hud_primitive_count++].layout = queuing_layout;
+    }
+}
+
+static void h_primitive_draw(CPU *c)
+{
+    HudSpriteLayout layout = HUD_LAYOUT_DEFAULT;
+    if (hud_primitive_count) {
+        // The renderer replays the work allocated by HyPrimitiveBegin.
+        uint32_t work = rd32(rd32(A32(0) + 8));
+        for (unsigned i = 0; i < hud_primitive_count; ++i) {
+            if (work == hud_primitives[i].work) {
+                layout = hud_primitives[i].layout;
+                break;
+            }
+        }
+    }
+    HudSpriteLayout previous = hud_sprite_layout(layout);
+    push32(c, rd32(c->esp - 4));
+    lifted_primitive_draw(c);
+    hud_sprite_layout(previous);
+}
+
+static void h_sprite_draw(CPU *c)
+{
+    uint32_t caller = rd32(c->esp - 4);
+    // The route sprites use the same logical canvas as their hit boxes.
+    if (caller == 0x081800b1u) hud_route_mark();
+    HudSpriteLayout previous = queuing_layout;
+    // CSpriteScreen::Draw submits the boot artwork on the logical sprite canvas.
+    if (caller == 0x081571f8u) queuing_layout = HUD_LAYOUT_SPLASH;
+    push32(c, caller);
     lifted_sprite_draw(c);
+    queuing_layout = previous;
+}
+
+static void h_hud_sprite_draw(CPU *c)
+{
+    uint32_t caller = rd32(c->esp - 4);
+    // CBossBase::Draw submits the label, fill and empty track as separate sprites.
+    HudSpriteLayout previous = queuing_layout;
+    if (caller == 0x080da291u || caller == 0x080da2a3u || caller == 0x080da2b5u ||
+        caller == 0x080da2e2u || caller == 0x080da2f4u)
+        queuing_layout = HUD_LAYOUT_BOSS;
+    // CPlayerMgr::SprDraw submits the grab gauge and shake prompt together.
+    else if (caller == 0x0816bf3au || caller == 0x0816bf49u ||
+             caller == 0x0816bf62u || caller == 0x0816bf71u)
+        queuing_layout = HUD_LAYOUT_GRAB;
+    // The SEGA panel and CAdvertise's two serial ID rows share the boot canvas.
+    else if (caller == 0x08050712u || caller == 0x0805092eu)
+        queuing_layout = HUD_LAYOUT_SPLASH;
+    else if (caller == 0x08175c46u && rd32(c->eax + 0xec) == 1u) {
+        // CTelopBase also draws gameplay panels. Match the logo telop ID
+        // while CAdvertise's startup serial timer is active.
+        uint32_t advertise = rd32(0x0a711750);
+        if (advertise && (int32_t)rd32(advertise + 0x38) > 0)
+            queuing_layout = HUD_LAYOUT_SPLASH;
+    }
+    push32(c, caller);
+    lifted_boss_sprite_draw(c);
+    queuing_layout = previous;
 }
 
 static void h_route_resolution(CPU *c)
@@ -612,15 +689,29 @@ static void install_reload_feedback(void)
     if (lifted_sprite_next) guest_override(next, h_reload_sprite_next);
 }
 
-static void install_route_layout(void)
+static void install_wide_hud_layout(void)
 {
     const char *draw = "_ZN9CCsPlayer12_DrawProcessEjP12KfMatrixNNGL";
     const char *resolution = "_Z13GetResolutionPjS_";
     lifted_sprite_draw = dispatch_lifted(guest_symbol(draw));
     lifted_resolution = dispatch_lifted(guest_symbol(resolution));
     if (lifted_sprite_draw && lifted_resolution) {
-        guest_override(draw, h_route_sprite_draw);
+        guest_override(draw, h_sprite_draw);
         guest_override(resolution, h_route_resolution);
+    }
+    const char *boss_draw = "_ZN9CCsPlayer4DrawEP12KfMatrixNNGL";
+    const char *begin_frame = "HySystemBeginFrame";
+    const char *primitive_begin = "HyPrimitiveBegin";
+    const char *primitive_draw = "_Z16_hyDrawPrimitiveP10HyEnvEntryP5HyEnv";
+    lifted_boss_sprite_draw = dispatch_lifted(guest_symbol(boss_draw));
+    lifted_hud_begin_frame = dispatch_lifted(guest_symbol(begin_frame));
+    lifted_primitive_begin = dispatch_lifted(guest_symbol(primitive_begin));
+    lifted_primitive_draw = dispatch_lifted(guest_symbol(primitive_draw));
+    if (lifted_boss_sprite_draw && lifted_hud_begin_frame && lifted_primitive_begin && lifted_primitive_draw) {
+        guest_override(boss_draw, h_hud_sprite_draw);
+        guest_override(begin_frame, h_hud_begin_frame);
+        guest_override(primitive_begin, h_primitive_begin);
+        guest_override(primitive_draw, h_primitive_draw);
     }
 }
 #endif
@@ -671,7 +762,7 @@ int main(int argc, char **argv)
             install_movie_aspect();
             fprintf(stderr, "[hotd4] 16:9 widescreen layout active (%dx%d)\n", w, h);
 #if defined(_WIN64) && !defined(LINDBERGH_OPENXR) && !defined(LINDBERGH_VULKAN)
-            install_route_layout();
+            install_wide_hud_layout();
 #endif
             hud_widen_enable(0.75f, hud_anchored);
             /* the 2D is laid out in 640x480 pixels from the top left, and

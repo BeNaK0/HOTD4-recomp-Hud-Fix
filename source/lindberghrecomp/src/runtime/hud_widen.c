@@ -38,6 +38,7 @@
 /* CEnvMgr::RenderEnv indices in the retail HOTD4 executable. */
 enum { HUD_PLAYER_SPRITES = 15, HUD_ARCADE_TEXT = 16 };
 static int g_render_env = -1;
+static HudSpriteLayout g_sprite_layout;
 static unsigned g_route_frame = ~0u;
 static float g_hud_scale;
 static int g_hud_scale_set;
@@ -69,6 +70,13 @@ int hud_custom_render_env(int id)
     return previous;
 }
 
+
+HudSpriteLayout hud_sprite_layout(HudSpriteLayout layout)
+{
+    HudSpriteLayout previous = g_sprite_layout;
+    g_sprite_layout = layout;
+    return previous;
+}
 
 extern unsigned g_frame;
 static float g_f;
@@ -162,7 +170,8 @@ static void push(int op, GLenum target, float a, float b, float cc, float d)
 
 static void w_glBegin(CPU *c)
 {
-    if (g_f > 0 && (g_mv_identity || route_layout_active()) && A32(0) == GL_QUADS) {
+    int centered_canvas = g_sprite_layout == HUD_LAYOUT_GRAB || g_sprite_layout == HUD_LAYOUT_SPLASH;
+    if (g_f > 0 && (g_mv_identity || route_layout_active() || centered_canvas) && A32(0) == GL_QUADS) {
         g_recording = 1; g_nops = 0; g_overflow = 0; g_prim = A32(0);
         return;
     }
@@ -392,11 +401,13 @@ static void w_glEnd(CPU *c)
 
     GLfloat p[16];
     glGetFloatv(GL_PROJECTION_MATRIX, p);
-    if (route_layout_active()) {
-        // This is an interactive screen. Keep the full normalized gun area
-        // aligned with the stock logical canvas, without HUD edge anchors.
+    int route = route_layout_active();
+    if (route || g_sprite_layout == HUD_LAYOUT_GRAB || g_sprite_layout == HUD_LAYOUT_SPLASH) {
+        // Route selection spans the gun area. Grab and boot sprites share a
+        // centered 4:3 canvas, including the widest pieces of each panel.
+        float fit_x = route ? 1.0f : g_f;
         for (int col = 0; col < 4; ++col) {
-            p[col * 4] = g_lx * p[col * 4] + g_lox * p[col * 4 + 3];
+            p[col * 4] = fit_x * (g_lx * p[col * 4] + g_lox * p[col * 4 + 3]);
             p[col * 4 + 1] = g_ly * p[col * 4 + 1] + g_loy * p[col * 4 + 3];
         }
         GLint mode;
@@ -453,19 +464,22 @@ static void w_glEnd(CPU *c)
         return;
     }
 
-    float s = place(box);
-    /* Keep widened quads within the visible viewport */
-    if (box[0] * g_f + s < -0.96f) s = -0.96f - box[0] * g_f;
-    if (box[1] * g_f + s >  0.96f) s =  0.96f - box[1] * g_f;
-    memcpy(g_last_box, box, sizeof box);
-    g_last_s = s;
-    g_last_frame = g_frame;
+    float s = 0;
+    if (g_sprite_layout != HUD_LAYOUT_BOSS) {
+        s = place(box);
+        /* Keep widened quads within the visible viewport. */
+        if (box[0] * g_f + s < -0.96f) s = -0.96f - box[0] * g_f;
+        if (box[1] * g_f + s >  0.96f) s =  0.96f - box[1] * g_f;
+        memcpy(g_last_box, box, sizeof box);
+        g_last_s = s;
+        g_last_frame = g_frame;
+    }
 
     float scale = 1, anchor_x = 0, anchor_y = 0;
     if (g_hud_scale > 0 && (g_render_env == HUD_PLAYER_SPRITES || g_render_env == HUD_ARCADE_TEXT)) {
         scale = g_hud_scale;
         anchor_x = s < -0.05f ? -0.96f : s > 0.05f ? 0.96f : 0.0f;
-        anchor_y = -0.94f;
+        anchor_y = g_sprite_layout == HUD_LAYOUT_BOSS ? 0.94f : -0.94f;
     }
     float tx = scale * (g_f * lox + s) + (1.0f - scale) * anchor_x;
     float ty = scale * loy + (1.0f - scale) * anchor_y;

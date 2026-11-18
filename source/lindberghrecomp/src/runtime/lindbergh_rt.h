@@ -301,6 +301,13 @@ void       segaapi_master_gain(float g);          /* the libsegaapi mix, before 
 void       host_aim_default(double sx, double ox, double sy, double oy);  /* sight = s*pointer + o, set before the settings load */
 void       hud_widen_enable(float f, int (*anchored)(void));   /* hud_widen.c */
 void       hud_widen_layout(float lx, float lox, float ly, float loy, int vw);
+typedef enum {
+    HUD_LAYOUT_DEFAULT,
+    HUD_LAYOUT_BOSS,
+    HUD_LAYOUT_GRAB,
+    HUD_LAYOUT_SPLASH,
+} HudSpriteLayout;
+HudSpriteLayout hud_sprite_layout(HudSpriteLayout layout);
 /* Optional HOTD4 desktop HUD. The render environment tracks its 2D and
  * indexed HUD passes while the game renders them. */
 float      hud_custom_scale(void);
