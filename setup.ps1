@@ -134,7 +134,7 @@ try {
         Write-Warning 'The game was installed, but the optional menu background could not be rendered. See HOTD4_Recomp\menu-background.log. Run Setup again to retry; the plain menu remains available.'
     }
     if($OpenXR){Write-Host "VR launcher: $(Join-Path $InstallDir 'Play HOTD4 (VR OpenXR).cmd')"}
-    Write-Host "Ready. Open: $(Join-Path $InstallDir 'Play HOTD4.cmd')"
+    Write-Host "Ready. Open: $(Join-Path $InstallDir 'Play HOTD4.exe')"
 } catch {
     [Console]::Error.WriteLine($_.Exception.Message)
     exit 1

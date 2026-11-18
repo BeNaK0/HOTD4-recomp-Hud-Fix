@@ -3,15 +3,15 @@
   "files": [
     {
       "path": "BUILD-VERIFICATION.md",
-      "sha256": "f941b8a0ff59600ad4b8dc1a2fa5c1cb6e2488771b5ce5f67dad9e5def527c1a"
+      "sha256": "e022b8e9d194acd4f223bcac2fb8d190d1f80d1aca029d554c147d8a8fe77751"
     },
     {
       "path": "README.md",
-      "sha256": "b8a4fd97138f1a346351e9654f34cd6f0fc5dc07891bb50265d6325f6113a3a7"
+      "sha256": "901a8790a85904e67ee51903a657f90f93341d0e5d22ea27470bc58c1a8d2c12"
     },
     {
       "path": "RELEASE-NOTES.md",
-      "sha256": "3d787642cafe4c951fa35bb3c0ea03eb4d12634cdf077c5d8ab9cdadc4cdbbc6"
+      "sha256": "52922ff5ec117670f0ddf4e67f565cfb6d3bd63064d214394740a07bac875075"
     },
     {
       "path": "Setup.cmd",
@@ -19,7 +19,7 @@
     },
     {
       "path": "setup.ps1",
-      "sha256": "19316d7c7136eea3d71173daab33bd0ee8b566c01cba479a782e89076ce38417"
+      "sha256": "6d55bc2fcbfa0dbd68d9d52a1e55a412d851ff6cd07667dac4763cb57a1997fd"
     },
     {
       "path": "source/CMakeLists.txt",
@@ -39,7 +39,7 @@
     },
     {
       "path": "source/games/hotd4/src/host.c",
-      "sha256": "088be068ace8494d5df5425f7ec6656a184863b936a3c6f0e33a33395f487c7d"
+      "sha256": "13c03752c823d88d5a08073642e853426ff5915aed9d4419285edd809e10d284"
     },
     {
       "path": "source/games/hotd4/src/hotd4_hd_textures.c",
@@ -51,7 +51,7 @@
     },
     {
       "path": "source/lindberghrecomp/CMakeLists.txt",
-      "sha256": "91e83bd950e1eeafd87de1ed40c1f6493d1dcca44af66d6bdac98032025313d0"
+      "sha256": "58f5c1d85a7192d4496076dd00bbc8871f37a2946e1a82b1f659af8db85f2203"
     },
     {
       "path": "source/lindberghrecomp/LICENSE",
@@ -235,7 +235,7 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/host_sdl.c",
-      "sha256": "0e0365afc42dde987da0ad446758f3ca470343822d0da559c79f8f7ce6f5a918"
+      "sha256": "185832e5d4927ada81c9bed33a24ac8d6f5b9cc4eddb1919d8f2eb6fa562293e"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/host_settings.c",
@@ -284,6 +284,18 @@
     {
       "path": "source/lindberghrecomp/src/runtime/overrides.c",
       "sha256": "4ebb1987ac5ca2880b624358fc63d7bd8ebc441e89bd16b4477fbc30bc17ae17"
+    },
+    {
+      "path": "source/lindberghrecomp/src/runtime/photo_camera.h",
+      "sha256": "8adc220ea6f8817f95daaade3f89c4229dba48f9646f5397f491b230eb9842e2"
+    },
+    {
+      "path": "source/lindberghrecomp/src/runtime/photo_filters.h",
+      "sha256": "919939cbcbfff73a14592bd3f330ef9d21648a927330c504f88e0f1f31fb0115"
+    },
+    {
+      "path": "source/lindberghrecomp/src/runtime/photo_mode.h",
+      "sha256": "1dab80af0dc162d9a6b83fe18d6ff169b07b3d08bdfb90c829b4d42ead741bee"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/posix_compat.h",
@@ -511,7 +523,7 @@
     },
     {
       "path": "tools/build.py",
-      "sha256": "642cd9c3d2b88a549c13d856115fba9c0d966779d5c4d4dd4b44f8788f7815ae"
+      "sha256": "a148673cf5c34c56dfc1754d5992a6b69e520fb36c6b1a7f5967257cf5432e35"
     },
     {
       "path": "tools/elf-variants.json",
@@ -530,6 +542,14 @@
       "sha256": "42d12f0a27b8b968092a5eaf29e71e72f9927c278bb1a20b273da247b369b110"
     },
     {
+      "path": "tools/windows-launcher.cs",
+      "sha256": "c807e06283ca38fdbbb57e1ad65be94b754c0c4618adab1113960e3ba93280bf"
+    },
+    {
+      "path": "ui/Model Viewer.cmd",
+      "sha256": "de249858e4e0a84801251655d48bacee9cde5511bd3154f3496a6054fba9d574"
+    },
+    {
       "path": "ui/Play HOTD4 (Performance Log).cmd",
       "sha256": "1b85609fa667141cf7c36afefcb2b2f149ad62f3e6e9c529ae728bf2c4ee1bd3"
     },
@@ -539,7 +559,7 @@
     },
     {
       "path": "ui/Play HOTD4.cmd",
-      "sha256": "768ec3114eb9be40a8f86e90dc212ef04adc065e6e63fba469e738a4831fa401"
+      "sha256": "aae7df1b685ec04626f28f600341dbf5310b19ba98c42476d442b02bae399c52"
     },
     {
       "path": "ui/achievement-assets/bronze.png",
@@ -1418,8 +1438,24 @@
       "sha256": "8a302015e50e8b93b92b66b10716da7c64f4c4e884f4cf888aa57ccbdabfdff5"
     },
     {
+      "path": "ui/hotd4-model-motion.cs",
+      "sha256": "67069a7c53d58a316b5a8e4b7d0c8db60a39445d53c3486e7abcebc801b8134d"
+    },
+    {
+      "path": "ui/hotd4-model-textures.cs",
+      "sha256": "8c4b59094024f5c8fbbd3609a93620b9cf5ec531828f9e6b2ec6d8e4b26eb0fb"
+    },
+    {
+      "path": "ui/hotd4-model-viewer.ps1",
+      "sha256": "99114275eb56c396fbab767b37e927f57dabcb9a830d48ccc17b74d84b89b664"
+    },
+    {
+      "path": "ui/hotd4-models.cs",
+      "sha256": "b28e3a16f0d58dbee35384a69dbf06adae6f63633385336b535be5b35639e11f"
+    },
+    {
       "path": "ui/hotd4-startmenu.ps1",
-      "sha256": "ff64146e2d8e51c4b427ff6b4869488c760cd8c9bbf54bdb6a6ae59329335e37"
+      "sha256": "9e0af5d859e83e23a04bcf67388c89c94eb17e5a4d3d32ae79202d4825bbd8e5"
     },
     {
       "path": "ui/lindbergh.ini",

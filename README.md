@@ -1,8 +1,8 @@
 # HOTD4 Local Builder
 
-Download and extract **HOTD4-Local-Builder-v1.2.3.zip** from the [v1.2.3 release](https://github.com/davidptrssvea/HOTD4-recomp/releases/tag/v1.2.3). Run **Setup.cmd**, select your own extracted arcade dump, then wait for the local build. When finished, open **HOTD4-PC\Play HOTD4.cmd**. All menus are in English.
+Download and extract **HOTD4-Local-Builder-v1.3.0.zip** from the [v1.3.0 release](https://github.com/davidptrssvea/HOTD4-recomp/releases/tag/v1.3.0). Run **Setup.cmd**, select your own extracted arcade dump, then wait for the local build. Open **HOTD4-PC\Play HOTD4.exe** for the graphical menu or **Model Viewer.exe** to go directly to the viewer. All menus are in English.
 
-If v1.2.2 is already installed, download the [replacement launcher](https://github.com/davidptrssvea/HOTD4-recomp/releases/download/v1.2.3/Play-HOTD4.cmd), rename it to `Play HOTD4.cmd`, and replace the file beside your `HOTD4_Recomp` folder. This fixes the Windows PowerShell script-policy error without reinstalling.
+To update, extract the new builder and run **Setup.cmd** with the same arcade dump. Select your existing installation folder to keep its settings, cabinet saves and trophies.
 
 ## Supported arcade dump
 
@@ -22,7 +22,7 @@ Setup verifies the input hash and checks that the locally prepared copy matches 
 
 ## System requirements
 
-- **Operating system:** Windows 10 or Windows 11 on an x64 (Intel or AMD) PC, with Windows PowerShell 5.1 available. Clean setup was verified on Windows 10 Enterprise LTSC 2021 x64 (build 19044.1288) and Windows 11 x64.
+- **Operating system:** Windows 10 or Windows 11 on an x64 (Intel or AMD) PC, with Windows PowerShell 5.1 and the Windows .NET Framework 4.x compiler available. The v1.3.0 clean setup was verified on Windows 11 x64. An earlier installer was verified on Windows 10 Enterprise LTSC 2021 x64 (build 19044.1288).
 - **Disk and permissions:** Allow around **10 GB of free space** beyond your existing dump for the toolchain, build files and installed copy of the game. Use writable folders for the extracted builder and game installation. The toolchain uses `%LOCALAPPDATA%\HOTD4-Builder\msys64` by default, so allow space there as well if the builder is on another drive. Setup can run under a regular user account.
 - **Internet:** Required for the first setup to download MSYS2 and its build dependencies. Setup installs its own compiler, Python and runtime dependencies. A separate xz tool is unnecessary.
 - **Graphics:** Desktop gameplay and the optional menu background use a GPU driver with desktop OpenGL compatibility support. The desktop build requests an OpenGL 2.1 context with the extensions it uses for rendering. The installer can compile on a VM without working 3D graphics. No minimum CPU, RAM or GPU for gameplay has been benchmarked.
@@ -40,11 +40,32 @@ The first build can take several minutes and uses multiple gigabytes of temporar
 
 ## Included features
 
-Resolution selection up to 4K, chapter practice, HUD scale, native pause menu, Trophies gallery with 12 base-game goals, Sinden border with selectable thickness, crosshair style/size/color previews, Raw Input device selection, and selectable MSAA. The default Pause key is Esc; it can be changed. Experimental Remix and replacement zombie textures are not included.
+Resolution selection up to 4K, chapter practice, HUD scale, native pause menu, Trophies gallery with 12 base-game goals, Sinden border with selectable thickness, crosshair style/size/color previews, Raw Input device selection, and selectable MSAA. The default Pause key is Esc; it can be changed. This Windows release also includes Photo Mode, the animated Model Viewer and locally enhanced character textures in the viewer.
 
 This package contains hand-maintained source, build tools/scripts, procedural crosshair previews and newly generated metallic star artwork. It contains **no arcade ELF, game assets, game movies, game audio, textures from the game, prebuilt game executable, lifted game code, saved progress or cabinet NVRAM**. The game is never uploaded. Only the build tools and their dependencies are downloaded.
 
 The menu background is created on the user's PC from their own dump. No screenshot or game artwork is included in the distribution. Existing menu backgrounds are preserved on reinstall. If the optional render fails (for example without working OpenGL graphics), installation completes with a plain background and a local menu-background.log; rerun Setup to retry.
+
+## Photo Mode (Windows desktop)
+
+Pause during gameplay and select **Photo Mode**. The game stays frozen as you move the camera through the rendered 3D scene.
+
+- **Right-drag** to look around, and use the **mouse wheel** to zoom.
+- **Shift + right-drag** sideways to roll the camera. **Z / C** also roll it left or right.
+- **WASD** moves the camera. **Q / E** move down or up, and the **arrow keys** also look around.
+- **R** resets the camera. **H** toggles the original arcade HUD, which starts hidden in Photo Mode.
+- **F** cycles **Original**, **Black & White**, **Film Noir** (grain and film scratches), and **High Saturation**. **Shift + F** cycles backwards. The selected filter appears in the preview and the saved image.
+- **Enter** saves a full-resolution PNG in **Photos** beside the launcher. **Tab** hides or shows the guide, and **Esc** returns to the pause menu. Press **F1** to expand the compact guide into the full control list.
+
+The PNG excludes the photo guide, recomp crosshair, trophy notifications and Sinden border. Scenes without a live 3D camera can still be captured from the frozen view.
+
+## Model Viewer
+
+Choose **Model Viewer** in the start menu or open **Model Viewer.exe** from a current installation folder. Search by character name, model filename or bank, drag to rotate, scroll to zoom, and double-click to reset. The viewer reads static meshes, original diffuse textures and alpha directly from the local model and texture banks. The preview uses fixed lighting, and surfaces without an available diffuse texture use the model's material color. The list starts with **Main models**, which shows one primary mesh per character family where the banks identify one. Alternate meshes, level geometry and props remain searchable. Named characters show their archive filename beneath the name. **HD textures** upscales and sharpens the original diffuse textures for James Taylor, Kate Green and Justice locally. The viewer also uses matching replacements from the optional local HD test pack. Other surfaces use the original textures. Choose **Original textures** to compare.
+
+Filter the catalogue by **Enemies**, **Bosses**, **Players**, **Weapons**, **Environments**, **Props & Items**, **Effects & UI**, or **Other**. The viewer preselects a clip when one is available, with idle and walking clips preferred. Press **Play** to start it or choose another clip from the list. The animation controls are hidden for models without clips. Use **Pause**, the timeline, **Loop**, or **Bind pose** to inspect individual frames. The viewer reads original skeletal motion keys, joint hierarchy and skin weights from the same local dump. Clips are matched using archive names and compatible joint layouts. The preview follows the model as it moves.
+
+The bank and Sega NN format layouts were cross-checked against [Sega NN Tools](https://github.com/Argx2121/Sega_NN_tools).
 
 ## Key bindings and controls overview
 

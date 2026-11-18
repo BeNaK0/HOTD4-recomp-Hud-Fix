@@ -127,9 +127,13 @@ def main():
    rel=p.relative_to(ROOT/'ui')
    if p.name=='Play HOTD4 (VR OpenXR).cmd' and not a.openxr:
     continue
-   dest=(out if p.name in ('Play HOTD4.cmd', 'Play HOTD4 (Performance Log).cmd', 'Play HOTD4 (VR OpenXR).cmd') else app)/rel
+   dest=(out if p.name in ('Play HOTD4.cmd', 'Play HOTD4 (Performance Log).cmd', 'Play HOTD4 (VR OpenXR).cmd', 'Model Viewer.cmd') else app)/rel
    if p.name=='lindbergh.ini' and dest.exists():continue
    dest.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(p,dest)
+ compiler=Path(os.environ['SystemRoot'])/'Microsoft.NET/Framework64/v4.0.30319/csc.exe'
+ for name in ('Play HOTD4.exe','Model Viewer.exe'):
+  run([compiler,'/nologo','/target:winexe','/platform:x64','/reference:System.Windows.Forms.dll',
+       '/out:'+str(out/name).replace('/', '\\'),str(ROOT/'tools/windows-launcher.cs').replace('/', '\\')])
  (out/'dump-path.txt').write_text(str(localdump),encoding='utf-8')
  licenses=app/'licenses';licenses.mkdir(exist_ok=True)
  for label,p in [('ports',source/'LICENSE'),('lindberghrecomp',source/'lindberghrecomp/LICENSE'),('pcrecomp',source/'lindberghrecomp/pcrecomp/LICENSE')]:shutil.copy2(p,licenses/(label+'.txt'))
@@ -137,7 +141,7 @@ def main():
  for p in (bin.parent/'share/licenses').glob('*'):
   if p.is_dir():shutil.copytree(p,licenses/'dependencies'/p.name,dirs_exist_ok=True)
  (out/'local-build.json').write_text(json.dumps({'built_locally':True,'elf_sha256':EXPECTED,'source_elf_sha256':source_hash,'generator_signature':signature,'package_manifest_sha256':digest(ROOT/'package-manifest.json'),'executable_sha256':digest(app/'hotd4-desktop.exe'),**({'openxr_executable_sha256':digest(app/'hotd4-vr.exe')} if (app/'hotd4-vr.exe').is_file() else {}),'built_utc':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime())},indent=2))
- print('\nBuild complete. Start: '+str(out/'Play HOTD4.cmd'),flush=True)
+ print('\nBuild complete. Start: '+str(out/'Play HOTD4.exe'),flush=True)
 if __name__=='__main__':
  try:main()
  except Exception as e:print('Setup failed: '+str(e),file=sys.stderr);sys.exit(1)

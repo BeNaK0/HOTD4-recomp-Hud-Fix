@@ -317,21 +317,159 @@ static void install_lighting(void)
 #endif
 
 #if defined(_WIN64) && !defined(LINDBERGH_VULKAN)
-static HleHandler lifted_render_env;
+#include "photo_camera.h"
+
+enum {
+    PHOTO_PLAYER_SPRITES = 15,
+    PHOTO_ARCADE_TEXT = 16,
+    PHOTO_STACK_SIZE = 512 * 1024
+};
+
+static HleHandler lifted_render_env, lifted_camera_matrix, lifted_fovy;
+static struct {
+    CPU cpu;
+    uint32_t manager, stack_top;
+    uint32_t begin, draw, render, end;
+    unsigned scene_frame;
+    int environment;
+    const PhotoCamera *active;
+    float view[3][4];
+} photo_render = {.scene_frame = ~0u, .environment = -1};
+
+static int photo_world_environment(void)
+{
+    return photo_render.environment >= 0 && photo_render.environment < PHOTO_PLAYER_SPRITES;
+}
+
+static void h_photo_camera_matrix(CPU *c)
+{
+    uint32_t out = A32(1);
+    // HyEnv::_renderMain reads the world-to-camera matrix at this call site.
+    int world = rd32(c->esp - 4) == 0x08293fc7u && photo_world_environment();
+    push32(c, rd32(c->esp - 4));
+    lifted_camera_matrix(c);
+    if (!world) return;
+    if (!photo_render.active) {
+        photo_render.scene_frame = g_frame;
+        return;
+    }
+
+    float original[16], moved[16];
+    memcpy(original, GP(out), sizeof original);
+    memcpy(moved, original, sizeof moved);
+    for (int col = 0; col < 4; ++col) {
+        for (int row = 0; row < 3; ++row) {
+            const float *v = photo_render.view[row];
+            moved[col * 4 + row] = v[0] * original[col * 4] + v[1] * original[col * 4 + 1] +
+                                  v[2] * original[col * 4 + 2] + v[3] * original[col * 4 + 3];
+        }
+    }
+    memcpy(GP(out), moved, sizeof moved);
+}
+
+static void h_photo_fovy(CPU *c)
+{
+    uint32_t caller = rd32(c->esp - 4);
+    push32(c, caller);
+    lifted_fovy(c);
+    const PhotoCamera *camera = photo_render.active;
+    // This call reads the lens for nnMakePerspectiveMatrix. Keep arcade HUD
+    // projections, other uses of the getter and each camera's clip planes intact.
+    if (camera && camera->zoom_stops != 0 && caller == 0x08294012u &&
+        photo_world_environment() && c->eax > 0 && c->eax < 32768) {
+        const float radians_per_half_angle_unit = 3.14159265f / 65536.0f;
+        float half_angle = (float)c->eax * radians_per_half_angle_unit;
+        float zoomed = atanf(tanf(half_angle) * exp2f(-camera->zoom_stops));
+        c->eax = (uint32_t)lroundf(zoomed / radians_per_half_angle_unit);
+    }
+}
 
 static void h_hud_render_env(CPU *c)
 {
-    int previous = hud_custom_render_env((int)c->edx);
+    int id = (int)c->edx;
+    if (!photo_render.active && id == -1) {
+        photo_render.cpu = *c;
+        photo_render.manager = c->eax;
+    }
+    if (photo_render.active && photo_render.active->hide_hud &&
+        (id == PHOTO_PLAYER_SPRITES || id == PHOTO_ARCADE_TEXT))
+        return;
+    int earlier_id = photo_render.environment;
+    photo_render.environment = id;
+    int previous = hud_custom_render_env(id);
     push32(c, rd32(c->esp - 4));
     lifted_render_env(c);
     hud_custom_render_env(previous);
+    photo_render.environment = earlier_id;
+}
+
+static int hotd4_photo_camera_available(void)
+{
+    return g_frame != 0 && photo_render.scene_frame == g_frame - 1 && photo_render.manager &&
+           lifted_camera_matrix && lifted_fovy && photo_render.begin && photo_render.draw && photo_render.render && photo_render.end;
+}
+
+static int hotd4_photo_render(const PhotoCamera *camera)
+{
+    if (!hotd4_photo_camera_available()) return 0;
+    const uint32_t tasks = rd32(0x0a7118ccu);  // HOTD4's active MlTaskSystem.
+    if (!tasks) return 0;
+    if (!photo_render.stack_top) {
+        void *stack = guest_alloc(PHOTO_STACK_SIZE, 16);
+        if (!stack) return 0;
+        photo_render.stack_top = H2G(stack) + PHOTO_STACK_SIZE;
+    }
+
+    float cy = cosf(camera->yaw), sy = sinf(camera->yaw);
+    float cp = cosf(camera->pitch), sp = sinf(camera->pitch);
+    float axes[3][3] = {{cy, 0, sy}, {-sy * sp, cp, cy * sp}, {-sy * cp, -sp, cy * cp}};
+    float cr = cosf(camera->roll), sr = sinf(camera->roll);
+    for (int column = 0; column < 3; ++column) {
+        float right = axes[0][column], up = axes[1][column];
+        axes[0][column] = cr * right - sr * up;
+        axes[1][column] = sr * right + cr * up;
+    }
+    for (int row = 0; row < 3; ++row) {
+        memcpy(photo_render.view[row], axes[row], sizeof axes[row]);
+        photo_render.view[row][3] = -(axes[row][0] * camera->position[0] +
+                                      axes[row][1] * camera->position[1] +
+                                      axes[row][2] * camera->position[2]);
+    }
+
+    // Rebuild just the render passes. The task system's Pre/Main/Post phases
+    // and the movie and sound servers stay paused.
+    CPU cpu = photo_render.cpu;
+    cpu.esp = photo_render.stack_top;
+    photo_render.active = camera;
+    guest_call(&cpu, photo_render.begin, NULL, 0);
+    guest_call(&cpu, photo_render.draw, &tasks, 1);
+    cpu.eax = photo_render.manager;
+    cpu.edx = (uint32_t)-1;
+    guest_call(&cpu, photo_render.render, NULL, 0);
+    guest_call(&cpu, photo_render.end, NULL, 0);
+    photo_render.active = NULL;
+    return 1;
 }
 
 static void install_hud(void)
 {
     const char *name = "_ZN7CEnvMgr9RenderEnvEi";
-    lifted_render_env = dispatch_lifted(guest_symbol(name));
+    photo_render.render = guest_symbol(name);
+    lifted_render_env = dispatch_lifted(photo_render.render);
     if (lifted_render_env) guest_override(name, h_hud_render_env);
+
+    photo_render.begin = guest_symbol("HySystemBeginFrame");
+    photo_render.draw = guest_symbol("_ZN12MlTaskSystem8ExecDrawEv");
+    photo_render.end = guest_symbol("HySystemEndFrame");
+    const char *camera = "_ZN8HyCamera9GetMatrixEP12KfMatrixNNGL";
+    lifted_camera_matrix = dispatch_lifted(guest_symbol(camera));
+    if (lifted_camera_matrix && !guest_override(camera, h_photo_camera_matrix))
+        lifted_camera_matrix = NULL;
+    const char *fovy = "_ZN8HyCamera9GetNNFovyEv";
+    lifted_fovy = dispatch_lifted(guest_symbol(fovy));
+    if (lifted_fovy && !guest_override(fovy, h_photo_fovy))
+        lifted_fovy = NULL;
+    hotd4_photo_register(hotd4_photo_camera_available, hotd4_photo_render);
 }
 #endif
 
@@ -522,6 +660,7 @@ int main(int argc, char **argv)
 #if defined(_WIN64) && !defined(LINDBERGH_VULKAN)
     install_lighting();
     hotd4_install_hd_textures();
+    install_hud();
 #endif
 #endif
     {
@@ -532,7 +671,6 @@ int main(int argc, char **argv)
             install_movie_aspect();
             fprintf(stderr, "[hotd4] 16:9 widescreen layout active (%dx%d)\n", w, h);
 #if defined(_WIN64) && !defined(LINDBERGH_OPENXR) && !defined(LINDBERGH_VULKAN)
-            install_hud();
             install_route_layout();
 #endif
             hud_widen_enable(0.75f, hud_anchored);

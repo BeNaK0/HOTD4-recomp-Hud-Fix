@@ -35,6 +35,7 @@ static void mac_activate(void)
 #endif
 
 #ifdef _WIN32
+#define COBJMACROS
 #include <windows.h>
 #endif
 #include "lindbergh_rt.h"
@@ -1714,8 +1715,11 @@ restore_crosshair_state:
 
 #if defined(HOTD4_DESKTOP_PAUSE)
 #include "sinden_border.h"
+#include "photo_mode.h"
+#include "photo_camera.h"
+#include "photo_filters.h"
 
-enum { PAUSE_UNAVAILABLE = -1, RESUME, RESTART, SETTINGS, ACHIEVEMENTS, MAIN_MENU };
+enum { PAUSE_UNAVAILABLE = -1, RESUME, RESTART, SETTINGS, ACHIEVEMENTS, PHOTO_MODE, MAIN_MENU };
 enum { PANEL_W = 600, PANEL_H = 554, ROW_TOP = 118, ROW_STEP = 54, ROW_HEIGHT = 45 };
 
 typedef struct {
@@ -1723,7 +1727,23 @@ typedef struct {
     int binding_capture;wchar_t binding_message[200];
     int trophy_filter,trophy_scroll,trophy_drag;float trophy_drag_offset;
     GLuint frame, panel;
+    int photo, photo_guide, photo_status, photo_ready, photo_drag, photo_help;
+    PhotoCamera camera;
+    GLuint photo_frame, photo_fbo;
+    PhotoFilter filter;
+    PhotoFilterPass filter_pass;
+    int filter_dirty;
+    int frame_width, frame_height;
 } PauseMenu;
+
+static int (*photo_camera_available)(void);
+static int (*photo_render_scene)(const PhotoCamera *);
+
+void hotd4_photo_register(int (*available)(void), int (*render)(const PhotoCamera *))
+{
+    photo_camera_available = available;
+    photo_render_scene = render;
+}
 
 static const int hud_percent[] = {0, 75, 100, 125};
 
@@ -1732,7 +1752,7 @@ static const wchar_t *achievement_descriptions[12];
 static GLuint achievement_star_texture(int metal);
 static int achievement_is_unlocked(int id);
 static int achievement_count(void);
-static int menu_row_count(const PauseMenu *menu) { return menu->settings_page == 2 ? 9 : menu->settings_page >= 2 ? 7 : menu->settings_page ? 8 : 5; }
+static int menu_row_count(const PauseMenu *menu) { return menu->settings_page == 2 ? 9 : menu->settings_page >= 2 ? 7 : menu->settings_page ? 8 : 6; }
 
 static int menu_step(const PauseMenu *menu){return menu->settings_page==2?42:menu->settings_page==1?48:ROW_STEP;}
 static int menu_height(const PauseMenu *menu){return menu->settings_page==2?36:menu->settings_page==1?40:ROW_HEIGHT;}
@@ -1768,6 +1788,11 @@ static void pause_text(HDC dc, HFONT font, int x, int y, const wchar_t *label, C
 #include "trophy_gallery.h"
 #include "controls_menu.h"
 
+static int photo_guide_height(const PauseMenu *menu)
+{
+    return menu->photo_help ? PHOTO_GUIDE_EXPANDED : PHOTO_GUIDE_COMPACT;
+}
+
 static int pause_panel(PauseMenu *menu)
 {
     if(menu->settings_page==4)return controls_panel(menu);
@@ -1775,7 +1800,8 @@ static int pause_panel(PauseMenu *menu)
     BITMAPINFO info = {0};
     info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
     info.bmiHeader.biWidth = PANEL_W;
-    info.bmiHeader.biHeight = -PANEL_H;
+    int panel_height = menu->photo ? photo_guide_height(menu) : PANEL_H;
+    info.bmiHeader.biHeight = -panel_height;
     info.bmiHeader.biPlanes = 1;
     info.bmiHeader.biBitCount = 32;
 
@@ -1794,55 +1820,88 @@ static int pause_panel(PauseMenu *menu)
         HGDIOBJ old_bitmap = SelectObject(dc, bitmap);
         HGDIOBJ old_font = GetCurrentObject(dc, OBJ_FONT);
         const COLORREF white = RGB(243, 240, 234), muted = RGB(201, 191, 190);
-        pause_fill(dc, 0, 0, PANEL_W, PANEL_H, RGB(17, 17, 21));
-        pause_fill(dc, 0, 0, PANEL_W, 3, RGB(183, 56, 53));
         SetBkMode(dc, TRANSPARENT);
-        pause_text(dc, title, 31, 30, menu->settings_page == 3 ? L"Trophies" : menu->settings_page ? L"Settings" : L"Paused", white);
+        if (menu->photo) {
+            pause_fill(dc, 0, 0, PANEL_W, panel_height, RGB(17, 17, 21));
+            pause_fill(dc, 0, 0, PANEL_W, 3, RGB(183, 56, 53));
+            const wchar_t *status = menu->photo_status > 0 ? L"Saved to Photos" :
+                                    menu->photo_status == -1 ? L"Could not save the photo" :
+                                    menu->photo_status == -2 ? L"Filter unavailable" : L"Photo Mode";
+            pause_text(dc, item, 18, 10, status, white);
 
-        wchar_t hud[64], reticle[64];
-        int value = (int)lroundf(hud_custom_scale() * 100);
-        if (value) swprintf(hud, 64, L"HUD Scale     < %d%% >", value);
-        else wcscpy(hud, L"HUD Scale     < Original >");
-        swprintf(reticle, 64, L"Crosshair     < %ls >", settings()->crosshair ? L"On" : L"Off");
-        const wchar_t *main_items[] = {L"Resume", getenv("HOTD4_PRACTICE_CHAPTER") ?
-                                      L"Restart Chapter" : L"Restart Arcade", L"Settings", L"Trophies", L"Main Menu"};
-        wchar_t sinden[64];
-        swprintf(sinden, 64, L"Sinden Border     < %ls >", sinden_border_enabled() ? L"On" : L"Off");
-        const wchar_t *styles[] = {L"Original Red",L"Blue Circle",L"Red Square"};
-        wchar_t style[80];
-        swprintf(style,80,L"Crosshair Style  < %ls >",styles[crosshair_style_get()]);
-        wchar_t size[64];
-        swprintf(size,64,L"Crosshair Size   < %d%% >",crosshair_size_get());
-        wchar_t color[64];
-        swprintf(color,64,L"Crosshair Color  < %ls >",crosshair_color_names[crosshair_color_get()]);
-        wchar_t border_width[96];swprintf(border_width,96,L"Border Width   < %ls >",sinden_width_names[sinden_border_width_index()]);
-        const wchar_t *settings_items[] = {hud, reticle, style, size, color, sinden, border_width, L"Input & Anti-Aliasing..."};
-        wchar_t mode[96],gun1[128],gun2[128],aa[80],mouse_speed[80],smoothing[80];
-        swprintf(mode,96,L"Input  < %ls >",input_mode_names[input_pref_mode]);
-        input_gun_label(0,gun1,128);input_gun_label(1,gun2,128);
-        if(input_pref_aa)swprintf(aa,80,L"Anti-Aliasing  < MSAA %dx >",input_pref_aa);
-        else wcscpy(aa,L"Anti-Aliasing  < Off >");
-        swprintf(mouse_speed,80,L"Raw Mouse Speed  < %.2fx >", (double)input_mouse_speed);
-        swprintf(smoothing,80,L"Raw Mouse Smoothing  < %ls >", mouse_smoothing_names[input_mouse_smoothing]);
-        const wchar_t *input_items[]={mode,gun1,gun2,aa,mouse_speed,smoothing,L"Key Bindings...",L"Apply & Restart",L"Back"};
-        const wchar_t **items = menu->settings_page == 2 ? input_items : menu->settings_page ? settings_items : main_items;
-        for (int i = 0; i < menu_row_count(menu); ++i) {
-            int y = ROW_TOP + i * menu_step(menu);
-            int selected = i == menu->selected;
-            pause_fill(dc, 31, y, PANEL_W - 62, menu_height(menu),
-                       selected ? RGB(116, 34, 39) : RGB(38, 38, 45));
-            if (selected) pause_fill(dc, 31, y, 3, menu_height(menu), RGB(245, 115, 93));
-            int available = menu->settings_page != 2 || (i != 4 && i != 5) || input_pref_mode == 1;
-            pause_text(dc, item, 49, y + 9, items[i], available ? white : muted);
+            wchar_t filter_label[64];
+            swprintf(filter_label, 64, L"F   %ls", photo_filter_names[menu->filter]);
+            SIZE filter_size;
+            SelectObject(dc, hint);
+            if (GetTextExtentPoint32W(dc, filter_label, (int)wcslen(filter_label), &filter_size))
+                pause_text(dc, hint, PANEL_W - 18 - filter_size.cx, 17, filter_label, RGB(245, 151, 131));
+
+            if (menu->photo_help) {
+                pause_fill(dc, 18, 40, PANEL_W - 36, 1, RGB(65, 62, 70));
+                if (menu->photo_ready) {
+                    pause_text(dc, hint, 18, 50, L"CAMERA", white);
+                    pause_text(dc, hint, 18, 73, L"Right drag  Look     Wheel  Zoom", muted);
+                    pause_text(dc, hint, 18, 96, L"WASD  Move     Q/E  Height", muted);
+                    pause_text(dc, hint, 310, 50, L"COMPOSITION", white);
+                    pause_text(dc, hint, 310, 73, L"Shift + right drag / Z/C  Roll", muted);
+                    pause_text(dc, hint, 310, 96, L"H  HUD     R  Reset camera", muted);
+                } else {
+                    pause_text(dc, hint, 18, 75, L"Free camera unavailable in this scene", muted);
+                }
+            }
+            pause_text(dc, hint, 18, panel_height - 27, menu->photo_help ?
+                       L"Enter   Save       Tab   Hide       F1   Close controls       Esc   Back" :
+                       L"Enter   Save       Tab   Hide       F1   Controls       Esc   Back", muted);
+        } else {
+            pause_fill(dc, 0, 0, PANEL_W, PANEL_H, RGB(17, 17, 21));
+            pause_fill(dc, 0, 0, PANEL_W, 3, RGB(183, 56, 53));
+            pause_text(dc, title, 31, 30, menu->settings_page == 3 ? L"Trophies" : menu->settings_page ? L"Settings" : L"Paused", white);
+
+            wchar_t hud[64], reticle[64];
+            int value = (int)lroundf(hud_custom_scale() * 100);
+            if (value) swprintf(hud, 64, L"HUD Scale     < %d%% >", value);
+            else wcscpy(hud, L"HUD Scale     < Original >");
+            swprintf(reticle, 64, L"Crosshair     < %ls >", settings()->crosshair ? L"On" : L"Off");
+            const wchar_t *main_items[] = {L"Resume", getenv("HOTD4_PRACTICE_CHAPTER") ?
+                                          L"Restart Chapter" : L"Restart Arcade", L"Settings", L"Trophies", L"Photo Mode", L"Main Menu"};
+            wchar_t sinden[64];
+            swprintf(sinden, 64, L"Sinden Border     < %ls >", sinden_border_enabled() ? L"On" : L"Off");
+            const wchar_t *styles[] = {L"Original Red",L"Blue Circle",L"Red Square"};
+            wchar_t style[80];
+            swprintf(style,80,L"Crosshair Style  < %ls >",styles[crosshair_style_get()]);
+            wchar_t size[64];
+            swprintf(size,64,L"Crosshair Size   < %d%% >",crosshair_size_get());
+            wchar_t color[64];
+            swprintf(color,64,L"Crosshair Color  < %ls >",crosshair_color_names[crosshair_color_get()]);
+            wchar_t border_width[96];swprintf(border_width,96,L"Border Width   < %ls >",sinden_width_names[sinden_border_width_index()]);
+            const wchar_t *settings_items[] = {hud, reticle, style, size, color, sinden, border_width, L"Input & Anti-Aliasing..."};
+            wchar_t mode[96],gun1[128],gun2[128],aa[80],mouse_speed[80],smoothing[80];
+            swprintf(mode,96,L"Input  < %ls >",input_mode_names[input_pref_mode]);
+            input_gun_label(0,gun1,128);input_gun_label(1,gun2,128);
+            if(input_pref_aa)swprintf(aa,80,L"Anti-Aliasing  < MSAA %dx >",input_pref_aa);
+            else wcscpy(aa,L"Anti-Aliasing  < Off >");
+            swprintf(mouse_speed,80,L"Raw Mouse Speed  < %.2fx >", (double)input_mouse_speed);
+            swprintf(smoothing,80,L"Raw Mouse Smoothing  < %ls >", mouse_smoothing_names[input_mouse_smoothing]);
+            const wchar_t *input_items[]={mode,gun1,gun2,aa,mouse_speed,smoothing,L"Key Bindings...",L"Apply & Restart",L"Back"};
+            const wchar_t **items = menu->settings_page == 2 ? input_items : menu->settings_page ? settings_items : main_items;
+            for (int i = 0; i < menu_row_count(menu); ++i) {
+                int y = ROW_TOP + i * menu_step(menu);
+                int selected = i == menu->selected;
+                pause_fill(dc, 31, y, PANEL_W - 62, menu_height(menu),
+                           selected ? RGB(116, 34, 39) : RGB(38, 38, 45));
+                if (selected) pause_fill(dc, 31, y, 3, menu_height(menu), RGB(245, 115, 93));
+                int available = menu->settings_page != 2 || (i != 4 && i != 5) || input_pref_mode == 1;
+                pause_text(dc, item, 49, y + 9, items[i], available ? white : muted);
+            }
+            pause_text(dc, hint, 32, 515, menu->settings_page == 2 ?
+                       L"Mouse tuning is live. Restart to apply input mode or MSAA." : menu->settings_page ?
+                       L"Arrow keys to adjust     Enter to select     Esc to go back" :
+                       L"Arrow keys or mouse     Enter to select     Esc to resume", muted);
         }
-        pause_text(dc, hint, 32, 515, menu->settings_page == 2 ?
-                   L"Mouse tuning is live. Restart to apply input mode or MSAA." : menu->settings_page ?
-                   L"Arrow keys to adjust     Enter to select     Esc to go back" :
-                   L"Arrow keys or mouse     Enter to select     Esc to resume", muted);
         GdiFlush();
 
         glBindTexture(GL_TEXTURE_2D, menu->panel);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, PANEL_W, PANEL_H, 0, GL_BGRA,
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, PANEL_W, panel_height, 0, GL_BGRA,
                      GL_UNSIGNED_BYTE, pixels);
         SelectObject(dc, old_font);
         SelectObject(dc, old_bitmap);
@@ -1864,6 +1923,203 @@ static void pause_texture_setup(GLuint texture)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 }
 
+static int photo_surface_create(GLuint *texture, GLuint *fbo, int width, int height)
+{
+    if (*fbo) return 1;
+    GLint previous;
+    glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &previous);
+    glGenTextures(1, texture);
+    glGenFramebuffers(1, fbo);
+    pause_texture_setup(*texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, *fbo);
+    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, *texture, 0);
+    int ready = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE;
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, (GLuint)previous);
+    if (!ready) {
+        glDeleteFramebuffers(1, fbo);
+        glDeleteTextures(1, texture);
+        *fbo = *texture = 0;
+    }
+    return ready;
+}
+
+static int photo_filter_render(PauseMenu *menu)
+{
+    PhotoFilterPass *pass = &menu->filter_pass;
+    if (!pass->program) {
+        pass->program = photo_filter_program();
+        if (!pass->program) return 0;
+        pass->mode = glGetUniformLocation(pass->program, "mode");
+        pass->size = glGetUniformLocation(pass->program, "size");
+    }
+    int width = menu->frame_width, height = menu->frame_height;
+    if (!photo_surface_create(&pass->texture, &pass->framebuffer, width, height)) return 0;
+
+    GLint previous, program;
+    glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &previous);
+    glGetIntegerv(GL_CURRENT_PROGRAM, &program);
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, pass->framebuffer);
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+    glViewport(0, 0, width, height);
+    glDisable(GL_DITHER);
+    glDisable(GL_FRAMEBUFFER_SRGB);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, menu->photo_ready ? menu->photo_frame : menu->frame);
+    glUseProgram(pass->program);
+    /* The program's single sampler uses texture unit zero. */
+    glUniform1i(pass->mode, menu->filter);
+    glUniform2f(pass->size, (float)width, (float)height);
+    glBegin(GL_QUADS);
+    glTexCoord2f(0, 0); glVertex2f(-1, -1);
+    glTexCoord2f(1, 0); glVertex2f(1, -1);
+    glTexCoord2f(1, 1); glVertex2f(1, 1);
+    glTexCoord2f(0, 1); glVertex2f(-1, 1);
+    glEnd();
+    glUseProgram((GLuint)program);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, (GLuint)previous);
+    glPopAttrib();
+    return 1;
+}
+
+static int photo_refresh(PauseMenu *menu, const PhotoCamera *camera)
+{
+    int w, h;
+    SDL_GL_GetDrawableSize(g_win.win, &w, &h);
+    if (w != menu->frame_width || h != menu->frame_height ||
+        !photo_surface_create(&menu->photo_frame, &menu->photo_fbo, w, h))
+        return 0;
+
+    GLint program, pack, unpack;
+    glGetIntegerv(GL_CURRENT_PROGRAM, &program);
+    glGetIntegerv(GL_PIXEL_PACK_BUFFER_BINDING, &pack);
+    glGetIntegerv(GL_PIXEL_UNPACK_BUFFER_BINDING, &unpack);
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+    glPushClientAttrib(GL_CLIENT_ALL_ATTRIB_BITS);
+    glActiveTexture(GL_TEXTURE0);
+    glMatrixMode(GL_TEXTURE); glPushMatrix();
+    glMatrixMode(GL_PROJECTION); glPushMatrix();
+    glMatrixMode(GL_MODELVIEW); glPushMatrix();
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDrawBuffer(GL_BACK);
+    glDisable(GL_SCISSOR_TEST);
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glDepthMask(GL_TRUE);
+    glStencilMask(~0u);
+    glClearColor(0, 0, 0, 1);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    int drawn = photo_render_scene(camera);
+    if (drawn) {
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+        glReadBuffer(GL_BACK);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, menu->photo_fbo);
+        glDisable(GL_SCISSOR_TEST);
+        glBlitFramebuffer(0, 0, w, h, 0, 0, w, h, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+        menu->filter_dirty = 1;
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glActiveTexture(GL_TEXTURE0);
+    glMatrixMode(GL_TEXTURE); glPopMatrix();
+    glMatrixMode(GL_PROJECTION); glPopMatrix();
+    glMatrixMode(GL_MODELVIEW); glPopMatrix();
+    glPopClientAttrib();
+    glPopAttrib();
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, (GLuint)pack);
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, (GLuint)unpack);
+    glUseProgram((GLuint)program);
+    return drawn;
+}
+
+enum { PHOTO_DRAG_OFF, PHOTO_DRAG_RELATIVE, PHOTO_DRAG_CAPTURED, PHOTO_DRAG_WINDOW };
+
+static void photo_stop_drag(PauseMenu *menu)
+{
+    if (menu->photo_drag == PHOTO_DRAG_RELATIVE) SDL_SetRelativeMouseMode(SDL_FALSE);
+    if (menu->photo_drag == PHOTO_DRAG_CAPTURED) SDL_CaptureMouse(SDL_FALSE);
+    menu->photo_drag = PHOTO_DRAG_OFF;
+}
+
+static void photo_start_drag(PauseMenu *menu)
+{
+    if (menu->photo_drag) return;
+    if (SDL_SetRelativeMouseMode(SDL_TRUE) == 0) menu->photo_drag = PHOTO_DRAG_RELATIVE;
+    else if (SDL_CaptureMouse(SDL_TRUE) == 0) menu->photo_drag = PHOTO_DRAG_CAPTURED;
+    else menu->photo_drag = PHOTO_DRAG_WINDOW;
+}
+
+static void photo_look(PhotoCamera *camera, float yaw, float pitch)
+{
+    const float turn = 6.2831853f;
+    camera->yaw = remainderf(camera->yaw + yaw, turn);
+    camera->pitch = fminf(1.48f, fmaxf(-1.48f, camera->pitch + pitch));
+}
+
+static void photo_roll(PhotoCamera *camera, float angle)
+{
+    camera->roll = remainderf(camera->roll + angle, 6.2831853f);
+}
+
+static int photo_pointer(PhotoCamera *camera, const SDL_Event *event, int dragging)
+{
+    if (event->type == SDL_MOUSEWHEEL) {
+        float steps = event->wheel.preciseY != 0 ? event->wheel.preciseY : (float)event->wheel.y;
+        if (event->wheel.direction == SDL_MOUSEWHEEL_FLIPPED) steps = -steps;
+        float zoom = fminf(2.0f, fmaxf(-1.0f, camera->zoom_stops + steps * 0.20f));
+        if (zoom == camera->zoom_stops) return 0;
+        camera->zoom_stops = zoom;
+        return 1;
+    }
+    if (event->type != SDL_MOUSEMOTION || !dragging) return 0;
+
+    float x = (float)event->motion.xrel, y = (float)event->motion.yrel;
+    SDL_Event next;
+    // Apply adjacent mouse packets in one redraw. Leave clicks, wheel events
+    // and keys in order so saving always uses the requested camera pose.
+    while (SDL_PeepEvents(&next, 1, SDL_PEEKEVENT, SDL_FIRSTEVENT, SDL_LASTEVENT) == 1 &&
+           next.type == SDL_MOUSEMOTION && next.motion.windowID == event->motion.windowID &&
+           SDL_PeepEvents(&next, 1, SDL_GETEVENT, SDL_MOUSEMOTION, SDL_MOUSEMOTION) == 1) {
+        x += (float)next.motion.xrel;
+        y += (float)next.motion.yrel;
+    }
+    if (SDL_GetModState() & KMOD_SHIFT) {
+        if (x == 0) return 0;
+        photo_roll(camera, x * 0.004f);
+    } else {
+        if (x == 0 && y == 0) return 0;
+        photo_look(camera, x * 0.003f, -y * 0.003f);
+    }
+    return 1;
+}
+
+static int photo_move(PhotoCamera *camera, SDL_Keycode key)
+{
+    const float step = 0.40f, turn = 0.035f;
+    float right = 0, up = 0, forward = 0;
+    switch (key) {
+    case SDLK_w: forward = step; break;
+    case SDLK_s: forward = -step; break;
+    case SDLK_d: right = step; break;
+    case SDLK_a: right = -step; break;
+    case SDLK_e: up = step; break;
+    case SDLK_q: up = -step; break;
+    case SDLK_RIGHT: photo_look(camera, turn, 0); return 1;
+    case SDLK_LEFT: photo_look(camera, -turn, 0); return 1;
+    case SDLK_UP: photo_look(camera, 0, turn); return 1;
+    case SDLK_DOWN: photo_look(camera, 0, -turn); return 1;
+    case SDLK_z: photo_roll(camera, -turn); return 1;
+    case SDLK_c: photo_roll(camera, turn); return 1;
+    default: return 0;
+    }
+    float cy = cosf(camera->yaw), sy = sinf(camera->yaw), cp = cosf(camera->pitch);
+    camera->position[0] += cy * right + sy * cp * forward;
+    camera->position[1] += up + sinf(camera->pitch) * forward;
+    camera->position[2] += sy * right - cy * cp * forward;
+    return 1;
+}
+
 static void pause_quad(float x, float y, float w, float h, int flip)
 {
     glBegin(GL_QUADS);
@@ -1874,8 +2130,16 @@ static void pause_quad(float x, float y, float w, float h, int flip)
     glEnd();
 }
 
-static void pause_draw(const PauseMenu *menu)
+static void pause_draw(PauseMenu *menu)
 {
+    if (menu->photo && menu->filter_dirty) {
+        menu->filter_dirty = 0;
+        if (menu->filter != PHOTO_FILTER_ORIGINAL && !photo_filter_render(menu)) {
+            menu->filter = PHOTO_FILTER_ORIGINAL;
+            menu->photo_status = -2;
+            pause_panel(menu);
+        }
+    }
     int w, h;
     SDL_GL_GetDrawableSize(g_win.win, &w, &h);
     if (w <= 0 || h <= 0) return;
@@ -1885,7 +2149,29 @@ static void pause_draw(const PauseMenu *menu)
     glOrtho(0, w, h, 0, -1, 1);
     glMatrixMode(GL_MODELVIEW);
     glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, menu->frame);
+    GLuint picture = menu->frame;
+    if (menu->photo) {
+        if (menu->filter != PHOTO_FILTER_ORIGINAL) picture = menu->filter_pass.texture;
+        else if (menu->photo_ready) picture = menu->photo_frame;
+    }
+    glBindTexture(GL_TEXTURE_2D, picture);
+    if (menu->photo) {
+        float scale = fminf((float)w / menu->frame_width, (float)h / menu->frame_height);
+        float width = menu->frame_width * scale, height = menu->frame_height * scale;
+        glClearColor(0, 0, 0, 1);
+        glClear(GL_COLOR_BUFFER_BIT);
+        glColor3f(1, 1, 1);
+        pause_quad((w - width) / 2, (h - height) / 2, width, height, 1);
+        if (menu->photo_guide) {
+            float guide_scale = fminf(w / 960.0f, h / 650.0f);
+            float guide_width = PANEL_W * guide_scale, guide_height = photo_guide_height(menu) * guide_scale;
+            glBindTexture(GL_TEXTURE_2D, menu->panel);
+            pause_quad((w - guide_width) / 2, h - guide_height - 18 * guide_scale,
+                       guide_width, guide_height, 0);
+        }
+        SDL_GL_SwapWindow(g_win.win);
+        return;
+    }
     glColor3f(0.42f, 0.42f, 0.42f);
     pause_quad(0, 0, w, h, 1);
     if(menu->settings_page==4){controls_draw(menu,w,h);sinden_border_draw(w,h);SDL_GL_SwapWindow(g_win.win);return;}
@@ -1941,6 +2227,8 @@ static int hotd4_pause_loop(int w, int h)
 {
     if (w <= 0 || h <= 0) return PAUSE_UNAVAILABLE;
     PauseMenu menu = {0};menu.binding_capture=-1;
+    menu.frame_width = w;
+    menu.frame_height = h;
     GLint program, read_fbo, draw_fbo, unpack;
     glGetIntegerv(GL_CURRENT_PROGRAM, &program);
     glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &read_fbo);
@@ -2011,6 +2299,75 @@ static int hotd4_pause_loop(int w, int h)
             if (event.type == SDL_QUIT) { action = MAIN_MENU; break; }
             if (event.type == SDL_CONTROLLERDEVICEADDED || event.type == SDL_CONTROLLERDEVICEREMOVED)
                 pad_event(&event);
+            if (menu.photo) {
+                if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_RIGHT && menu.photo_ready) {
+                    photo_start_drag(&menu);
+                    continue;
+                }
+                if ((event.type == SDL_MOUSEBUTTONUP && event.button.button == SDL_BUTTON_RIGHT) ||
+                    (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_FOCUS_LOST)) {
+                    photo_stop_drag(&menu);
+                    continue;
+                }
+                if (menu.photo_ready && (event.type == SDL_MOUSEMOTION || event.type == SDL_MOUSEWHEEL)) {
+                    PhotoCamera camera = menu.camera;
+                    if (photo_pointer(&camera, &event, menu.photo_drag) && photo_refresh(&menu, &camera)) {
+                        menu.camera = camera;
+                        if (menu.photo_status) {
+                            menu.photo_status = 0;
+                            pause_panel(&menu);
+                        }
+                        pause_draw(&menu);
+                    }
+                    continue;
+                }
+                if (event.type == SDL_KEYDOWN) {
+                    SDL_Keycode key = event.key.keysym.sym;
+                    if (!event.key.repeat && key == SDLK_ESCAPE) {
+                        photo_stop_drag(&menu);
+                        if (menu.photo_ready) {
+                            const PhotoCamera original = {0};
+                            photo_refresh(&menu, &original);
+                        }
+                        menu.photo = 0;
+                        SDL_ShowCursor(SDL_ENABLE);
+                    } else if (!event.key.repeat && key == SDLK_TAB) {
+                        menu.photo_guide = !menu.photo_guide;
+                    } else if (!event.key.repeat && key == SDLK_F1) {
+                        menu.photo_help = !menu.photo_help;
+                        menu.photo_guide = 1;
+                    } else if (!event.key.repeat && key == SDLK_f) {
+                        int step = (event.key.keysym.mod & KMOD_SHIFT) ? PHOTO_FILTER_COUNT - 1 : 1;
+                        menu.filter = (menu.filter + step) % PHOTO_FILTER_COUNT;
+                        menu.filter_dirty = 1;
+                        menu.photo_status = 0;
+                    } else if (!event.key.repeat && (key == SDLK_RETURN || key == SDLK_KP_ENTER)) {
+                        GLuint capture = menu.photo_ready ? menu.photo_fbo : copy_fbo;
+                        if (menu.filter != PHOTO_FILTER_ORIGINAL)
+                            capture = menu.filter_pass.framebuffer;
+                        menu.photo_status = photo_save(capture, w, h) ? 1 : -1;
+                        menu.photo_guide = 1;
+                    } else if (menu.photo_ready) {
+                        PhotoCamera camera = menu.camera;
+                        if (!event.key.repeat && key == SDLK_h) {
+                            camera.hide_hud = !camera.hide_hud;
+                        } else if (!event.key.repeat && key == SDLK_r) {
+                            camera = (PhotoCamera){.hide_hud = menu.camera.hide_hud};
+                        } else if (!photo_move(&camera, key)) {
+                            continue;
+                        }
+                        if (photo_refresh(&menu, &camera)) menu.camera = camera;
+                        menu.photo_status = 0;
+                    } else {
+                        continue;
+                    }
+                    pause_panel(&menu);
+                    pause_draw(&menu);
+                } else if (event.type == SDL_WINDOWEVENT) {
+                    pause_draw(&menu);
+                }
+                continue;
+            }
             if(menu.settings_page==4){int result=controls_event(&menu,&event);if(event.type==SDL_WINDOWEVENT)result=1;if(result==2){menu.settings_page=2;menu.selected=4;}if(result){pause_panel(&menu);pause_draw(&menu);}continue;}
             if(menu.settings_page==3){
                 int result=trophy_event(&menu,&event);
@@ -2082,6 +2439,18 @@ static int hotd4_pause_loop(int w, int h)
                     redraw = 1;
                 }
             } else if (activate) {
+                if (menu.selected == PHOTO_MODE) {
+                    menu.photo = menu.photo_guide = 1;
+                    menu.filter_dirty = 1;
+                    menu.photo_status = 0;
+                    menu.camera = (PhotoCamera){.hide_hud = 1};
+                    menu.photo_ready = photo_camera_available && photo_camera_available() &&
+                                       photo_refresh(&menu, &menu.camera);
+                    SDL_ShowCursor(SDL_DISABLE);
+                    pause_panel(&menu);
+                    pause_draw(&menu);
+                    continue;
+                }
                 if (menu.selected != SETTINGS && menu.selected != ACHIEVEMENTS) { action = menu.selected; break; }
                 menu.settings_page = menu.selected == ACHIEVEMENTS ? 3 : 1;
                 menu.selected = 0;
@@ -2089,6 +2458,7 @@ static int hotd4_pause_loop(int w, int h)
             }
             if (redraw) { pause_panel(&menu); pause_draw(&menu); }
         }
+        photo_stop_drag(&menu);
         raw_suspended=0;raw_release();
         host_audio_pause_devices(0);
         host_guest_clock_pause(0);
@@ -2105,6 +2475,9 @@ static int hotd4_pause_loop(int w, int h)
     glBindFramebuffer(GL_READ_FRAMEBUFFER, (GLuint)read_fbo);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, (GLuint)draw_fbo);
     glDeleteFramebuffers(1, &copy_fbo);
+    glDeleteFramebuffers(1, &menu.photo_fbo);
+    glDeleteTextures(1, &menu.photo_frame);
+    photo_filter_destroy(&menu.filter_pass);
     glDeleteTextures(1, &menu.frame);
     glDeleteTextures(1, &menu.panel);
     glPopMatrix();

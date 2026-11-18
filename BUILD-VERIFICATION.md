@@ -66,3 +66,11 @@ The Windows desktop installer completed all 111 build steps using a fresh packag
 ## Desktop launcher hotfix v1.2.3
 
 Reproduced the v1.2.2 `hotd4-controls.ps1` startup error with a Restricted policy inherited by the launcher. With the process-scoped launcher fix, the existing Windows installation ran Chapter 1 successfully through both the desktop and Performance Log launchers. The performance run saved its CSV.
+
+## Windows desktop v1.3.0
+
+- Extracted the release builder to an empty directory and ran Setup on Windows 11 x64 with the original Rev A (DVP-0003A) dump and a cached MSYS2 toolchain. All 111 game compile/link steps completed. Setup built both graphical launchers and rendered the local menu background. The source ELF SHA-256 was unchanged. A cached reinstall preserved test settings, trophies, a cabinet save and the background.
+- Ran a Chapter 1 smoke test with the installed executable. Photo Mode saved five 3840 × 2160 PNGs covering camera movement and roll, the four filters, and resume on the same frame.
+- Verified the graphical launchers without a console and validated 1,166 model records and 1,833 skeletal clips. The viewer applied locally enhanced textures to James Taylor, Kate Green and Justice in both static and animated previews. Three original diffuse texture references could not be resolved.
+- The changed host sources compiled with the optional OpenXR configuration. The new features were exercised on the Windows desktop. VR headset testing was outside this release check.
+- The manifest and ZIP were checked for game assets, lifted code and compiled binaries. The only bundled artwork is the existing trophy and crosshair illustrations.

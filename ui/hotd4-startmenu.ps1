@@ -171,6 +171,7 @@
                         <Button Name="Arcade" Content="Play Arcade"/>
                         <Button Name="Chapters" Content="Chapter Select"/>
                         <Button Name="Achievements" Content="Trophies"/>
+                        <Button Name="ModelViewer" Content="Model Viewer"/>
                         <Button Name="Options" Content="Settings"/>
                         <Button Name="Quit" Content="Quit"/>
                     </StackPanel>
@@ -391,7 +392,7 @@
 
     $controls = @{}
     foreach ($name in 'MainPage','ChapterPage','OptionsPage','Arcade','Chapters','Options','Quit','ChapterList',
-            'BindingsPage','BindingsOpen','BindingsList','BindingsStatus','SaveBindings','BindingsBack','ResetBindings','CancelBinding','ControlSummary','ControlSummaryList','ChapterHelp','AaGuide','Achievements','AchievementsPage','AchievementProgress','AchievementList','AchievementScroll','AchievementsBack','AchievementTotal','AchievementPercent','AchievementProgressFill','AchievementEndings','AchievementBronzeIcon','AchievementBronzeCount','AchievementSilverIcon','AchievementSilverCount','AchievementGoldIcon','AchievementGoldCount','AchievementAll','AchievementUnlocked','AchievementLocked','AchievementEmptyPanel','AchievementEmpty','AchievementEmptyHint','AchievementEmptyStar','InputGuide','InputPage','InputOptions','InputMode','Gun1','Gun2','AntiAliasing','MouseSpeed','MouseSmoothing','SaveInput','InputBack','ChapterBack','OptionsBack','SaveOptions','Resolution','Hud','CrosshairStyle','CrosshairSize','CrosshairColor','CrosshairPreview','CrosshairPreviewImage','CrosshairPreviewLabel','Sinden','SindenWidth','SindenFrame','SindenInner','Hint') {
+            'BindingsPage','BindingsOpen','BindingsList','BindingsStatus','SaveBindings','BindingsBack','ResetBindings','CancelBinding','ControlSummary','ControlSummaryList','ChapterHelp','AaGuide','Achievements','ModelViewer','AchievementsPage','AchievementProgress','AchievementList','AchievementScroll','AchievementsBack','AchievementTotal','AchievementPercent','AchievementProgressFill','AchievementEndings','AchievementBronzeIcon','AchievementBronzeCount','AchievementSilverIcon','AchievementSilverCount','AchievementGoldIcon','AchievementGoldCount','AchievementAll','AchievementUnlocked','AchievementLocked','AchievementEmptyPanel','AchievementEmpty','AchievementEmptyHint','AchievementEmptyStar','InputGuide','InputPage','InputOptions','InputMode','Gun1','Gun2','AntiAliasing','MouseSpeed','MouseSmoothing','SaveInput','InputBack','ChapterBack','OptionsBack','SaveOptions','Resolution','Hud','CrosshairStyle','CrosshairSize','CrosshairColor','CrosshairPreview','CrosshairPreviewImage','CrosshairPreviewLabel','Sinden','SindenWidth','SindenFrame','SindenInner','Hint') {
         $controls[$name] = $window.FindName($name)
     }
 
@@ -692,6 +693,17 @@
         $controls[$name].Add_Click({param($sender,$eventArgs) Update-Hotd4Achievements -Controls $controls -RecompDir $RecompDir -Filter ([string]$sender.Tag)})
     }
     $controls.Achievements.Add_Click({ & $showPage 'AchievementsPage' })
+    $controls.ModelViewer.Add_Click({
+        $viewer = Join-Path $RecompDir 'hotd4-model-viewer.ps1'
+        try {
+            if (!(Test-Path -LiteralPath $viewer -PathType Leaf)) { throw 'Model Viewer is missing from this installation.' }
+            & $viewer -Owner $window
+        } catch {
+            [void][Windows.MessageBox]::Show($window, $_.Exception.GetBaseException().Message, 'Model Viewer')
+        } finally {
+            [void]$controls.ModelViewer.Focus()
+        }
+    })
     $controls.AchievementsBack.Add_Click({ & $showPage 'MainPage'; [void]$controls.Achievements.Focus() })
     $controls.Quit.Add_Click( { $window.Close() } )
     $controls.ChapterBack.Add_Click( { & $showPage 'MainPage'; [void] $controls.Chapters.Focus() } )

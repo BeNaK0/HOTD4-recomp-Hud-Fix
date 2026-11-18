@@ -131,8 +131,29 @@ function Invoke-Hotd4 {
                         $env:LINDBERGH_FRAME_TIMINGS = $timingPath
                         Write-Host "Recording frame times. Exit the game normally to save: $timingPath"
                     }
-                    & $desktopExe $tempElf | Out-Host
-                    $exitCode = $LASTEXITCODE
+                    if ($env:HOTD4_GUI_LAUNCH -eq '1') {
+                        $gameStart = [Diagnostics.ProcessStartInfo]::new()
+                        $gameStart.FileName = $desktopExe
+                        $gameStart.Arguments = '"' + $tempElf + '"'
+                        $gameStart.WorkingDirectory = $elfDir
+                        $gameStart.UseShellExecute = $false
+                        $gameStart.CreateNoWindow = $true
+                        $gameStart.RedirectStandardOutput = $true
+                        $gameStart.RedirectStandardError = $true
+                        $game = [Diagnostics.Process]::Start($gameStart)
+                        try {
+                            $game.BeginOutputReadLine()
+                            $gameErrors = $game.StandardError.ReadToEnd()
+                            $game.WaitForExit()
+                            $exitCode = $game.ExitCode
+                            if ($exitCode -notin 0,74 -and $gameErrors) { [Console]::Error.WriteLine($gameErrors.TrimEnd()) }
+                        } finally {
+                            $game.Dispose()
+                        }
+                    } else {
+                        & $desktopExe $tempElf | Out-Host
+                        $exitCode = $LASTEXITCODE
+                    }
                 } finally {
                     $env:LINDBERGH_FRAME_TIMINGS = $previousTimingPath
                 }
@@ -171,7 +192,7 @@ try {
     $env:LINDBERGH_DIPSW = 'e0'
     $env:LINDBERGH_HOTD4_PACE_CUTSCENES = '1'
     $mode = $env:HOTD4_4K_MODE
-    if (!$mode -and ![Console]::IsInputRedirected) {
+    if (!$mode -and ($env:HOTD4_GUI_LAUNCH -eq '1' -or ![Console]::IsInputRedirected)) {
         $desktopWidth, $desktopHeight = Get-Hotd4DesktopSize
         . (Join-Path $recompDir 'hotd4-startmenu.ps1')
         do {
