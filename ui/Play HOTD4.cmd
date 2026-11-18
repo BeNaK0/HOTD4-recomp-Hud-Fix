@@ -2,7 +2,7 @@
 setlocal
 set "HOTD4_4K_SCRIPT=%~dpnx0"
 set "HOTD4_4K_MODE=%~1"
-powershell.exe -NoProfile -STA -Command "$parts = (Get-Content -Raw -Encoding UTF8 -LiteralPath $env:HOTD4_4K_SCRIPT) -split '(?m)^:PowerShell\r?$', 2; & ([scriptblock]::Create($parts[1]))"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -STA -Command "$parts = (Get-Content -Raw -Encoding UTF8 -LiteralPath $env:HOTD4_4K_SCRIPT) -split '(?m)^:PowerShell\r?$', 2; & ([scriptblock]::Create($parts[1]))"
 set "HOTD4_EXIT=%ERRORLEVEL%"
 if not "%HOTD4_EXIT%"=="0" pause
 exit /b %HOTD4_EXIT%

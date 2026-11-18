@@ -24,9 +24,18 @@ def package():
         for name in names:
             info=zipfile.ZipInfo('HOTD4-Local-Builder/'+name,(2026,11,17,0,0,0));info.compress_type=zipfile.ZIP_DEFLATED;info.external_attr=0o100644<<16
             z.writestr(info,(ROOT/name).read_bytes(),compresslevel=9)
-    digest=hashlib.sha256(out.read_bytes()).hexdigest()
-    sums=ROOT.parent/'SHA256SUMS.txt';sums.write_text(digest+'  '+out.name+'\n',encoding='ascii')
-    return out,sums,digest
+    downloads = [out]
+    if TAG == 'v1.2.3':
+        launcher = ROOT.parent / 'Play-HOTD4.cmd'
+        with zipfile.ZipFile(out) as archive:
+            launcher.write_bytes(archive.read('HOTD4-Local-Builder/ui/Play HOTD4.cmd'))
+        downloads.append(launcher)
+    sums = ROOT.parent / 'SHA256SUMS.txt'
+    sums.write_bytes(''.join(
+        f'{hashlib.sha256(path.read_bytes()).hexdigest()}  {path.name}\n'
+        for path in downloads
+    ).encode('ascii'))
+    return out, sums, *downloads[1:]
 
 def git(*args,input=None):return subprocess.check_output(['git',*args],input=input).decode().strip()
 def status_write(status):
@@ -39,8 +48,10 @@ def status_write(status):
     subprocess.run(['git','push','origin',commit+':'+branch],check=True)
 
 def main():
-    out,sums,digest=package()
-    if '--package-only' in __import__('sys').argv:print(str(out),digest);return
+    paths = package()
+    if '--package-only' in __import__('sys').argv:
+        print(paths[0], hashlib.sha256(paths[0].read_bytes()).hexdigest())
+        return
     prerelease = '-' in TAG.split('+', 1)[0]
     status={'tag':TAG,'commit':os.environ['GITHUB_SHA'],'run_url':'https://github.com/'+REPO+'/actions/runs/'+os.environ['GITHUB_RUN_ID']}
     try:
@@ -53,7 +64,7 @@ def main():
         assert release['draft'],'Refusing to replace an already published release'
         for old in release['assets']:api('DELETE','/repos/'+REPO+'/releases/assets/'+str(old['id']))
         assets=[]
-        for path in [out,sums]:
+        for path in paths:
             url=release['upload_url'].split('{')[0]+'?name='+path.name
             req=urllib.request.Request(url,data=path.read_bytes(),method='POST',headers={'Authorization':'Bearer '+TOKEN,'Accept':'application/vnd.github+json','Content-Type':'application/octet-stream'})
             with urllib.request.urlopen(req,timeout=180) as r:asset=json.load(r)
@@ -63,7 +74,7 @@ def main():
             assets.append({'name':path.name,'sha256':expected,'size':asset['size'],'url':asset['browser_download_url']})
         release=api('PATCH','/repos/'+REPO+'/releases/'+str(release['id']),{'draft':False,'prerelease':prerelease})
         verify=api('GET','/repos/'+REPO+'/releases/tags/'+TAG)
-        assert not verify['draft'] and len(verify['assets'])==2
+        assert not verify['draft'] and {asset['name'] for asset in verify['assets']} == {path.name for path in paths}
         assert verify['prerelease'] is prerelease, 'GitHub release type does not match the version tag'
         status.update(success=True,release_url=verify['html_url'],assets=assets,prerelease=prerelease,
                       private=api('GET','/repos/'+REPO)['private'])

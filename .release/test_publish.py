@@ -19,6 +19,8 @@ class ReleaseTests(unittest.TestCase):
             root = Path(folder)
             (root / 'RELEASE-NOTES.md').write_text('Test release', encoding='utf-8')
             paths = [root / 'builder.zip', root / 'SHA256SUMS.txt']
+            if tag == 'v1.2.3':
+                paths.append(root / 'Play-HOTD4.cmd')
             for path in paths:
                 path.write_bytes(b'test ' + path.name.encode())
             draft = {'id': 1, 'draft': not published, 'assets': [], 'upload_url': 'https://uploads.example/assets{?name}'}
@@ -43,14 +45,14 @@ class ReleaseTests(unittest.TestCase):
             def upload(request, timeout):
                 path = paths[len(uploaded)]
                 digest = hashlib.sha256(path.read_bytes()).hexdigest()
-                asset = {'state': 'uploaded', 'size': path.stat().st_size,
+                asset = {'state': 'uploaded', 'size': path.stat().st_size, 'name': path.name,
                          'digest': 'sha256:' + ('bad' if bad_digest else digest),
                          'browser_download_url': 'https://example/' + path.name}
                 uploaded.append(asset)
                 return io.BytesIO(json.dumps(asset).encode())
             with patch.object(publisher, 'ROOT', root), \
                  patch.object(publisher, 'TAG', tag), \
-                 patch.object(publisher, 'package', return_value=(*paths, 'unused')), \
+                 patch.object(publisher, 'package', return_value=tuple(paths)), \
                  patch.object(publisher, 'api', side_effect=api), \
                  patch.object(publisher.urllib.request, 'urlopen', side_effect=upload), \
                  patch.object(publisher, 'status_write') as write_status, \
@@ -65,7 +67,7 @@ class ReleaseTests(unittest.TestCase):
                     result = write_status.call_args.args[0]
                     self.assertTrue(result['success'])
                     self.assertIs(result['private'], private)
-                    self.assertEqual(len(result['assets']), 2)
+                    self.assertEqual([asset['name'] for asset in result['assets']], [path.name for path in paths])
                     self.assertIs(result['prerelease'], prerelease)
 
     def test_private_and_public_repositories(self):
@@ -75,6 +77,9 @@ class ReleaseTests(unittest.TestCase):
 
     def test_preview_tag_publishes_as_prerelease(self):
         self.run_release(False, tag='v1.1.0-openxr-preview', prerelease=True)
+
+    def test_hotfix_publishes_standalone_launcher(self):
+        self.run_release(False, tag='v1.2.3')
 
     def test_bad_asset_digest_is_rejected(self):
         self.run_release(False, bad_digest=True)

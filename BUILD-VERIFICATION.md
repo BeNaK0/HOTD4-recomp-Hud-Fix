@@ -61,3 +61,8 @@ The optional menu background renderer exited with an access violation under the 
 ## Original Rev A support
 
 The Windows desktop installer completed all 111 build steps using a fresh package and install directory, an extracted original DVP-0003A dump in the hod4prog/hod4data/hod4drv layout, and a cached MSYS2 toolchain. The source ELF retained its SHA-256. The installed copy matched the previously supported HD ELF byte for byte. Setup generated the menu background from the local dump. The installed launcher ran Chapter 1 for 1,675 frames, with a verified 3840x2160 framebuffer capture. Preflight also accepted the original ELF in the disk0 layout and the previously supported HD ELF, and rejected a modified ELF.
+
+
+## Desktop launcher hotfix v1.2.3
+
+Reproduced the v1.2.2 `hotd4-controls.ps1` startup error with a Restricted policy inherited by the launcher. With the process-scoped launcher fix, the existing Windows installation ran Chapter 1 successfully through both the desktop and Performance Log launchers. The performance run saved its CSV.

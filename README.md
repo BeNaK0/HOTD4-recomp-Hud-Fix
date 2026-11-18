@@ -1,6 +1,8 @@
 # HOTD4 Local Builder
 
-Download and extract **HOTD4-Local-Builder-v1.2.2.zip** from the [v1.2.2 release](https://github.com/davidptrssvea/HOTD4-recomp/releases/tag/v1.2.2). Run **Setup.cmd**, select your own extracted arcade dump, then wait for the local build. When finished, open **HOTD4-PC\Play HOTD4.cmd**. All menus are in English.
+Download and extract **HOTD4-Local-Builder-v1.2.3.zip** from the [v1.2.3 release](https://github.com/davidptrssvea/HOTD4-recomp/releases/tag/v1.2.3). Run **Setup.cmd**, select your own extracted arcade dump, then wait for the local build. When finished, open **HOTD4-PC\Play HOTD4.cmd**. All menus are in English.
+
+If v1.2.2 is already installed, download the [replacement launcher](https://github.com/davidptrssvea/HOTD4-recomp/releases/download/v1.2.3/Play-HOTD4.cmd), rename it to `Play HOTD4.cmd`, and replace the file beside your `HOTD4_Recomp` folder. This fixes the Windows PowerShell script-policy error without reinstalling.
 
 ## Supported arcade dump
 
