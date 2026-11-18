@@ -1,31 +1,60 @@
 """Build only from the user's verified HOTD4 ELF; never ships lifted code."""
-import argparse,hashlib,json,os,re,shutil,subprocess,sys,time
+import argparse,hashlib,json,os,re,shutil,subprocess,sys,tempfile,time
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
-EXPECTED='72fdd45830acd9317ec1e4f97de35a270c94746068fdaF827381c91bb47aa296'.lower()
+ELF_VARIANTS = json.loads((ROOT/'tools/elf-variants.json').read_text(encoding='utf-8'))
+EXPECTED = ELF_VARIANTS['prepared_sha256']
+
 def digest(p):
  h=hashlib.sha256()
  with p.open('rb') as f:
   for b in iter(lambda:f.read(1048576),b''):h.update(b)
  return h.hexdigest()
+
 def find_dump(path):
  p=path.resolve()
  if p.is_file():p=p.parent
- candidates=[p,p/'disk0',p/'The House of the Dead 4/disk0',p.parent if p.name.lower()=='elf' else p]
+ candidates=[p,p/'disk0',p/'The House of the Dead 4/disk0']
+ if p.name.lower() in ('elf','hod4prog'):
+  candidates.append(p.parent)
  for d in candidates:
-  elf=d/'elf/hod4M.elf'
-  if elf.is_file():
-   if digest(elf)!=EXPECTED:raise ValueError('Unsupported hod4M.elf. This build requires the original supported arcade revision, not Special or a patched executable.')
-   for part in ['fs','drv']:
-    if not (d/part).is_dir() or not any(x.is_file() for x in (d/part).rglob('*')):raise ValueError('Incomplete dump: missing '+part+' files.')
-   return d
- raise ValueError('Cannot find elf/hod4M.elf. Choose disk0 or its parent folder. Encrypted disc images must first be dumped/extracted with your own tools.')
+  for layout in ELF_VARIANTS['layouts']:
+   if not (d/layout['elf']).is_file():
+    continue
+   for part in ('fs','drv'):
+    folder=d/layout[part]
+    if not folder.is_dir() or not any(x.is_file() for x in folder.rglob('*')):
+     raise ValueError(f"Incomplete dump: missing {layout[part]} files.")
+   return d, layout
+ raise ValueError('Cannot find hod4M.elf in elf or hod4prog. Choose your extracted Rev A arcade dump.')
+
+def prepare_elf(path):
+ image=path.read_bytes()
+ source_hash=hashlib.sha256(image).hexdigest()
+ if source_hash==EXPECTED:
+  return image, source_hash
+ if source_hash!=ELF_VARIANTS['stock_sha256']:
+  raise ValueError(f'Unsupported hod4M.elf (SHA-256 {source_hash}). Use the original Rev A (DVP-0003A) dump or the previously supported HD variant.')
+ prepared=bytearray(image)
+ # Reproduce only the compatibility edits in the known HD variant.
+ for patch in ELF_VARIANTS['patches']:
+  offset=patch['offset']
+  replacement=bytes.fromhex(patch['bytes'])
+  prepared[offset:offset+len(replacement)]=replacement
+ if hashlib.sha256(prepared).hexdigest()!=EXPECTED:
+  raise ValueError('Locally prepared HD ELF failed SHA-256 verification.')
+ return prepared, source_hash
+
 def run(args,cwd=None,stdout=None):
  print('+ '+' '.join(map(str,args)),flush=True)
  subprocess.run(list(map(str,args)),cwd=cwd,stdout=stdout,check=True)
 def main():
  ap=argparse.ArgumentParser();ap.add_argument('--dump',required=True);ap.add_argument('--output',required=True);ap.add_argument('--toolchain',required=True);ap.add_argument('--jobs',type=int,default=4);ap.add_argument('--validate-only',action='store_true');ap.add_argument('--openxr',action='store_true');a=ap.parse_args()
- dump=find_dump(Path(a.dump));print('Verified normal HOTD4 arcade dump:',dump,flush=True)
+ dump, layout=find_dump(Path(a.dump))
+ image, source_hash=prepare_elf(dump/layout['elf'])
+ print('Verified HOTD4 Rev A arcade dump:',dump,flush=True)
+ if source_hash!=EXPECTED:
+  print('Prepared and verified the HD ELF locally.',flush=True)
  if a.validate_only:return
  out=Path(a.output).resolve()
  for protected in [dump,ROOT/'source',ROOT/'ui',ROOT/'tools']:
@@ -38,11 +67,14 @@ def main():
  source=ROOT/'source';gen=source/'games/hotd4/generated';gen.mkdir(parents=True,exist_ok=True)
  # Refuse foreign/stale lifted code; regenerate if toolkit or ELF differs.
  manifest=json.loads((ROOT/'package-manifest.json').read_text(encoding='utf-8'))
- generator_files=[f for f in manifest['files'] if f['path'].endswith(('.py','.h','.json')) and f['path'].startswith(('source/lindberghrecomp/tools/','source/lindberghrecomp/pcrecomp/tools/','tools/gl-','tools/build.py'))]
+ generator_files=[f for f in manifest['files'] if f['path'].endswith(('.py','.h','.json')) and f['path'].startswith(('source/lindberghrecomp/tools/','source/lindberghrecomp/pcrecomp/tools/','tools/gl-','tools/build.py','tools/elf-variants.json'))]
  signature=hashlib.sha256((EXPECTED+json.dumps(generator_files,sort_keys=True)).encode()).hexdigest()
  marker=gen/'local-build-signature.txt'
  if not marker.exists() or marker.read_text()!=signature:
-  run([bin/'python.exe','-m','tools','recomp',dump/'elf/hod4M.elf',gen],cwd=source/'lindberghrecomp')
+  with tempfile.TemporaryDirectory(prefix='hotd4-lift-') as directory:
+   lift_elf=Path(directory)/'hod4M.elf'
+   lift_elf.write_bytes(image)
+   run([bin/'python.exe','-m','tools','recomp',lift_elf,gen],cwd=source/'lindberghrecomp')
   thunk=gen/'recomp_gl_thunks_windows.c'
   with thunk.open('w',encoding='utf-8') as f:
    run([bin/'python.exe',source/'lindberghrecomp/tools/gen_gl_thunks.py',gen/'recomp_imports.h',bin.parent/'include/GL/glew.h'],stdout=f)
@@ -81,8 +113,15 @@ def main():
  for name,p in dlls.items():shutil.copy2(p,app/name)
  # No source game data was packaged: the following copies happen only here.
  localdump=out/'game/disk0';(localdump/'elf').mkdir(parents=True,exist_ok=True)
- shutil.copy2(dump/'elf/hod4M.elf',localdump/'elf/hod4M.elf')
- for part in ['fs','drv']:shutil.copytree(dump/part,localdump/part,dirs_exist_ok=True)
+ for part in ('fs','drv'):
+  shutil.copytree(dump/layout[part],localdump/part,dirs_exist_ok=True)
+ with tempfile.NamedTemporaryFile(dir=localdump/'elf',prefix='.hod4-',suffix='.tmp',delete=False) as staged:
+  stage_path=Path(staged.name)
+ try:
+  stage_path.write_bytes(image)
+  stage_path.replace(localdump/'elf/hod4M.elf')
+ finally:
+  stage_path.unlink(missing_ok=True)
  for p in (ROOT/'ui').rglob('*'):
   if p.is_file():
    rel=p.relative_to(ROOT/'ui')
@@ -97,7 +136,7 @@ def main():
  # Toolchain package license notices for libraries, including indirect DLLs.
  for p in (bin.parent/'share/licenses').glob('*'):
   if p.is_dir():shutil.copytree(p,licenses/'dependencies'/p.name,dirs_exist_ok=True)
- (out/'local-build.json').write_text(json.dumps({'built_locally':True,'elf_sha256':EXPECTED,'generator_signature':signature,'package_manifest_sha256':digest(ROOT/'package-manifest.json'),'executable_sha256':digest(app/'hotd4-desktop.exe'),**({'openxr_executable_sha256':digest(app/'hotd4-vr.exe')} if (app/'hotd4-vr.exe').is_file() else {}),'built_utc':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime())},indent=2))
+ (out/'local-build.json').write_text(json.dumps({'built_locally':True,'elf_sha256':EXPECTED,'source_elf_sha256':source_hash,'generator_signature':signature,'package_manifest_sha256':digest(ROOT/'package-manifest.json'),'executable_sha256':digest(app/'hotd4-desktop.exe'),**({'openxr_executable_sha256':digest(app/'hotd4-vr.exe')} if (app/'hotd4-vr.exe').is_file() else {}),'built_utc':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime())},indent=2))
  print('\nBuild complete. Start: '+str(out/'Play HOTD4.cmd'),flush=True)
 if __name__=='__main__':
  try:main()

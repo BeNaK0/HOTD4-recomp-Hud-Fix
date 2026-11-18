@@ -56,3 +56,8 @@ Windows SDL tests verified fractional mouse movement, proportional speed changes
 Tested a clean Microsoft Windows 10 Enterprise LTSC 2021 x64 evaluation VM (build 19044.1288). Its system tar reported libarchive 3.3.2 and zlib without liblzma, and xz.exe was absent from PATH before Setup. The installer downloaded and verified the pinned self-extracting MSYS2 archive, installed the compiler and dependencies, lifted 26,636 functions from the supported arcade dump, and completed all 111 desktop build steps. The installed executable and launcher were verified. A cached reinstall with downloads disabled returned exit code 0.
 
 The optional menu background renderer exited with an access violation under the VM's virtual graphics. Setup finished with its plain-menu fallback. The VM test covers installer and build compatibility. Gameplay rendering was outside this test.
+
+
+## Original Rev A support
+
+The Windows desktop installer completed all 111 build steps using a fresh package and install directory, an extracted original DVP-0003A dump in the hod4prog/hod4data/hod4drv layout, and a cached MSYS2 toolchain. The source ELF retained its SHA-256. The installed copy matched the previously supported HD ELF byte for byte. Setup generated the menu background from the local dump. The installed launcher ran Chapter 1 for 1,675 frames, with a verified 3840x2160 framebuffer capture. Preflight also accepted the original ELF in the disk0 layout and the previously supported HD ELF, and rejected a modified ELF.

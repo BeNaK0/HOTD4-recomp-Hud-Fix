@@ -25,18 +25,34 @@ try {
         if($picker.ShowDialog() -ne [Windows.Forms.DialogResult]::OK){Write-Host 'Setup cancelled.';exit 0}
         $DumpPath=$picker.SelectedPath;$picker.Dispose()
     }
+    $elfVariants=Get-Content -LiteralPath "$PSScriptRoot\tools\elf-variants.json" -Raw -Encoding UTF8 | ConvertFrom-Json
     $DumpPath=(Resolve-Path -LiteralPath $DumpPath).Path
     $candidates=@($DumpPath,(Join-Path $DumpPath 'disk0'),(Join-Path $DumpPath 'The House of the Dead 4\disk0'))
-    if((Split-Path $DumpPath -Leaf) -eq 'elf'){$candidates+=Split-Path $DumpPath -Parent}
+    if((Split-Path $DumpPath -Leaf) -in 'elf','hod4prog'){$candidates+=Split-Path $DumpPath -Parent}
     $dump=$null
-    foreach($candidate in $candidates){if(Test-Path -LiteralPath (Join-Path $candidate 'elf\hod4M.elf') -PathType Leaf){$dump=$candidate;break}}
-    if(!$dump){throw 'Cannot find elf\hod4M.elf. Select an extracted arcade dump. Encrypted disc images are not supported.'}
-    if((Get-Sha256 (Join-Path $dump 'elf\hod4M.elf')) -ne '72FDD45830ACD9317EC1E4F97DE35A270C94746068FDAF827381C91BB47AA296'){throw 'Unsupported arcade revision. Special and patched executables are not supported.'}
-    foreach($part in 'fs','drv'){
-        $dir=Join-Path $dump $part
-        if(!(Test-Path -LiteralPath $dir -PathType Container) -or !(Get-ChildItem -LiteralPath $dir -File -Recurse | Select-Object -First 1)){throw "Incomplete dump: missing $part files."}
+    foreach($candidate in $candidates){
+        foreach($layout in $elfVariants.layouts){
+            $elf=Join-Path $candidate $layout.elf
+            if(Test-Path -LiteralPath $elf -PathType Leaf){$dump=$candidate;break}
+        }
+        if($dump){break}
     }
-    Write-Host 'Verified: The House of the Dead 4 (normal arcade version).'
+    if(!$dump){throw 'Cannot find hod4M.elf in elf or hod4prog. Select an extracted Rev A arcade dump.'}
+    $hash=Get-Sha256 $elf
+    if($hash -notin $elfVariants.stock_sha256,$elfVariants.prepared_sha256){
+        throw "Unsupported hod4M.elf (SHA-256 $hash). Use the original Rev A (DVP-0003A) dump or the previously supported HD variant."
+    }
+    foreach($part in 'fs','drv'){
+        $dir=Join-Path $dump $layout.$part
+        if(!(Test-Path -LiteralPath $dir -PathType Container) -or !(Get-ChildItem -LiteralPath $dir -File -Recurse | Select-Object -First 1)){
+            throw "Incomplete dump: missing $($layout.$part) files."
+        }
+    }
+    if($hash -eq $elfVariants.stock_sha256){
+        Write-Host 'Verified: The House of the Dead 4 (Rev A, DVP-0003A). Setup will prepare the HD ELF locally.'
+    }else{
+        Write-Host 'Verified: The House of the Dead 4 (Rev A HD variant).'
+    }
     if($ValidateOnly){Write-Host 'Package and dump validation passed. Nothing was installed.';exit 0}
     if($interactive -and !$OpenXR){
         Write-Host "Waiting for the OpenXR choice in the HOTD4 Setup dialog. Use Alt+Tab if it is behind this window."

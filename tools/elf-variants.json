@@ -1,0 +1,54 @@
+{
+  "stock_sha256": "65ec92c55ef48ad5ea565dfdd40ff43759daacfa2cebd6d5b83ce0368f9bfe14",
+  "prepared_sha256": "72fdd45830acd9317ec1e4f97de35a270c94746068fdaf827381c91bb47aa296",
+  "layouts": [
+    {
+      "elf": "elf/hod4M.elf",
+      "fs": "fs",
+      "drv": "drv"
+    },
+    {
+      "elf": "hod4prog/hod4M.elf",
+      "fs": "hod4data",
+      "drv": "hod4drv"
+    }
+  ],
+  "patches": [
+    {
+      "offset": 33478,
+      "bytes": "57505689c6a15817710a83f80074160fb64e34c1e1028d0cc98b7c014085ff75045e585fc35e585fe95d401100"
+    },
+    {
+      "offset": 1155567,
+      "bytes": "d3e0eeff"
+    },
+    {
+      "offset": 1169952,
+      "bytes": "b801000000c3"
+    },
+    {
+      "offset": 1495034,
+      "bytes": "9090"
+    },
+    {
+      "offset": 1495058,
+      "bytes": "9090909090909090"
+    },
+    {
+      "offset": 1495067,
+      "bytes": "01"
+    },
+    {
+      "offset": 1495071,
+      "bytes": "909090"
+    },
+    {
+      "offset": 2973244,
+      "bytes": "b160909090"
+    },
+    {
+      "offset": 3943054,
+      "bytes": "4a4a"
+    }
+  ]
+}

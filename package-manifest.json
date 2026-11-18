@@ -3,15 +3,15 @@
   "files": [
     {
       "path": "BUILD-VERIFICATION.md",
-      "sha256": "b9b8674b052e6cbd3adc7acbc40b94c26db420c07b9628ac70ba2aa084a4144a"
+      "sha256": "fa4ac1be4afd698c85a7e559bce97c32ec7fda519871d8677673c2f9e4b7891a"
     },
     {
       "path": "README.md",
-      "sha256": "2b59f0694f02ce22f5a096f9685f7d54e9e11f3f26f494767652eec9049fae54"
+      "sha256": "e8b91d53677e60635dd3aed278f920d45015304f8bce20d5906ef08cc5a81d8b"
     },
     {
       "path": "RELEASE-NOTES.md",
-      "sha256": "0b0456925f66bd1c56b78d3386e40d390e2e01c26fd9e3aeddbb7a8beead13e9"
+      "sha256": "dbb0fdfba69ecc08ec49448af34478bba58a8a7dc1fef6dcd64e04d089a4554b"
     },
     {
       "path": "Setup.cmd",
@@ -19,7 +19,7 @@
     },
     {
       "path": "setup.ps1",
-      "sha256": "7357c3f47e07501b6cc4be861fd1615b4948bde3cbdee29c70a68e3365a1292b"
+      "sha256": "19316d7c7136eea3d71173daab33bd0ee8b566c01cba479a782e89076ce38417"
     },
     {
       "path": "source/CMakeLists.txt",
@@ -511,7 +511,11 @@
     },
     {
       "path": "tools/build.py",
-      "sha256": "5f608f596c90340ddc26177729e170890c411cea33cffaa9a2c522c14978470e"
+      "sha256": "642cd9c3d2b88a549c13d856115fba9c0d966779d5c4d4dd4b44f8788f7815ae"
+    },
+    {
+      "path": "tools/elf-variants.json",
+      "sha256": "35948640f980dec833739e022923630dba3a2cff998ea1f740464d3c03b3850e"
     },
     {
       "path": "tools/gl-enhancements.h",

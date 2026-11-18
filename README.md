@@ -1,14 +1,22 @@
 # HOTD4 Local Builder
 
-Run **Setup.cmd**, select your own extracted arcade dump, then wait for the local build. When finished, open **HOTD4-PC\Play HOTD4.cmd**. All menus are in English.
+Download and extract **HOTD4-Local-Builder-v1.2.2.zip** from the [v1.2.2 release](https://github.com/davidptrssvea/HOTD4-recomp/releases/tag/v1.2.2). Run **Setup.cmd**, select your own extracted arcade dump, then wait for the local build. When finished, open **HOTD4-PC\Play HOTD4.cmd**. All menus are in English.
 
 ## Supported arcade dump
 
-Setup requires your own complete, extracted **The House of the Dead 4 (Export), Rev A (DVP-0003A)** Sega Lindbergh dump with the specific **HD variant** at `disk0/elf/hod4M.elf`. The Rev A label identifies the base revision. Setup checks the exact ELF bytes against this SHA-256:
+Starting with v1.2.2, Setup accepts your own complete, extracted **The House of the Dead 4 (Export), Rev A (DVP-0003A)** Sega Lindbergh dump. It prepares the HD ELF locally from the stock executable. The previously supported HD ELF can also be used directly.
 
-`72FDD45830ACD9317EC1E4F97DE35A270C94746068FDAF827381C91BB47AA296`
+| `hod4M.elf` input | SHA-256 |
+| --- | --- |
+| Original Rev A (DVP-0003A) | `65EC92C55EF48AD5EA565DFDD40FF43759DAACFA2CEBD6D5B83CE0368F9BFE14` |
+| Previously supported HD variant | `72FDD45830ACD9317EC1E4F97DE35A270C94746068FDAF827381C91BB47AA296` |
 
-Keep `disk0/elf/`, `disk0/fs/` and `disk0/drv/` from the same extracted dump. Select `disk0`, its `elf` directory, or the parent folder that contains `disk0`. Setup rejects a different ELF hash, including other variants of the same revision. It expects extracted files on disk and cannot use a compressed archive or encrypted disc image directly.
+Select the extracted folder containing either of these layouts:
+
+- `elf/hod4M.elf`, `fs/` and `drv/` (often under `disk0`).
+- `hod4prog/hod4M.elf`, `hod4data/` and `hod4drv/`.
+
+Setup verifies the input hash and checks that the locally prepared copy matches the expected HD hash before building. Setup leaves the original dump in place. It expects extracted files on disk.
 
 ## System requirements
 
@@ -22,7 +30,7 @@ Keep `disk0/elf/`, `disk0/fs/` and `disk0/drv/` from the same extracted dump. Se
 
 1. Verify this package and your ELF.
 2. Download the official self-extracting MSYS2 archive, verify its pinned SHA-256, and install signed build dependencies using pacman. The archive extracts without a system xz utility.
-3. Lift your own ELF to C locally, generate OpenGL bindings, and compile the Windows executable locally.
+3. Prepare the HD ELF from your copy, lift it to C locally, generate OpenGL bindings, and compile the Windows executable.
 4. Copy your dump into the chosen installation folder and add the launcher, runtime DLLs, menus and original project artwork. The source dump stays unchanged.
 5. Run the locally built game in a hidden window with isolated temporary settings, muted audio and fresh temporary cabinet state. Render the Chapter 1 zombie scene at 1920x1080 and save it locally as the menu background. This usually adds about one minute. Your controls, trophies and cabinet saves are untouched.
 
