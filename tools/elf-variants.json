@@ -4,11 +4,13 @@
   "layouts": [
     {
       "elf": "elf/hod4M.elf",
+      "hd_elf": "elf/hod4Ms_HD.elf",
       "fs": "fs",
       "drv": "drv"
     },
     {
       "elf": "hod4prog/hod4M.elf",
+      "hd_elf": "hod4prog/hod4Ms_HD.elf",
       "fs": "hod4data",
       "drv": "hod4drv"
     }

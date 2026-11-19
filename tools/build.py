@@ -28,13 +28,21 @@ def find_dump(path):
    return d, layout
  raise ValueError('Cannot find hod4M.elf in elf or hod4prog. Choose your extracted Rev A arcade dump.')
 
-def prepare_elf(path):
+def prepare_elf(path, hd_path):
  image=path.read_bytes()
  source_hash=hashlib.sha256(image).hexdigest()
  if source_hash==EXPECTED:
   return image, source_hash
  if source_hash!=ELF_VARIANTS['stock_sha256']:
-  raise ValueError(f'Unsupported hod4M.elf (SHA-256 {source_hash}). Use the original Rev A (DVP-0003A) dump or the previously supported HD variant.')
+  unsupported=f'Unsupported hod4M.elf (SHA-256 {source_hash}).'
+  if not hd_path.is_file():
+   raise ValueError(f'{unsupported} Use the original Rev A (DVP-0003A) dump or a matching hod4Ms_HD.elf alongside hod4M.elf.')
+  hd_image=hd_path.read_bytes()
+  hd_hash=hashlib.sha256(hd_image).hexdigest()
+  if hd_hash!=EXPECTED:
+   raise ValueError(f'{unsupported} hod4Ms_HD.elf has SHA-256 {hd_hash}. Expected {EXPECTED}.')
+  print('Using verified hod4Ms_HD.elf from your dump.',flush=True)
+  return hd_image, hd_hash
  prepared=bytearray(image)
  # Reproduce only the compatibility edits in the known HD variant.
  for patch in ELF_VARIANTS['patches']:
@@ -51,7 +59,7 @@ def run(args,cwd=None,stdout=None):
 def main():
  ap=argparse.ArgumentParser();ap.add_argument('--dump',required=True);ap.add_argument('--output',required=True);ap.add_argument('--toolchain',required=True);ap.add_argument('--jobs',type=int,default=4);ap.add_argument('--validate-only',action='store_true');ap.add_argument('--openxr',action='store_true');a=ap.parse_args()
  dump, layout=find_dump(Path(a.dump))
- image, source_hash=prepare_elf(dump/layout['elf'])
+ image, source_hash=prepare_elf(dump/layout['elf'],dump/layout['hd_elf'])
  print('Verified HOTD4 Rev A arcade dump:',dump,flush=True)
  if source_hash!=EXPECTED:
   print('Prepared and verified the HD ELF locally.',flush=True)

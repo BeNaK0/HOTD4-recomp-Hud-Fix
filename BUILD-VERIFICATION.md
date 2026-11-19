@@ -87,3 +87,8 @@ Reproduced the v1.2.2 `hotd4-controls.ps1` startup error with a Restricted polic
 - Captured the SEGA startup screen in the desktop build at 1920 × 1080 and 3840 × 2160. The startup artwork and serial numbers share a centered 4:3 canvas.
 - Triggered the native grab state during Chapter 1 using a local test hook. Before-and-after 1280 × 720 captures show the gauge end caps, track, fill and target label aligned, with the shake prompt centered.
 - Entered the Justice encounter directly and shot through its shield. The health and cancel gauge sprites stayed together as the game applied damage.
+
+## Windows installer v1.3.3
+
+- Checked both dump layouts through PowerShell Setup and the Python builder. Tested the stock ELF, the supported HD primary ELF, a matching HD fallback, a mismatched HD fallback, and an absent HD fallback.
+- Installed from a fresh builder with cached tools and a test dump containing a modified primary ELF and a matching `hod4Ms_HD.elf`. Setup built the desktop executable and rendered the menu background. The installed `hod4M.elf` matched the HD fallback byte for byte. Both files in the original dump retained their filenames and content.

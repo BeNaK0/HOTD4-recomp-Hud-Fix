@@ -1,14 +1,14 @@
 # HOTD4 Local Builder
 
-Download and extract **HOTD4-Local-Builder-v1.3.2.zip** from the [v1.3.2 release](https://github.com/davidptrssvea/HOTD4-recomp/releases/tag/v1.3.2). Run **Setup.cmd**, select your own extracted arcade dump, then wait for the local build. Open **HOTD4-PC\Play HOTD4.exe** for the graphical menu or **Model Viewer.exe** to go directly to the viewer. All menus are in English.
+Download and extract **HOTD4-Local-Builder-v1.3.3.zip** from the [v1.3.3 release](https://github.com/davidptrssvea/HOTD4-recomp/releases/tag/v1.3.3). Run **Setup.cmd**, select your own extracted arcade dump, then wait for the local build. Open **HOTD4-PC\Play HOTD4.exe** for the graphical menu or **Model Viewer.exe** to go directly to the viewer. All menus are in English.
 
-To update, extract the new builder and run **Setup.cmd** with the same arcade dump. Select your existing installation folder to keep its settings, cabinet saves and trophies.
+To update, extract the new builder and run `Setup.cmd -InstallDir "C:\Path\To\HOTD4-PC"`, using your existing installation path. Select the same arcade dump when prompted. This keeps your settings, cabinet saves and trophies.
 
 ## Supported arcade dump
 
 Starting with v1.2.2, Setup accepts your own complete, extracted **The House of the Dead 4 (Export), Rev A (DVP-0003A)** Sega Lindbergh dump. It prepares the HD ELF locally from the stock executable. The previously supported HD ELF can also be used directly.
 
-| `hod4M.elf` input | SHA-256 |
+| Supported ELF input | SHA-256 |
 | --- | --- |
 | Original Rev A (DVP-0003A) | `65EC92C55EF48AD5EA565DFDD40FF43759DAACFA2CEBD6D5B83CE0368F9BFE14` |
 | Previously supported HD variant | `72FDD45830ACD9317EC1E4F97DE35A270C94746068FDAF827381C91BB47AA296` |
@@ -19,6 +19,8 @@ Select the extracted folder containing either of these layouts:
 - `hod4prog/hod4M.elf`, `hod4data/` and `hod4drv/`.
 
 Setup verifies the input hash and checks that the locally prepared copy matches the expected HD hash before building. Setup leaves the original dump in place. It expects extracted files on disk.
+
+If `hod4M.elf` has an unsupported hash, Setup checks for `hod4Ms_HD.elf` in the same folder and uses it if it matches the HD SHA-256 above. Leave both files under their original names. Setup writes the verified HD executable as `hod4M.elf` in the installation folder.
 
 ## System requirements
 

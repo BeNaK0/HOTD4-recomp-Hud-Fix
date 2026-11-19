@@ -40,7 +40,17 @@ try {
     if(!$dump){throw 'Cannot find hod4M.elf in elf or hod4prog. Select an extracted Rev A arcade dump.'}
     $hash=Get-Sha256 $elf
     if($hash -notin $elfVariants.stock_sha256,$elfVariants.prepared_sha256){
-        throw "Unsupported hod4M.elf (SHA-256 $hash). Use the original Rev A (DVP-0003A) dump or the previously supported HD variant."
+        $hdElf=Join-Path $dump $layout.hd_elf
+        $unsupported="Unsupported hod4M.elf (SHA-256 $hash)."
+        if(!(Test-Path -LiteralPath $hdElf -PathType Leaf)){
+            throw "$unsupported Use the original Rev A (DVP-0003A) dump or a matching hod4Ms_HD.elf alongside hod4M.elf."
+        }
+        $hdHash=Get-Sha256 $hdElf
+        if($hdHash -ne $elfVariants.prepared_sha256){
+            throw "$unsupported hod4Ms_HD.elf has SHA-256 $hdHash. Expected $($elfVariants.prepared_sha256)."
+        }
+        $hash=$hdHash
+        Write-Host 'Using verified hod4Ms_HD.elf from your dump.'
     }
     foreach($part in 'fs','drv'){
         $dir=Join-Path $dump $layout.$part
