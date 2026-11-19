@@ -4,6 +4,12 @@ Download and extract **HOTD4-Local-Builder-v1.3.3.zip** from the [v1.3.3 release
 
 To update, extract the new builder and run `Setup.cmd -InstallDir "C:\Path\To\HOTD4-PC"`, using your existing installation path. Select the same arcade dump when prompted. This keeps your settings, cabinet saves and trophies.
 
+## FAQ
+
+**What can I delete after installing?** You can delete the downloaded ZIP, the extracted builder files and the build-tool cache at `%LOCALAPPDATA%\HOTD4-Builder`. If you used the default install path, `HOTD4-PC` is inside the extracted builder folder. Leave that subfolder in place when cleaning up. The next Setup will download the build tools again if you clear the cache.
+
+**What should I keep for future updates?** Keep your original extracted arcade dump and your installed `HOTD4-PC` folder. Your settings, cabinet saves and trophies are stored inside `HOTD4-PC\HOTD4_Recomp`. Point the new builder at the existing installation with `-InstallDir` and select the same dump when prompted.
+
 ## Supported arcade dump
 
 Starting with v1.2.2, Setup accepts your own complete, extracted **The House of the Dead 4 (Export), Rev A (DVP-0003A)** Sega Lindbergh dump. It prepares the HD ELF locally from the stock executable. The previously supported HD ELF can also be used directly.
