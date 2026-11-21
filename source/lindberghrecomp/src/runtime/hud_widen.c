@@ -402,7 +402,7 @@ static void w_glEnd(CPU *c)
     GLfloat p[16];
     glGetFloatv(GL_PROJECTION_MATRIX, p);
     int route = route_layout_active();
-    if (route || g_sprite_layout == HUD_LAYOUT_GRAB || g_sprite_layout == HUD_LAYOUT_SPLASH) {
+    if (route || g_sprite_layout == HUD_LAYOUT_GRAB || g_sprite_layout == HUD_LAYOUT_SPLASH || g_sprite_layout == HUD_LAYOUT_CENTER) {
         // Route selection spans the gun area. Grab and boot sprites share a
         // centered 4:3 canvas, including the widest pieces of each panel.
         float fit_x = route ? 1.0f : g_f;
@@ -445,6 +445,11 @@ static void w_glEnd(CPU *c)
     float lx = 1, lox = 0, ly = 1, loy = 0;
     if (g_layout_vw) {
         GLint vp[4]; glGetIntegerv(GL_VIEWPORT, vp);
+#ifdef HOTD4_DESKTOP_HUD
+        /* Compare cabinet pixels with cabinet pixels. The displayed viewport
+         * may be smaller (supersampling) or larger than the game's render size. */
+        host_viewport_unscale(vp);
+#endif
         if (vp[2] >= g_layout_vw) { lx = g_lx; lox = g_lox; ly = g_ly; loy = g_loy; }
     }
     box[0] = lx * box[0] + lox; box[1] = lx * box[1] + lox;

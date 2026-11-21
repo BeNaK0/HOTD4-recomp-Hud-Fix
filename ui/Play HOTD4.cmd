@@ -42,6 +42,34 @@ public static class Hotd4Display {
     return @($width, $height)
 }
 
+function Invoke-Hotd4OperatorMenu {
+    $exe=Join-Path $recompDir 'hotd4-testmenu.exe'
+    $elf=Join-Path $elfDir 'hod4testM.elf'
+    if (!(Test-Path -LiteralPath $exe) -or !(Test-Path -LiteralPath $elf)) {
+        throw 'Arcade Test Menu is missing. Re-run Setup with the complete Rev A dump including hod4testM.elf or hod4testM_HD.elf.'
+    }
+    $saved=@{}
+    $override=@{LINDBERGH_WIDTH='640';LINDBERGH_HEIGHT='480';LINDBERGH_DIPSW='00';LINDBERGH_NVRAM=$defaultNvram;HOTD4_OPERATOR_ASSETS=(Join-Path $recompDir 'operator-assets');HOTD4_PAUSE_MENU='0';LINDBERGH_FRAME_TIMINGS=$null}
+    try {
+        foreach($key in $override.Keys) {
+            $saved[$key]=[Environment]::GetEnvironmentVariable($key,'Process')
+            [Environment]::SetEnvironmentVariable($key,$override[$key],'Process')
+        }
+        Write-Host 'Arcade Test Menu: Service moves the selection; Test changes or confirms. Select EXIT to return to the game.'
+        $start=[Diagnostics.ProcessStartInfo]::new()
+        $start.FileName=$exe;$start.Arguments='"'+$elf+'"';$start.WorkingDirectory=$elfDir
+        $start.UseShellExecute=$false;$start.CreateNoWindow=$true
+        $start.RedirectStandardOutput=$true;$start.RedirectStandardError=$true
+        $menu=[Diagnostics.Process]::Start($start)
+        try {
+            $menu.BeginOutputReadLine();$errors=$menu.StandardError.ReadToEnd();$menu.WaitForExit()
+            if ($menu.ExitCode -ne 0) {throw ("Arcade Test Menu exited with code {0}.`n{1}" -f $menu.ExitCode,$errors)}
+        } finally {$menu.Dispose()}
+    } finally {
+        foreach($key in $saved.Keys) {[Environment]::SetEnvironmentVariable($key,$saved[$key],'Process')}
+    }
+}
+
 function Invoke-Hotd4 {
     param([string] $Mode, [string] $Hud, [int] $Width, [int] $Height, [bool] $Windowed, [int] $OutputWidth = $Width, [int] $OutputHeight = $Height, [switch] $Borderless)
 
@@ -147,7 +175,7 @@ function Invoke-Hotd4 {
                             $gameErrors = $game.StandardError.ReadToEnd()
                             $game.WaitForExit()
                             $exitCode = $game.ExitCode
-                            if ($exitCode -notin 0,74 -and $gameErrors) { [Console]::Error.WriteLine($gameErrors.TrimEnd()) }
+                            if ($exitCode -notin 0,74,75 -and $gameErrors) { [Console]::Error.WriteLine($gameErrors.TrimEnd()) }
                         } finally {
                             $game.Dispose()
                         }
@@ -164,6 +192,10 @@ function Invoke-Hotd4 {
                     } else {
                         Write-Warning 'The game did not save a performance log.'
                     }
+                }
+                if ($exitCode -eq 75) {
+                    Invoke-Hotd4OperatorMenu
+                    $exitCode=74
                 }
                 if ($exitCode -eq 74 -and [IO.File]::Exists($hudFile)) {
                     $savedHud = [IO.File]::ReadAllText($hudFile).Trim()

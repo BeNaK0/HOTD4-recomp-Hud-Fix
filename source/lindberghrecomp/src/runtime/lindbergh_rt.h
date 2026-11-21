@@ -298,6 +298,8 @@ int        host_gun2_state(int *x, int *y);
 /* The host window and its GL context, shared by the GLX and GLUT seams. */
 void       host_window_hint(int w, int h);
 void       host_viewport_scale(int *x, int *y, int *w, int *h);
+/* Inverse mapping for layout decisions made in the game's pixel units. */
+void       host_viewport_unscale(int rect[4]);
 void       host_window_title(const char *title);
 void       host_pace_fps(int fps);
 void       host_gun_map(void (*fn)(int *x, int *y));   /* sight position -> the gun reading for it */
@@ -310,6 +312,7 @@ typedef enum {
     HUD_LAYOUT_BOSS,
     HUD_LAYOUT_GRAB,
     HUD_LAYOUT_SPLASH,
+    HUD_LAYOUT_CENTER,
 } HudSpriteLayout;
 HudSpriteLayout hud_sprite_layout(HudSpriteLayout layout);
 /* Optional HOTD4 desktop HUD. The render environment tracks its 2D and

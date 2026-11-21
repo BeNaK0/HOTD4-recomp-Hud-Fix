@@ -129,7 +129,13 @@ typedef struct { int x, y, w, h; } GameViewport;
 static GameViewport fit_game_viewport(int draw_w, int draw_h)
 {
     GameViewport viewport = {0, 0, draw_w, draw_h};
-    const float aspect = 16.0f / 9.0f;
+    float aspect = 16.0f / 9.0f;
+#if !defined(LINDBERGH_OPENXR) && !defined(LINDBERGH_VULKAN)
+    /* The standalone desktop operator program has a native 4:3 canvas. */
+    int picture_w=0,picture_h=0;
+    picture_size(&picture_w,&picture_h);
+    if(picture_w>0 && picture_h>0)aspect=(float)picture_w/picture_h;
+#endif
     const float drawable_aspect = (float)draw_w / draw_h;
     if (fabsf(drawable_aspect - aspect) > 0.01f) {
         if (drawable_aspect > aspect) viewport.w = (int)(draw_h * aspect + 0.5f);
@@ -1380,12 +1386,17 @@ static void maybe_screenshot(void)
     }
     int w, h;
     picture_size(&w, &h);
+    /* The default framebuffer uses drawable pixels, including when the game
+     * supersamples into a smaller window. Reading logical dimensions captures
+     * undefined pixels outside that framebuffer. */
+    GLuint from = (GLuint)env_int("LINDBERGH_SHOT_FB", 0);
+    if (!from && g_win.win) SDL_GL_GetDrawableSize(g_win.win, &w, &h);
+    if(w<=0 || h<=0)return;
     unsigned char *px = (unsigned char *)malloc((size_t)w * h * 3);
     if (!px) return;
     GLint fb = 0;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &fb);
     /* LINDBERGH_SHOT_FB=id: one of the game's own framebuffers instead */
-    GLuint from = (GLuint)env_int("LINDBERGH_SHOT_FB", 0);
     glBindFramebuffer(GL_FRAMEBUFFER, from);
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glReadBuffer(from ? GL_COLOR_ATTACHMENT0 : GL_BACK);
@@ -1514,6 +1525,17 @@ void host_viewport_scale(int *x, int *y, int *w, int *h)
         *w = (int)((long)*w * vp_w / g_win.w);
         *h = (int)((long)*h * vp_h / g_win.h);
     }
+}
+
+void host_viewport_unscale(int rect[4])
+{
+    GLint framebuffer = 0;
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &framebuffer);
+    if (framebuffer || g_vp_w <= 0 || g_vp_h <= 0 || g_win.w <= 0 || g_win.h <= 0) return;
+    rect[0] = (int)lround((rect[0] - g_vp_x) * (double)g_win.w / g_vp_w);
+    rect[1] = (int)lround((rect[1] - g_vp_y) * (double)g_win.h / g_vp_h);
+    rect[2] = (int)lround(rect[2] * (double)g_win.w / g_vp_w);
+    rect[3] = (int)lround(rect[3] * (double)g_win.h / g_vp_h);
 }
 
 static void draw_4k_crosshair(float cx, float cy, float scale, int reloading)

@@ -53,6 +53,15 @@ def prepare_elf(path, hd_path):
   raise ValueError('Locally prepared HD ELF failed SHA-256 verification.')
  return prepared, source_hash
 
+def find_operator_elf(dump,layout):
+ folder=(dump/layout['elf']).parent
+ for name in ('hod4testM_HD.elf','hod4testM.elf'):
+  path=folder/name
+  if path.is_file() and digest(path)==ELF_VARIANTS['operator_sha256']:
+   return path
+ print('Warning: verified hod4testM.elf/hod4testM_HD.elf missing; arcade Test Menu will not be available.',flush=True)
+ return None
+
 def run(args,cwd=None,stdout=None):
  print('+ '+' '.join(map(str,args)),flush=True)
  subprocess.run(list(map(str,args)),cwd=cwd,stdout=stdout,check=True)
@@ -63,6 +72,7 @@ def main():
  print('Verified HOTD4 Rev A arcade dump:',dump,flush=True)
  if source_hash!=EXPECTED:
   print('Prepared and verified the HD ELF locally.',flush=True)
+ operator_elf=find_operator_elf(dump,layout)
  if a.validate_only:return
  out=Path(a.output).resolve()
  for protected in [dump,ROOT/'source',ROOT/'ui',ROOT/'tools']:
@@ -91,19 +101,39 @@ def main():
    s,n=re.subn(r'static void th_'+name+r'\(CPU \*c\)\n\{.*?\n\}',lambda m:body,s,count=1,flags=re.S)
    if n!=1:raise ValueError('GL wrapper generation changed: '+name)
   thunk.write_text(s,encoding='utf-8');marker.write_text(signature)
+ if operator_elf:
+  opgen=source/'games/hotd4test/generated';opgen.mkdir(parents=True,exist_ok=True)
+  opmarker=opgen/'local-build-signature.txt'
+  if not opmarker.exists() or opmarker.read_text()!=signature:
+   run([bin/'python.exe','-m','tools','recomp',operator_elf,opgen],cwd=source/'lindberghrecomp')
+   opthunk=opgen/'recomp_gl_thunks_windows.c'
+   with opthunk.open('w',encoding='utf-8') as f:
+    run([bin/'python.exe',source/'lindberghrecomp/tools/gen_gl_thunks.py',opgen/'recomp_imports.h',bin.parent/'include/GL/glew.h'],stdout=f)
+   text=opthunk.read_text(encoding='utf-8')
+   viewport_body = """static void th_glViewport(CPU *c)
+{
+    int x=(int)A32(0),y=(int)A32(1),w=(int)A32(2),h=(int)A32(3);
+    host_viewport_scale(&x,&y,&w,&h);glViewport(x,y,w,h);
+}"""
+   text,n=re.subn(r'static void th_glViewport\(CPU \*c\)\n\{.*?\n\}',lambda _:viewport_body,text,count=1,flags=re.S)
+   if n!=1:raise ValueError('Operator viewport wrapper generation changed.')
+   opthunk.write_text(text,encoding='utf-8');opmarker.write_text(signature)
  builds = {}
- for name, folder, openxr in [('hotd4-desktop.exe', 'build', False),
-                             ('hotd4-vr.exe', 'build-openxr', True)]:
+ for name, folder, game, openxr in [('hotd4-desktop.exe','build','hotd4',False),
+                                   ('hotd4-testmenu.exe','build-testmenu','hotd4test',False),
+                                   ('hotd4-vr.exe','build-openxr','hotd4',True)]:
+  if game=='hotd4test' and not operator_elf:
+   continue
   if openxr and not a.openxr:
    continue
   build = ROOT/folder
   run([bin/'cmake.exe','-S',source,'-B',build,'-G','Ninja','-DCMAKE_BUILD_TYPE=Release',
-       '-DCMAKE_C_FLAGS_RELEASE=','-DLINDBERGH_GAMES=hotd4',
+       '-DCMAKE_C_FLAGS_RELEASE=','-DLINDBERGH_GAMES='+game,
        '-DLINDBERGH_OPENXR='+('ON' if openxr else 'OFF'),'-DLINDBERGH_RENDERER=OPENGL',
        '-DCMAKE_C_COMPILER='+str(bin/'gcc.exe'),'-DCMAKE_MAKE_PROGRAM='+str(bin/'ninja.exe'),
        '-DCMAKE_PREFIX_PATH='+str(bin.parent)])
-  run([bin/'cmake.exe','--build',build,'--target','hotd4','--parallel',max(1,min(a.jobs,16))])
-  builds[name] = build/'hotd4.exe'
+  run([bin/'cmake.exe','--build',build,'--target',game,'--parallel',max(1,min(a.jobs,16))])
+  builds[name] = build/(game+'.exe')
  # Resolve runtime DLLs recursively, including indirect OpenAL/SDL dependencies.
  dlls={};pending=list(builds.values());seen=set();system=Path(os.environ.get('WINDIR','C:/Windows'))/'System32'
  while pending:
@@ -130,6 +160,12 @@ def main():
   stage_path.replace(localdump/'elf/hod4M.elf')
  finally:
   stage_path.unlink(missing_ok=True)
+ if operator_elf:
+  shutil.copy2(operator_elf,localdump/'elf/hod4testM.elf')
+  for name in ('LucidaConsole_12.tga','LucidaConsole_12.abc','logo.tga'):
+   font=operator_elf.parent/name
+   if font.is_file():shutil.copy2(font,localdump/'elf'/name)
+  run(['powershell.exe','-NoProfile','-ExecutionPolicy','Bypass','-File',ROOT/'tools/operator-font.ps1','-OutputDir',app/'operator-assets'])
  for p in (ROOT/'ui').rglob('*'):
   if p.is_file():
    rel=p.relative_to(ROOT/'ui')

@@ -620,6 +620,36 @@ static struct {
     HudSpriteLayout layout;
 } hud_primitives[64]; // The startup serial screen also queues one sprite per glyph.
 static HudSpriteLayout queuing_layout;
+static HleHandler lifted_font_clear, lifted_font_draw, lifted_font_ctor;
+static uint32_t subtitle_fonts[32];
+static void h_font_ctor(CPU *c)
+{
+    /* A font's address can be reused by unrelated UI after a scene unload. */
+    uint32_t font=A32(0);
+    for(unsigned i=0;i<32;i++)if(subtitle_fonts[i]==font)subtitle_fonts[i]=0;
+    push32(c,rd32(c->esp-4));lifted_font_ctor(c);
+}
+static void h_font_clear(CPU *c)
+{
+    uint32_t caller=rd32(c->esp-4),font=c->eax;
+    int subtitle=caller==0x080e3f5bu || caller==0x081733b9u;
+    int free_slot=-1;
+    for(unsigned i=0;i<32;i++) {
+        if(subtitle_fonts[i]==font) {subtitle_fonts[i]=subtitle?font:0;free_slot=-2;break;}
+        if(!subtitle_fonts[i])free_slot=(int)i;
+    }
+    if(subtitle && free_slot>=0)subtitle_fonts[free_slot]=font;
+    push32(c,caller);lifted_font_clear(c);
+}
+static void h_font_draw(CPU *c)
+{
+    HudSpriteLayout previous=queuing_layout;
+    uint32_t font=A32(0);
+    for(unsigned i=0;i<32;i++)if(font && subtitle_fonts[i]==font){queuing_layout=HUD_LAYOUT_CENTER;break;}
+    push32(c,rd32(c->esp-4));lifted_font_draw(c);
+    queuing_layout=previous;
+}
+
 
 static void h_hud_begin_frame(CPU *c)
 {
@@ -724,6 +754,14 @@ static void install_reload_feedback(void)
 
 static void install_wide_hud_layout(void)
 {
+    lifted_font_ctor=dispatch_lifted(guest_symbol("_ZN5CFontC9EP6MlTask"));
+    if(lifted_font_ctor)guest_override("_ZN5CFontC9EP6MlTask",h_font_ctor);
+    lifted_font_clear=dispatch_lifted(guest_symbol("_ZN5CFont5ClearEv"));
+    lifted_font_draw=dispatch_lifted(guest_symbol("_ZN5CFont4DrawEv"));
+    if(lifted_font_clear && lifted_font_draw) {
+        guest_override("_ZN5CFont5ClearEv",h_font_clear);
+        guest_override("_ZN5CFont4DrawEv",h_font_draw);
+    }
     const char *draw = "_ZN9CCsPlayer12_DrawProcessEjP12KfMatrixNNGL";
     const char *resolution = "_Z13GetResolutionPjS_";
     lifted_sprite_draw = dispatch_lifted(guest_symbol(draw));
@@ -746,6 +784,20 @@ static void install_wide_hud_layout(void)
         guest_override(primitive_begin, h_primitive_begin);
         guest_override(primitive_draw, h_primitive_draw);
     }
+}
+#endif
+
+#if defined(_WIN64) && !defined(LINDBERGH_OPENXR) && !defined(LINDBERGH_VULKAN)
+/* The cabinet boot service launches hod4testM after this request. The Windows
+ * launcher performs that handoff instead; no shell command is executed. */
+static HleHandler original_system;
+static void h_operator_request(CPU *c)
+{
+    if (A32(0) && !strcmp(ASTR(0), "touch /tmp/segaboot/test")) {
+        fprintf(stderr, "[operator] handing off to the arcade Test Menu\n");
+        exit(75);
+    }
+    original_system(c);
 }
 #endif
 
@@ -775,6 +827,8 @@ int main(int argc, char **argv)
      * still missing aborts naming itself on first call. */
     hle_register_all();
 #if defined(_WIN64) && !defined(LINDBERGH_OPENXR) && !defined(LINDBERGH_VULKAN)
+    original_system=g_hle_handlers[HLE_system];
+    hle_bind("system",h_operator_request);
     host_cabinet_button_filter(mouse_grab_buttons);
     fprintf(stderr, "[hotd4] mouse grabs: shake the mouse back and forth to escape\n");
 #endif

@@ -961,6 +961,10 @@ void hle_register_sega(void)
         }
         /* The House of the Dead 4 asks CConfigMgr::GetRegion - 0 Japan,
          * 1 USA, 2 export - and shows English for anything but Japan. */
+        /* The operator ELF also calls ICC's register-argument entry directly.
+         * Keep it on the same cabinet region as the main game's entry, or the
+         * main game rejects the menu's saved assignment record as foreign. */
+        n += guest_override("_ZN10CConfigMgr9GetRegionEv.", h_region);
         if (guest_override("_ZN10CConfigMgr9GetRegionEv", h_region)) {
             n++;
             fprintf(stderr, "[sega] region %d\n", region_value());

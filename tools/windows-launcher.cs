@@ -5,6 +5,36 @@ using System.Windows.Forms;
 
 internal static class Launcher
 {
+    internal static string SaveErrorLog(string directory, string title, string errors, int exitCode)
+    {
+        try
+        {
+            string folder = Path.Combine(directory, "Crash Logs");
+            Directory.CreateDirectory(folder);
+            string path = Path.Combine(folder, "HOTD4-" + DateTime.Now.ToString("yyyyMMdd-HHmmss-fff") + "-" + Guid.NewGuid().ToString("N").Substring(0, 8) + ".log");
+            File.WriteAllText(path, title + Environment.NewLine + "Time: " + DateTime.Now.ToString("O") +
+                Environment.NewLine + "Exit code: " + exitCode + Environment.NewLine + Environment.NewLine + errors);
+            return path;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    internal static string FormatError(string errors, int exitCode, string log)
+    {
+        string message = errors.Trim();
+        if (message.Length == 0) message = "The program exited with code " + exitCode + ".";
+        if (message.Length > 1200)
+            message = message.Substring(0, 800) + Environment.NewLine + "[...]" + Environment.NewLine +
+                message.Substring(message.Length - 300);
+        if (log != null)
+            message = "The complete error report was saved to:" + Environment.NewLine + log +
+                Environment.NewLine + Environment.NewLine + message;
+        return message;
+    }
+
     [STAThread]
     private static int Main()
     {
@@ -46,16 +76,16 @@ internal static class Launcher
                 child.WaitForExit();
                 if (child.ExitCode == 0) return 0;
 
-                string message = errors.Trim();
-                if (message.Length > 1200) message = message.Substring(message.Length - 1200);
-                if (message.Length == 0) message = "The program exited with code " + child.ExitCode + ".";
+                string log = SaveErrorLog(directory, title, errors, child.ExitCode);
+                string message = FormatError(errors, child.ExitCode, log);
                 MessageBox.Show(message, title, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return child.ExitCode;
             }
         }
         catch (Exception error)
         {
-            MessageBox.Show(error.Message, title, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            string log = SaveErrorLog(directory, title, error.ToString(), 1);
+            MessageBox.Show(FormatError(error.Message, 1, log), title, MessageBoxButtons.OK, MessageBoxIcon.Error);
             return 1;
         }
     }

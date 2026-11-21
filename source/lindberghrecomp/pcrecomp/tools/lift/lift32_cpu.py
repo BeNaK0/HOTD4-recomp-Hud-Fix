@@ -252,9 +252,11 @@ class Lifter:
                 continue
             if n is not None and m == "lea" and ops[0].type == X86_OP_REG and ops[0].reg == cmp_reg \
                     and ops[1].type == X86_OP_MEM and ops[1].mem.base == idx_reg and not ops[1].mem.index:
-                k = (-ops[1].mem.disp) & 0xffffffff
+                # Keep the bias signed: `lea r, [idx + 1]` permits idx=-1,
+                # whose case entry is one dword before the table displacement.
+                k = -ops[1].mem.disp
                 break
-        if n is None or k is None or n > 4096 or k > 65536:
+        if n is None or k is None or n > 4096 or abs(k) > 65536:
             return None
         return k, n + 1
 

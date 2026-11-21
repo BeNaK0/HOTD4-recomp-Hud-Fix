@@ -3,15 +3,15 @@
   "files": [
     {
       "path": "BUILD-VERIFICATION.md",
-      "sha256": "be4ada8fec9e679e1d963cc3b79a0fd5f1e4ce4a7cee41d2401b36899fd66ebf"
+      "sha256": "8d23654d234b798283c1e9c447f873cf78775a8212639d8723c2e3301fb74c4c"
     },
     {
       "path": "README.md",
-      "sha256": "901d446ee2af72a2bdb68e473ca6dce9a56184be37086123be7dd938146366b4"
+      "sha256": "2ac2d3edf09ec3ded7907d457d50ce6392dd51425f440409c5db6adccf83e4b9"
     },
     {
       "path": "RELEASE-NOTES.md",
-      "sha256": "1b225d24ee391d6014f4ddd737c386a263e75aae04a7642dd722658a319f42e3"
+      "sha256": "8880b5491488c35d456b88335852eff20ee4e33af9b9c3232e114a3e35025070"
     },
     {
       "path": "Setup.cmd",
@@ -39,7 +39,7 @@
     },
     {
       "path": "source/games/hotd4/src/host.c",
-      "sha256": "361a9e07f78d3becf669afc80e3a516a838d169c173f2b20f970a43e95a4f878"
+      "sha256": "1d30e6d166d98d93fd5a6a7d24a58b23fcf49aa1e745a052458ffb12dbb6747b"
     },
     {
       "path": "source/games/hotd4/src/hotd4_hd_textures.c",
@@ -48,6 +48,10 @@
     {
       "path": "source/games/hotd4/src/hotd4_lighting.c",
       "sha256": "9274720564cff0471cb26514e5d043faca840c0fabd2a7feafd981e6d6cc034e"
+    },
+    {
+      "path": "source/games/hotd4test/src/host.c",
+      "sha256": "8b5d96f0cd8244abe4af00df7b1795122eb03a2c854545eb609ce912127b4ac1"
     },
     {
       "path": "source/lindberghrecomp/CMakeLists.txt",
@@ -67,7 +71,7 @@
     },
     {
       "path": "source/lindberghrecomp/pcrecomp/tools/lift/lift32_cpu.py",
-      "sha256": "6057d1c0045a6cf248c4f4f30098f319d43e8558e78178c6629dbc723eb176ac"
+      "sha256": "87329474c19b0693fba3b1469479bbf830b484fa898716b94d142d5a8545c61c"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/achievement_runtime.h",
@@ -211,7 +215,7 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/hle_sega.c",
-      "sha256": "e73734bec670ae1653b71aa8861144c38a1bc0378dbcdfbd9a122edc48f6bd3f"
+      "sha256": "365dfca8b9a590a8456432c5932dab916b023367f03bd8b8025bafe78132eefd"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/hle_segaapi.c",
@@ -235,7 +239,7 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/host_sdl.c",
-      "sha256": "fc7c1d5b24847b5a6378274bff20a8cd96b510b3d4caa658cbc95a90cea70eb8"
+      "sha256": "0d0d260a0072512c8d3b9ae8c46c5b2197d8a35ffb762249c1d9e6386e85c6de"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/host_settings.c",
@@ -263,7 +267,7 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/hud_widen.c",
-      "sha256": "f082a354a9fd385d6d484d3186b02d4ec0f56c407e27d372fe60d123234cab4c"
+      "sha256": "2b7fe211e4f483cd303d15ef59ae889f6b46a3e15fe3c718febcfd7fdb1d5342"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/input_options.h",
@@ -271,7 +275,7 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/lindbergh_rt.h",
-      "sha256": "5e190ebd9287e67ca1c7d09ab0bb0ee111040029cf6c7f5f00343e524155e9b9"
+      "sha256": "6ca503efd8202cc0000f32b3bc51030475b55e8034e09e2c652052fc6de30057"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/mouse_shake.h",
@@ -527,11 +531,11 @@
     },
     {
       "path": "tools/build.py",
-      "sha256": "894bd771810809f229230218459b99bef0cb2b3897d060867202755a91d725ea"
+      "sha256": "6460e120f892f35f370b65575a8ddfb270e7e4976430cf6edacb2c28bfb159d6"
     },
     {
       "path": "tools/elf-variants.json",
-      "sha256": "cbfba22babf75d49218dccb24a46aaebc9b687c1078c32ea5d8ec5816b06a234"
+      "sha256": "ca77d428f2f05b4a286cffac5075b497d27914e8986ed624a450faccfbed4ad0"
     },
     {
       "path": "tools/gl-enhancements.h",
@@ -546,12 +550,16 @@
       "sha256": "42d12f0a27b8b968092a5eaf29e71e72f9927c278bb1a20b273da247b369b110"
     },
     {
+      "path": "tools/operator-font.ps1",
+      "sha256": "8742347554ff1a2f156285aa60b7888a5f8614169a7c496bd8424432f5c948af"
+    },
+    {
       "path": "tools/python_deps.py",
       "sha256": "8bacd0037f5f310467c69ff75adb04da24a3de35d935844ea11a0a8203f1f3c2"
     },
     {
       "path": "tools/windows-launcher.cs",
-      "sha256": "c807e06283ca38fdbbb57e1ad65be94b754c0c4618adab1113960e3ba93280bf"
+      "sha256": "b3e068df40b59fee85334c238bbb3cfd8bdb5f99bf5921bbec93854e0f3c5d76"
     },
     {
       "path": "ui/Model Viewer.cmd",
@@ -567,7 +575,7 @@
     },
     {
       "path": "ui/Play HOTD4.cmd",
-      "sha256": "7068ecb99c4af3577b97df1b85bcfadf1bb597b234c9ef99f61ef8f8975e1589"
+      "sha256": "68b4e0ea9a0b6cd6e2083d59b576bd2630db6444ec1ea4c88f7b5f33e59ab8be"
     },
     {
       "path": "ui/achievement-assets/bronze.png",
