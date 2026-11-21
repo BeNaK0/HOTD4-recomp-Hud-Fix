@@ -19,6 +19,7 @@
 
 #include "xr_overlay.h"
 #include "game_profile.h"
+#include "high_scores.h"
 #include "nn_culling.h"
 #include "lindbergh_rt.h"
 
@@ -613,6 +614,22 @@ static void h_reload_sprite_next(CPU *c)
     lifted_sprite_next(c);
 }
 
+/* Rev A ConfigMgr_GetRankDataPtr returns config->rank record + 12 bytes.
+ * Each of its ten records is score, three letter indices and two game fields. */
+static int hotd4_read_high_scores(HighScoreState *out)
+{
+    uint32_t config=rd32(0x0a711710u);
+    uint32_t record=config?rd32(config+0x14):0;
+    if(!record)return 0;
+    uint32_t words[HOTD4_SCORE_ROWS*HOTD4_SCORE_WORDS];
+    for(unsigned i=0;i<sizeof words/sizeof *words;i++)words[i]=rd32(record+12+4*i);
+    if(!high_scores_decode(out,words))return 0;
+    uint32_t game=rd32(0x0a7117f8u);
+    out->playing=game && rd32(game+0x34)==3;
+    out->practice=getenv("HOTD4_PRACTICE_CHAPTER")!=NULL;
+    return 1;
+}
+
 static HleHandler lifted_hud_begin_frame, lifted_primitive_begin, lifted_primitive_draw, lifted_boss_sprite_draw;
 static unsigned hud_primitive_count;
 static struct {
@@ -836,6 +853,7 @@ int main(int argc, char **argv)
     install_cutscene_pacing();
     install_practice();
 #if defined(_WIN64) && !defined(LINDBERGH_VULKAN)
+    host_high_scores_register(hotd4_read_high_scores);
     install_achievements();
     install_reload_feedback();
 #endif

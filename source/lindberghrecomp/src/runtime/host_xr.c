@@ -668,7 +668,9 @@ static void input_frame(XrTime t)
     unsigned held=cabinet.held;
     if(held&CAB_P1_RELOAD)reload_t=t;
     stereo_game_gun_reloading(reload_t&&t-reload_t<1500000000);
-    if(!dual&&btn_a[off]&&!prev[off][2]&&!menu.open){stereo_capture();rumble(off,.4f,30);}
+    static int debug_capture=-1;
+    if(debug_capture<0){const char *v=getenv("LINDBERGH_XR_DEBUG_CAPTURE");debug_capture=v && !strcmp(v,"1");}
+    if(lg_xr_debug_capture_requested(debug_capture,dual,btn_a[off],prev[off][2],menu.open)){stereo_capture();rumble(off,.4f,30);}
     if(menu.test_frames){--menu.test_frames;held|=CAB_TEST;}
     if(menu.service_frames){--menu.service_frames;held|=CAB_SERVICE;}
     int coin=menu.coin+cabinet.coins;menu.coin=0;

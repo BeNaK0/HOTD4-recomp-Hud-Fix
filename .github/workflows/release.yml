@@ -30,6 +30,14 @@ jobs:
         run: |
           cc -std=c11 -Wall -Wextra -Werror .release/test_coop_mouse.c -lm -o /tmp/hotd4-coop-mouse-test
           /tmp/hotd4-coop-mouse-test
+      - name: Test arcade high score record decoding
+        run: |
+          cc -std=c11 -Wall -Wextra -Werror .release/test_high_scores.c -o /tmp/hotd4-high-score-test
+          /tmp/hotd4-high-score-test
+      - name: Test opt-in OpenXR diagnostic capture
+        run: |
+          cc -std=c11 -Wall -Wextra -Werror .release/test_xr_capture.c source/lindberghrecomp/src/runtime/xr_controls.c -o /tmp/hotd4-xr-capture-test
+          /tmp/hotd4-xr-capture-test
       - name: Verify package and publish
         env:
           GH_TOKEN: ${{ github.token }}

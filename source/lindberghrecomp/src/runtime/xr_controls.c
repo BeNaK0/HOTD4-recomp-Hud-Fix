@@ -62,3 +62,9 @@ LgXrCabinet lg_xr_controls_update(LgXrControls *s,const LgXrControlFrame *f)
     for(int h=0;h<2;++h){s->prev_trigger[h]=f->trigger[h];s->prev_grip[h]=f->grip[h];}
     return out;
 }
+
+/* Capturing eyes/targets is a developer diagnostic, never a normal X action. */
+int lg_xr_debug_capture_requested(int enabled,int dual,int down,int previous,int menu_open)
+{
+    return enabled && !dual && down && !previous && !menu_open;
+}

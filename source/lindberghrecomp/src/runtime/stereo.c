@@ -651,7 +651,7 @@ static float argf(CPU *c, int i) { uint32_t b = A32(i); float f; memcpy(&f, &b, 
  * reuses it within the frame, so by the second eye that memory holds the
  * last draw's vertices. Each draw's slice is copied at record time and the
  * arrays re-pointed at the copy for the replay. */
-enum { ARR_VERTEX, ARR_NORMAL, ARR_COLOR, ARR_TEX0, ARR_ATTR0 = ARR_TEX0 + 8, ARR_COUNT = ARR_ATTR0 + 16 };
+enum { ARR_VERTEX, ARR_NORMAL, ARR_COLOR, ARR_SECONDARY, ARR_TEX0, ARR_ATTR0 = ARR_TEX0 + 8, ARR_COUNT = ARR_ATTR0 + 16 };
 typedef struct { int on, size, stride, norm; GLenum type; uint32_t ptr; GLuint vbo; } Arr;
 static Arr g_arr[ARR_COUNT];
 static int g_client_unit;
@@ -835,7 +835,7 @@ static void fixed_function_rect_done(void)
  * The game makes 20-30 thousand GL calls a frame; telling them apart by name
  * on every call cost more than the calls. */
 enum {
-    K_OTHER, K_BINDFB, K_VIEWPORT, K_SCISSOR, K_FBTEX2D, K_ACTIVETEX, K_BINDTEX, K_ENABLE, K_DISABLE,
+    K_OTHER, K_DRAWMULTIELEMENTS, K_DRAWMULTIARRAYS, K_BINDFB, K_VIEWPORT, K_SCISSOR, K_FBTEX2D, K_ACTIVETEX, K_BINDTEX, K_ENABLE, K_DISABLE,
     K_DRAWARRAYS, K_DRAWELEMENTS, K_DRAWOTHER, K_BEGIN, K_END, K_MATRIXMODE, K_VERTEX,
     K_LOADID, K_LOADMATRIX, K_MULTMATRIX, K_ORTHO, K_ORTHO2D, K_FRUSTUM, K_PERSPECTIVE,
     K_PUSHMATRIX, K_POPMATRIX, K_TRANSLATE, K_SCALE, K_GETINTEGERV, K_GETFLOATV, K_GETOTHER, K_UNMAP, K_CLEAR, K_COPYTEXSUB, K_COPYTEX,
@@ -943,6 +943,8 @@ static const Cls *cls(HleId id)
         { "glActiveTexture", K_ACTIVETEX }, { "glActiveTextureARB", K_ACTIVETEX }, { "glBindTexture", K_BINDTEX },
         { "glEnable", K_ENABLE }, { "glDisable", K_DISABLE },
         { "glDrawArrays", K_DRAWARRAYS }, { "glDrawElements", K_DRAWELEMENTS },
+        { "glMultiDrawElements", K_DRAWMULTIELEMENTS }, { "glMultiDrawElementsEXT", K_DRAWMULTIELEMENTS },
+        { "glMultiDrawArrays", K_DRAWMULTIARRAYS }, { "glMultiDrawArraysEXT", K_DRAWMULTIARRAYS },
         { "glBegin", K_BEGIN }, { "glEnd", K_END }, { "glMatrixMode", K_MATRIXMODE },
         { "glVertex2f", K_VERTEX }, { "glVertex3f", K_VERTEX }, { "glVertex2i", K_VERTEX },
         { "glLoadIdentity", K_LOADID }, { "glLoadMatrixf", K_LOADMATRIX }, { "glMultMatrixf", K_MULTMATRIX },
@@ -964,7 +966,7 @@ static const Cls *cls(HleId id)
         static const char *const TR[] = {
             "glEnableClientState", "glDisableClientState", "glClientActiveTexture", "glClientActiveTextureARB",
             "glEnableVertexAttribArrayARB", "glDisableVertexAttribArrayARB", "glVertexPointer", "glNormalPointer",
-            "glColorPointer", "glTexCoordPointer", "glVertexAttribPointerARB",
+            "glColorPointer", "glTexCoordPointer", "glVertexAttribPointerARB", "glSecondaryColorPointer",
         };
         k->track = 0;
         for (unsigned i = 0; i < sizeof TR / sizeof TR[0]; i++)
@@ -977,7 +979,7 @@ static const Cls *cls(HleId id)
     return k;
 }
 
-static int is_draw(int kind) { return kind == K_DRAWARRAYS || kind == K_DRAWELEMENTS || kind == K_DRAWOTHER; }
+static int is_draw(int kind) { return kind == K_DRAWARRAYS || kind == K_DRAWELEMENTS || kind == K_DRAWOTHER || kind == K_DRAWMULTIELEMENTS || kind == K_DRAWMULTIARRAYS; }
 
 /* Returns 1 when it did the call's work itself. */
 /* Is this 2D draw the game's sight? Learns it, and says whether to skip it. */
@@ -1138,6 +1140,8 @@ static int weapon_draw(void)
 #define MAX_SCREEN_COPIES 8
 static GLuint   g_screen_copy[MAX_SCREEN_COPIES];
 static unsigned g_nscreen_copy;
+static unsigned g_screen_copy_frame[MAX_SCREEN_COPIES];
+static int g_pbuffers; /* glX pbuffers use the eye target, not a game FBO. */
 static int      g_skip_begin;           /* inside a glBegin/glEnd that is left out */
 static HleId    g_cur_id;               /* the call transform_call is looking at */
 
@@ -1145,6 +1149,17 @@ static int screen_copy(GLuint tex)
 {
     for (unsigned i = 0; i < g_nscreen_copy; i++) if (g_screen_copy[i] == tex) return 1;
     return 0;
+}
+
+/* GLX pbuffers and the window share virtual framebuffer 0. It cannot
+ * identify a separate 3D HUD target, unlike a game's actual nonzero FBO. */
+static int is_hud_target(void)
+{
+#ifdef LINDBERGH_GL4ES
+    return g_game_fb==g_hud_fb;
+#else
+    return (!g_pbuffers || g_game_fb!=0) && g_game_fb==g_hud_fb;
+#endif
 }
 
 /* ---- side passes into a pbuffer ----
@@ -1157,14 +1172,13 @@ static int screen_copy(GLuint tex)
  * until a clear of the whole screen or the next glXMakeCurrent. */
 #define SIDE_W 1024
 #define SIDE_H 1024
-static int      g_pbuffers;             /* the game draws into pbuffers (the eyes) */
+
 static GLuint   g_side_fbo, g_side_tex[2];
 
 void stereo_pbuffer_made(void) { g_pbuffers = 1; }
 
 static void side_pass(int on)
 {
-#ifdef LINDBERGH_GL4ES
     if (on == g_side) return;
     if (on && !g_side_fbo) {
         glGenTextures(2, g_side_tex);
@@ -1195,9 +1209,6 @@ static void side_pass(int on)
     g_scissor[0] = X; g_scissor[1] = Y;
     g_scissor[2] = (GLint)lroundf((s[0] + s[2]) * sx) - X; g_scissor[3] = (GLint)lroundf((s[1] + s[3]) * sy) - Y;
     glScissor(g_scissor[0], g_scissor[1], g_scissor[2], g_scissor[3]);
-#else
-    (void)on;
-#endif
 }
 
 static int copy_from_eyes(CPU *c, int k)
@@ -1227,8 +1238,37 @@ static int copy_from_eyes(CPU *c, int k)
     }
     return 1;
 #else
-    (void)c; (void)k;
-    return 0;
+    if(!g_pbuffers || (g_game_fb && !g_side) || A32(0)!=GL_TEXTURE_2D)return 0;
+    GLint tex=0;glGetIntegerv(GL_TEXTURE_BINDING_2D,&tex);
+    int level=AI32(1),xo=0,yo=0;
+    int w=k==K_COPYTEX?AI32(5):AI32(6),h=k==K_COPYTEX?AI32(6):AI32(7);
+    int x=k==K_COPYTEX?AI32(3):AI32(4),y=k==K_COPYTEX?AI32(4):AI32(5);
+    if(!tex || w<=0 || h<=0)return 0;
+    if(k==K_COPYTEX){GLenum fmt=A32(2);
+        if(fmt==GL_DEPTH_COMPONENT || fmt==GL_DEPTH_COMPONENT16 || fmt==GL_DEPTH_COMPONENT24 || fmt==GL_DEPTH_COMPONENT32)return 0;
+        glTexImage2D(GL_TEXTURE_2D,level,fmt,w,h,0,fmt==GL_RGB || fmt==GL_RGB8 || fmt==3?GL_RGB:GL_RGBA,GL_UNSIGNED_BYTE,NULL);
+    }else{xo=AI32(2);yo=AI32(3);}
+    static GLuint copy_fbo;GLint read,draw;glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING,&read);glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING,&draw);
+    GLboolean scissor=glIsEnabled(GL_SCISSOR_TEST),srgb=glIsEnabled(GL_FRAMEBUFFER_SRGB);
+    if(!copy_fbo)glGenFramebuffers(1,&copy_fbo);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER,copy_fbo);glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER,GL_COLOR_ATTACHMENT0,GL_TEXTURE_2D,(GLuint)tex,level);
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);int ok=glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER)==GL_FRAMEBUFFER_COMPLETE;
+    if(ok){
+        float sx=g_side?1:g_sx,sy=g_side?1:g_sy;
+        glBindFramebuffer(GL_READ_FRAMEBUFFER,g_side?g_side_fbo:g_eye_fbo[g_eye]);glReadBuffer(GL_COLOR_ATTACHMENT0);
+        glDisable(GL_SCISSOR_TEST);glDisable(GL_FRAMEBUFFER_SRGB);
+        glBlitFramebuffer((GLint)lroundf(x*sx),(GLint)lroundf(y*sy),(GLint)lroundf((x+w)*sx),(GLint)lroundf((y+h)*sy),xo,yo,xo+w,yo+h,GL_COLOR_BUFFER_BIT,GL_LINEAR);
+        if(scissor)glEnable(GL_SCISSOR_TEST);if(srgb)glEnable(GL_FRAMEBUFFER_SRGB);
+    }
+    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER,GL_COLOR_ATTACHMENT0,GL_TEXTURE_2D,0,0);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER,(GLuint)read);glBindFramebuffer(GL_DRAW_FRAMEBUFFER,(GLuint)draw);
+    if(!ok)return 0;
+    int full=!g_side && level==0 && x==0 && y==0 && w>=GAME_W*9/10 && h>=GAME_H*9/10;
+    unsigned at=0;while(at<g_nscreen_copy && g_screen_copy[at]!=(GLuint)tex)at++;
+    if(full && at==g_nscreen_copy && at<MAX_SCREEN_COPIES){g_screen_copy[g_nscreen_copy++]=(GLuint)tex;
+        fprintf(stderr,"[stereo] texture %d: native full-screen composite\n",tex);}
+    if(at<g_nscreen_copy)g_screen_copy_frame[at]=full?g_frame:~0u;
+    return 1;
 #endif
 }
 
@@ -1435,7 +1475,10 @@ static int transform_call(CPU *c, HleId id, const char *n)
      * effect) would flatten it to one eye's picture: left out. Over no world
      * it is the whole picture - a transition, last frame's view swept away -
      * and leaving it out left the eyes black: it goes over the whole view. */
-    if (g_on && g_mv && !g_side && (is_draw(k) || k == K_BEGIN) && g_tex2d_on && g_nscreen_copy && screen_copy(g_tex2d_bound) && g_scene_draws) {
+    int native_composite=0;
+    if(g_pbuffers && !g_mv && !g_flat)for(unsigned i=0;i<g_nscreen_copy;i++)
+        if(g_screen_copy[i]==g_tex2d_bound && g_screen_copy_frame[i]==g_frame)native_composite=1;
+    if (g_on && (g_mv || native_composite) && !g_side && (is_draw(k) || k == K_BEGIN) && g_tex2d_on && g_nscreen_copy && screen_copy(g_tex2d_bound) && g_scene_draws) {
         if (k == K_BEGIN) g_skip_begin = 1;
         return 1;
     }
@@ -1452,7 +1495,7 @@ static int transform_call(CPU *c, HleId id, const char *n)
         GLbitfield mask = A32(0);
         if ((long)g_frame == g_cap_frame || (long)g_frame + 1 == g_cap_frame)
             fprintf(stderr, "[units] frame %u clear %#x fb %u vp %d,%d %dx%d side %d\n", g_frame, mask, (unsigned)g_game_fb, g_vp[0], g_vp[1], g_vp[2], g_vp[3], g_side);
-        if (g_mv && g_pbuffers && (g_game_fb == 0 || g_side))
+        if (g_pbuffers && (g_game_fb == 0 || g_side))
             side_pass(!(g_vp[0] <= 0 && g_vp[1] <= 0 && g_vp[0] + g_vp[2] >= GAME_W && g_vp[1] + g_vp[3] >= GAME_H));
         if (g_side) return 0;
         /* Only the frame's first such clear, and not for a flat picture: the
@@ -1460,11 +1503,11 @@ static int transform_call(CPU *c, HleId id, const char *n)
          * scope's reload), and clearing the colour there wiped the scene.
          * Nor in a frame that cleared its colour already: The House of the
          * Dead 4 clears depth alone only for its HUD, over the scene. */
-        static unsigned cleared_frame = ~0u, colour_frame = ~0u;
-        if ((mask & GL_COLOR_BUFFER_BIT) && g_game_fb == g_world_fb) colour_frame = g_frame;
+        static unsigned cleared_frame[2] = {~0u,~0u}, colour_frame[2] = {~0u,~0u};
+        if ((mask & GL_COLOR_BUFFER_BIT) && g_game_fb == g_world_fb && g_vp[0]<=0 && g_vp[1]<=0 && g_vp[2]>=GAME_W && g_vp[3]>=GAME_H) colour_frame[g_eye] = g_frame;
         if ((mask & GL_DEPTH_BUFFER_BIT) && !(mask & GL_COLOR_BUFFER_BIT) && g_game_fb == g_world_fb &&
-            !g_flat && cleared_frame != g_frame && colour_frame != g_frame) {
-            cleared_frame = g_frame;
+            !g_flat && cleared_frame[g_eye] != g_frame && colour_frame[g_eye] != g_frame) {
+            cleared_frame[g_eye] = g_frame;
             GLfloat cc[4];
             glGetFloatv(GL_COLOR_CLEAR_VALUE, cc);
             glClearColor(0, 0, 0, 1);
@@ -1600,9 +1643,9 @@ static int transform_call(CPU *c, HleId id, const char *n)
             if (is_draw(k) && weapon_draw()) return 1;
         }
         if (persp && !g_flat && !g_replaying && !offscreen_fb(g_game_fb)) g_3d_draws++;
-        if (persp && g_game_fb != g_hud_fb && !g_replaying && !offscreen_fb(g_game_fb)) { g_scene_draws++; g_world_fb_next = g_game_fb; if (g_env_proj) arb_camera_count(); }
+        if (persp && !is_hud_target() && !g_replaying && !offscreen_fb(g_game_fb)) { g_scene_draws++; g_world_fb_next = g_game_fb; if (g_env_proj) arb_camera_count(); }
         if (persp && g_proj[g_proj_top][0] > g_lens_seen) g_lens_seen = g_proj[g_proj_top][0];
-        if (persp && !g_replaying && g_game_fb != g_hud_fb) {
+        if (persp && !g_replaying && !is_hud_target()) {
             const float *P = g_proj[g_proj_top];
             float zn = P[14] / (P[10] - 1.0f);          /* the camera's near plane */
             if (zn > 0 && (g_near_seen == 0 || zn < g_near_seen)) g_near_seen = zn;
@@ -1611,9 +1654,9 @@ static int transform_call(CPU *c, HleId id, const char *n)
          * magnified view the eye's own frustum would undo: it goes on the
          * screen too, framed by the scope the game draws there. */
         int zoom = persp && g_proj[g_proj_top][0] > zoom_limit() && g_zoom_frames >= 6;
-        if (persp && !g_replaying) { if (zoom) g_zoom_draws++; if (g_game_fb == g_hud_fb) g_hudfb_draws++; }
+        if (persp && !g_replaying) { if (zoom) g_zoom_draws++; if (is_hud_target()) g_hudfb_draws++; }
         LgStereoDrawFacts facts={0};
-        facts.perspective=persp;facts.hud_target=g_game_fb==g_hud_fb;
+        facts.perspective=persp;facts.hud_target=is_hud_target();
         facts.menu=persp && (menu_state() || g_menu);facts.zoom=zoom;
         facts.texture_view=g_unit0_rect || picture_2d(g_tex2d_bound);
         facts.picture_target=picture_fb(g_game_fb);
@@ -1798,19 +1841,36 @@ static void pointer_arg(const char *n, int *idx, uint32_t *bytes, uint8_t *kind)
     static const struct { const char *name; int idx; uint32_t bytes; } T[] = {
         { "glLoadMatrixf", 0, 64 }, { "glMultMatrixf", 0, 64 },
         { "glTexEnvfv", 2, 16 }, { "glTexEnviv", 2, 16 }, { "glFogfv", 1, 16 }, { "glFogiv", 1, 16 },
-        { "glColor4ubv", 0, 4 }, { "glColor3ubv", 0, 3 }, { "glColor4fv", 0, 16 }, { "glColor3fv", 0, 12 },
+        { "glSecondaryColor3fv", 0, 12 }, { "glColor4ubv", 0, 4 }, { "glColor3ubv", 0, 3 }, { "glColor4fv", 0, 16 }, { "glColor3fv", 0, 12 },
         { "glTexParameterfv", 2, 16 }, { "glTexParameteriv", 2, 16 },
         { "glProgramEnvParameter4fvARB", 2, 16 }, { "glProgramLocalParameter4fvARB", 2, 16 },
+        { "glProgramParameter4fvNV", 2, 16 }, { "glProgramParameter4dvNV", 2, 32 },
+        { "glProgramEnvParameter4fv", 2, 16 }, { "glProgramLocalParameter4fv", 2, 16 },
         { "glLightfv", 2, 16 }, { "glLightModelfv", 1, 16 }, { "glMaterialfv", 2, 16 },
         { "glPointParameterfvARB", 1, 12 }, { "glNormal3fv", 0, 12 }, { "glVertex3fv", 0, 12 },
         { "glVertex2fv", 0, 8 }, { "glTexCoord2fv", 0, 8 }, { "glMultiTexCoord2fvARB", 1, 8 },
         { "glMultiTexCoord2fv", 1, 8 }, { "glVertexAttrib4fvARB", 1, 16 }, { "glClipPlane", 1, 32 },
     };
     *idx = -1; *bytes = 0; *kind = 0;
+    /* GLSL skinning palettes and material vectors are overwritten for each
+     * model, long before the second eye replays this frame. */
+    if (starts(n,"glUniformMatrix") && strlen(n)>15 && n[15]>='2' && n[15]<='4') {
+        unsigned columns=(unsigned)(n[15]-'0'),rows=columns;
+        const char *suffix=n+16;
+        if(*suffix=='x' && suffix[1]>='2' && suffix[1]<='4'){rows=(unsigned)(suffix[1]-'0');suffix+=2;}
+        if(!strcmp(suffix,"fv") || !strcmp(suffix,"fvARB")){*idx=3;*bytes=columns*rows*4;*kind=4;return;}
+    }
+    if(starts(n,"glUniform") && n[9]>='1' && n[9]<='4') {
+        const char *suffix=n+10;
+        if(!strcmp(suffix,"fv") || !strcmp(suffix,"fvARB") || !strcmp(suffix,"iv") || !strcmp(suffix,"ivARB")){
+            *idx=2;*bytes=(uint32_t)(n[9]-'0')*4;*kind=4;return;
+        }
+    }
     for (unsigned i = 0; i < sizeof T / sizeof T[0]; i++)
         if (!strcmp(n, T[i].name)) { *idx = T[i].idx; *bytes = T[i].bytes; return; }
     if (!strcmp(n, "glBufferDataARB") || !strcmp(n, "glBufferData")) { *idx = 2; *kind = 1; }
     else if (!strcmp(n, "glBufferSubDataARB") || !strcmp(n, "glBufferSubData")) { *idx = 3; *kind = 2; }
+    else if (!strcmp(n,"glProgramParameters4fvNV") || !strcmp(n,"glProgramEnvParameters4fvEXT") || !strcmp(n,"glProgramEnvParameters4fvNV") || !strcmp(n,"glProgramLocalParameters4fvEXT") || !strcmp(n,"glProgramLocalParameters4fvNV")) { *idx=3; *kind=3; }
 }
 
 static int type_bytes(GLenum t)
@@ -1829,6 +1889,7 @@ static int client_array(GLenum cap)
     case GL_VERTEX_ARRAY: return ARR_VERTEX;
     case GL_NORMAL_ARRAY: return ARR_NORMAL;
     case GL_COLOR_ARRAY: return ARR_COLOR;
+    case GL_SECONDARY_COLOR_ARRAY: return ARR_SECONDARY;
     case GL_TEXTURE_COORD_ARRAY: return ARR_TEX0 + (g_client_unit & 7);
     }
     return -1;
@@ -1864,6 +1925,7 @@ static void track_arrays(CPU *c, int t)
             }
         }
     }
+    if(t==T_ATTRIBPTR+1){a=&g_arr[ARR_SECONDARY];a->size=A32(0);a->type=A32(1);a->stride=AI32(2);a->ptr=A32(3);}
     if (a) a->vbo = gl_bound_buffer(GL_ARRAY_BUFFER);
 }
 
@@ -1872,42 +1934,53 @@ static Op *op_new(void);
 /* Before a draw is recorded: copy the client memory it reads. */
 static int snapshot_draw(CPU *c, int kind, uint32_t *args_va)
 {
-    int elements = kind == K_DRAWELEMENTS;
-    if (!elements && kind != K_DRAWARRAYS) return 1;
-    uint32_t lo, hi;
-    if (!elements) {
-        if (AI32(2) <= 0) return 1;
-        lo = A32(1); hi = lo + A32(2) - 1;
-    } else {
-        GLsizei count = AI32(1); GLenum type = A32(2);
-        if (count <= 0) return 1;
-        int ib = type_bytes(type);
-        const void *idx; void *tmp = NULL;
-        if (gl_bound_buffer(GL_ELEMENT_ARRAY_BUFFER)) {
-            tmp = malloc((size_t)count * ib);
-            if (!tmp) return 0;
-            glGetBufferSubData(GL_ELEMENT_ARRAY_BUFFER, (GLintptr)A32(3), (GLsizeiptr)count * ib, tmp);
-            idx = tmp;
-        } else {
-            uint32_t copy = arena_take((uint32_t)count * (uint32_t)ib);
-            if (!copy) return 0;
-            memcpy(G2H(copy), GP(A32(3)), (size_t)count * ib);
-            wr32(*args_va + 12, copy);             /* the draw reads the copy */
-            idx = G2H(copy);
+    int elements=kind==K_DRAWELEMENTS || kind==K_DRAWMULTIELEMENTS;
+    int multi=kind==K_DRAWMULTIELEMENTS || kind==K_DRAWMULTIARRAYS;
+    if(!elements && kind!=K_DRAWARRAYS && kind!=K_DRAWMULTIARRAYS)return 1;
+    uint32_t lo=UINT32_MAX,hi=0;
+    int draws=multi?AI32(elements?4:3):1;if(draws<=0)return 1;if(draws>65536)return 0;
+    const int32_t *counts=multi?(const int32_t *)APTR(elements?1:2):NULL;
+    const uint32_t *firsts=multi?(const uint32_t *)APTR(elements?3:1):NULL;
+    uint32_t saved_counts=0,saved_firsts=0;
+    if(multi){
+        if(!counts || !firsts)return 0;
+        saved_counts=arena_take((uint32_t)draws*4);saved_firsts=arena_take((uint32_t)draws*4);
+        if(!saved_counts || !saved_firsts)return 0;
+        memcpy(G2H(saved_counts),counts,(size_t)draws*4);memcpy(G2H(saved_firsts),firsts,(size_t)draws*4);
+        wr32(*args_va+4*(elements?1:2),saved_counts);wr32(*args_va+4*(elements?3:1),saved_firsts);
+    }
+    for(int d=0;d<draws;d++){
+        int32_t count=multi?counts[d]:AI32(elements?1:2);if(count<=0)continue;
+        uint32_t first=multi?firsts[d]:A32(elements?3:1);
+        if(!elements){
+            if(first>UINT32_MAX-(uint32_t)count)return 0;
+            if(first<lo)lo=first;if(first+(uint32_t)count-1>hi)hi=first+(uint32_t)count-1;continue;
         }
-        lo = 0xFFFFFFFFu; hi = 0;
-        for (GLsizei i = 0; i < count; i++) {
-            uint32_t v = ib == 1 ? ((const uint8_t *)idx)[i] : ib == 2 ? ((const uint16_t *)idx)[i] : ((const uint32_t *)idx)[i];
-            if (v < lo) lo = v; if (v > hi) hi = v;
+        int ib=type_bytes(A32(2));if((uint32_t)count>ARENA_SIZE/(unsigned)ib)return 0;
+        const void *idx;void *tmp=NULL;
+        if(gl_bound_buffer(GL_ELEMENT_ARRAY_BUFFER)){
+            tmp=malloc((size_t)count*ib);if(!tmp)return 0;
+            glGetBufferSubData(GL_ELEMENT_ARRAY_BUFFER,(GLintptr)first,(GLsizeiptr)count*ib,tmp);idx=tmp;
+        }else{
+            uint32_t copy=arena_take((uint32_t)count*(uint32_t)ib);if(!copy)return 0;
+            memcpy(G2H(copy),GP(first),(size_t)count*ib);
+            if(multi)wr32(saved_firsts+4*d,copy);else wr32(*args_va+12,copy);idx=G2H(copy);
+        }
+        for(int32_t j=0;j<count;j++){
+            uint32_t v=ib==1?((const uint8_t *)idx)[j]:ib==2?((const uint16_t *)idx)[j]:((const uint32_t *)idx)[j];
+            if(v<lo)lo=v;if(v>hi)hi=v;
         }
         free(tmp);
     }
+    if(lo==UINT32_MAX)return 1;
     for (int i = 0; i < ARR_COUNT; i++) {
         Arr *a = &g_arr[i];
         if (!a->on || a->vbo || !a->ptr) continue;
         uint32_t elem = (uint32_t)(a->size * type_bytes(a->type));
         uint32_t stride = a->stride ? (uint32_t)a->stride : elem;
-        uint32_t bytes = (hi - lo) * stride + elem;
+        uint64_t extent = (uint64_t)(hi - lo) * stride + elem;
+        if (extent > ARENA_SIZE || (uint64_t)a->ptr + (uint64_t)hi * stride + elem > UINT32_MAX) return 0;
+        uint32_t bytes = (uint32_t)extent;
         uint32_t copy = arena_take(bytes);
         if (!copy) return 0;
         if (g_nfmt == g_fmtcap) {
@@ -1933,17 +2006,19 @@ static void replay_pointer(int i, uint32_t va)
     GLint vbo = 0;
     glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &vbo);
     if (vbo) glBindBuffer(GL_ARRAY_BUFFER, 0);
-    const void *p = G2H(va);
+    if(a->vbo)glBindBuffer(GL_ARRAY_BUFFER,a->vbo);
+    const void *p = a->vbo?(const void *)(uintptr_t)va:G2H(va);
     if (i == ARR_VERTEX) glVertexPointer(a->size, a->type, a->stride, p);
     else if (i == ARR_NORMAL) glNormalPointer(a->type, a->stride, p);
     else if (i == ARR_COLOR) glColorPointer(a->size, a->type, a->stride, p);
+    else if (i == ARR_SECONDARY) glSecondaryColorPointer(a->size,a->type,a->stride,p);
     else if (i < ARR_ATTR0) {
         GLint cur = 0; glGetIntegerv(GL_CLIENT_ACTIVE_TEXTURE, &cur);
         glClientActiveTexture(GL_TEXTURE0 + (i - ARR_TEX0));
         glTexCoordPointer(a->size, a->type, a->stride, p);
         glClientActiveTexture((GLenum)cur);
     } else glVertexAttribPointerARB((GLuint)(i - ARR_ATTR0), a->size, a->type, (GLboolean)a->norm, a->stride, p);
-    if (vbo) glBindBuffer(GL_ARRAY_BUFFER, (GLuint)vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, (GLuint)vbo);
 }
 
 static Op *op_new(void)
@@ -1981,7 +2056,7 @@ static void record(CPU *c, HleId id, HleHandler fn, const char *n)
     Op *o = op_new();
     if (!o) { g_overflow++; return; }
     int idx = k->pidx;
-    uint32_t bytes = k->pkind == 1 ? A32(1) : k->pkind == 2 ? A32(2) : k->pbytes;
+    uint32_t bytes = k->pkind == 1 ? A32(1) : k->pkind == 2 ? A32(2) : k->pkind == 3 ? (A32(2)<=4096?A32(2)*16:0) : k->pkind == 4 ? (A32(1)<=(4u<<20)/k->pbytes?A32(1)*k->pbytes:0) : k->pbytes;
     if (idx >= 0 && bytes && A32(idx)) {
         if (bytes > (4u << 20)) { g_nops--; return; }       /* a load-time upload: not per frame */
         uint32_t copy = arena_take(bytes);
@@ -2356,6 +2431,10 @@ static void replay(int eye)
 {
     g_eye = eye;
     g_replaying = 1;
+    /* glXMakeCurrent is outside the GL recording. Select this eye explicitly
+     * before replaying GL-only commands; otherwise both passes draw into L. */
+    bind_framebuffer(GL_FRAMEBUFFER,g_game_fb);
+    g_proj_dirty=1;
     Arr live[ARR_COUNT];
     memcpy(live, g_arr, sizeof live);
     CPU cpu;
@@ -2373,6 +2452,7 @@ static void replay(int eye)
         exec(&cpu, o->id, o->fn);
     }
     memcpy(g_arr, live, sizeof live);
+    for(int i=0;i<ARR_COUNT;i++)if(g_arr[i].on && (g_arr[i].ptr || g_arr[i].vbo))replay_pointer(i,g_arr[i].ptr);
     g_replaying = 0;
 }
 

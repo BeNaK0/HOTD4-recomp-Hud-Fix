@@ -77,6 +77,12 @@ Filter the catalogue by **Enemies**, **Bosses**, **Players**, **Weapons**, **Env
 
 The bank and Sega NN format layouts were cross-checked against [Sega NN Tools](https://github.com/Argx2121/Sega_NN_tools).
 
+## High Scores (next desktop build)
+
+The in-game **HI-SCORE** display shows the top score from the arcade's own saved ranking. Open **Pause > High Scores** to see all ten places with their original initials and scores. **Pause > Settings > High Score Display** toggles the small in-game display; the choice is saved.
+
+Scores follow the original game rules: qualify for the ranking and confirm your initials when prompted. The arcade saves that ranking in the cabinet NVRAM, which survives normal restarts and installer updates. Chapter practice uses a temporary cabinet copy and does not replace your arcade records. The display reads the existing ranking; it does not add a separate score database or alter scoring rules. This feature is included in v1.3.8-openxr-preview.1 and is not included in the stable v1.3.7 ZIP.
+
 ## Key bindings and controls overview
 
 Open **Settings > Key Bindings** to change Add Coin, Start, Shoot, Reload / Shake, Grenade, Fire Mode, Test Menu, Service, Mute, Pause, Restart, Fullscreen, Toggle Crosshair and Mouse Lock. P1 and P2 have separate coin/start bindings. Click an action and press the desired key, then choose **Save & Back**. Mouse buttons can be assigned to the four shooting actions. Duplicate assignments are rejected. **Reset Defaults** restores the factory keys; save to apply.
@@ -101,9 +107,17 @@ This mode separates the selected raw gun from injected remote mouse packets. Loc
 
 ## Optional OpenXR PC VR
 
+**VR testing:** [v1.3.8-openxr-preview.1](https://github.com/davidptrssvea/HOTD4-recomp/releases/tag/v1.3.8-openxr-preview.1) targets the black right eye, duplicate gameplay rectangle and X-button diagnostic stall. It is a prerelease for headset feedback. The stable Windows release remains v1.3.7.
+
 Select **Yes** when Setup asks whether to build the OpenXR version. For unattended setup, pass `-OpenXR`. Setup builds a separate VR executable from the same local dump and installs **Play HOTD4 (VR OpenXR).cmd** next to the desktop launcher.
 
 Connect your PC VR headset and start an OpenXR runtime that supports OpenGL before using the VR launcher. Aim with a tracked controller, pull the trigger to shoot, squeeze the grip to reload and click the thumbstick to start. VR uses its own headset menu, controller bindings and cabinet save.
+
+For the preview, extract its ZIP and run **Setup.cmd** again with your existing extracted arcade dump and installation folder; select **Yes** for OpenXR. The builder compiles the new VR executable locally and preserves existing profiles and cabinet saves.
+
+The VR launcher writes a separate session log under **HOTD4_Recomp\VR Logs**. Please test each eye separately, confirm there is no extra gameplay rectangle over the scene, and press X during gameplay. Include the log and your headset/runtime/GPU when reporting results. For Virtual Desktop, mention VDXR or SteamVR. Performance, gestures, restart corruption and scene-specific obstructions still need headset retesting.
+
+The X-button render-target dump requires the developer switch `LINDBERGH_XR_DEBUG_CAPTURE=1`; leave it unset for normal play. Enabling it intentionally causes GPU readbacks and file writes.
 
 ## Lower GPU load
 

@@ -43,6 +43,9 @@ static void mac_activate(void)
 #include "gl_posix.h"
 #include "host_settings.h"
 #include "game_profile.h"
+#include "high_scores.h"
+static HighScoreReader high_score_reader;
+void host_high_scores_register(HighScoreReader reader){high_score_reader=reader;}
 #ifdef LINDBERGH_VULKAN
 #include "vulkan_host.h"
 #include "host_stats.h"
@@ -1799,7 +1802,7 @@ static void draw_crosshair_overlay(int win_w, int win_h)
 #include "photo_camera.h"
 #include "photo_filters.h"
 
-enum { PAUSE_UNAVAILABLE = -1, RESUME, RESTART, SETTINGS, ACHIEVEMENTS, PHOTO_MODE, MAIN_MENU };
+enum { PAUSE_UNAVAILABLE = -1, RESUME, RESTART, SETTINGS, ACHIEVEMENTS, HIGH_SCORES, PHOTO_MODE, MAIN_MENU };
 enum { PANEL_W = 600, PANEL_H = 554, ROW_TOP = 118, ROW_STEP = 54, ROW_HEIGHT = 45 };
 
 typedef struct {
@@ -1832,10 +1835,10 @@ static const wchar_t *achievement_descriptions[12];
 static GLuint achievement_star_texture(int metal);
 static int achievement_is_unlocked(int id);
 static int achievement_count(void);
-static int menu_row_count(const PauseMenu *menu) { return menu->settings_page == 2 ? 9 : menu->settings_page >= 2 ? 7 : menu->settings_page ? 8 : 6; }
+static int menu_row_count(const PauseMenu *menu) { return menu->settings_page == 2 ? 9 : menu->settings_page >= 2 ? 7 : menu->settings_page ? 9 : 7; }
 
-static int menu_step(const PauseMenu *menu){return menu->settings_page==2?42:menu->settings_page==1?48:ROW_STEP;}
-static int menu_height(const PauseMenu *menu){return menu->settings_page==2?36:menu->settings_page==1?40:ROW_HEIGHT;}
+static int menu_step(const PauseMenu *menu){return menu->settings_page==2?42:menu->settings_page==1?42:ROW_STEP;}
+static int menu_height(const PauseMenu *menu){return menu->settings_page==2?36:menu->settings_page==1?36:ROW_HEIGHT;}
 
 static int pause_row_at(const PauseMenu *menu, SDL_Window *window, int x, int y)
 {
@@ -1867,6 +1870,7 @@ static void pause_text(HDC dc, HFONT font, int x, int y, const wchar_t *label, C
 
 #include "trophy_gallery.h"
 #include "controls_menu.h"
+#include "high_scores_ui.h"
 
 static int photo_guide_height(const PauseMenu *menu)
 {
@@ -1875,6 +1879,7 @@ static int photo_guide_height(const PauseMenu *menu)
 
 static int pause_panel(PauseMenu *menu)
 {
+    if(menu->settings_page==5)return high_scores_panel(menu);
     if(menu->settings_page==4)return controls_panel(menu);
     if(menu->settings_page==3)return trophy_gallery_panel(menu);
     BITMAPINFO info = {0};
@@ -1943,7 +1948,7 @@ static int pause_panel(PauseMenu *menu)
             else wcscpy(hud, L"HUD Scale     < Original >");
             swprintf(reticle, 64, L"Crosshair     < %ls >", settings()->crosshair ? L"On" : L"Off");
             const wchar_t *main_items[] = {L"Resume", getenv("HOTD4_PRACTICE_CHAPTER") ?
-                                          L"Restart Chapter" : L"Restart Arcade", L"Settings", L"Trophies", L"Photo Mode", L"Main Menu"};
+                                          L"Restart Chapter" : L"Restart Arcade", L"Settings", L"Trophies", L"High Scores", L"Photo Mode", L"Main Menu"};
             wchar_t sinden[64];
             swprintf(sinden, 64, L"Sinden Border     < %ls >", sinden_border_enabled() ? L"On" : L"Off");
             const wchar_t *styles[] = {L"Original Red",L"Blue Circle",L"Red Square"};
@@ -1954,7 +1959,8 @@ static int pause_panel(PauseMenu *menu)
             wchar_t color[64];
             swprintf(color,64,L"Crosshair Color  < %ls >",crosshair_color_names[crosshair_color_get()]);
             wchar_t border_width[96];swprintf(border_width,96,L"Border Width   < %ls >",sinden_width_names[sinden_border_width_index()]);
-            const wchar_t *settings_items[] = {hud, reticle, style, size, color, sinden, border_width, L"Input & Anti-Aliasing..."};
+            wchar_t score_display[96];swprintf(score_display,96,L"High Score Display  < %ls >",high_scores_enabled()?L"On":L"Off");
+            const wchar_t *settings_items[] = {hud, reticle, style, size, color, sinden, border_width, score_display, L"Input & Anti-Aliasing..."};
             wchar_t mode[96],gun1[128],gun2[128],aa[80],mouse_speed[80],smoothing[80];
             swprintf(mode,96,L"Input  < %ls >",input_mode_names[input_pref_mode]);
             input_gun_label(0,gun1,128);input_gun_label(1,gun2,128);
@@ -2257,6 +2263,7 @@ static void pause_draw(PauseMenu *menu)
     }
     glColor3f(0.42f, 0.42f, 0.42f);
     pause_quad(0, 0, w, h, 1);
+    if(menu->settings_page==5){high_scores_draw(menu,w,h);sinden_border_draw(w,h);SDL_GL_SwapWindow(g_win.win);return;}
     if(menu->settings_page==4){controls_draw(menu,w,h);sinden_border_draw(w,h);SDL_GL_SwapWindow(g_win.win);return;}
     if(menu->settings_page==3){
         trophy_gallery_draw(menu,w,h);sinden_border_draw(w,h);SDL_GL_SwapWindow(g_win.win);return;
@@ -2451,6 +2458,10 @@ static int hotd4_pause_loop(int w, int h)
                 }
                 continue;
             }
+            if(menu.settings_page==5){
+                if(high_scores_back(&event)) {menu.settings_page=0;menu.selected=HIGH_SCORES;pause_panel(&menu);pause_draw(&menu);}
+                continue;
+            }
             if(menu.settings_page==4){int result=controls_event(&menu,&event);if(event.type==SDL_WINDOWEVENT)result=1;if(result==2){menu.settings_page=2;menu.selected=4;}if(result){pause_panel(&menu);pause_draw(&menu);}continue;}
             if(menu.settings_page==3){
                 int result=trophy_event(&menu,&event);
@@ -2475,7 +2486,7 @@ static int hotd4_pause_loop(int w, int h)
                 SDL_Keycode key = event.key.keysym.sym;
                 if ((key == SDLK_ESCAPE || hc_matches(HC_PAUSE,key)) && !event.key.repeat) {
                     if (!menu.settings_page) break;
-                    menu.selected = menu.settings_page == 2 ? 7 : menu.settings_page == 3 ? ACHIEVEMENTS : SETTINGS;
+                    menu.selected = menu.settings_page == 2 ? 8 : menu.settings_page == 3 ? ACHIEVEMENTS : SETTINGS;
                     menu.settings_page = menu.settings_page == 2 ? 1 : 0;
                     redraw = 1;
                 } else if (key == SDLK_UP || key == SDLK_DOWN) {
@@ -2493,7 +2504,7 @@ static int hotd4_pause_loop(int w, int h)
                     input_option_cycle(menu.selected,delta);redraw=1;
                 } else if(activate && menu.selected==6){menu.settings_page=4;menu.selected=0;menu.binding_capture=-1;menu.binding_message[0]=0;redraw=1;}
                 else if(activate && menu.selected==7){action=RESTART;break;}
-                else if(activate){menu.settings_page=1;menu.selected=7;redraw=1;}
+                else if(activate){menu.settings_page=1;menu.selected=8;redraw=1;}
             } else if (menu.settings_page) {
                 if ((activate || delta) && menu.selected == 0) {
                     pause_set_hud(delta ? delta : 1);
@@ -2516,6 +2527,8 @@ static int hotd4_pause_loop(int w, int h)
                 } else if ((activate || delta) && menu.selected == 6) {
                     sinden_border_width_cycle(delta);
                     redraw = 1;
+                } else if ((activate || delta) && menu.selected == 7) {
+                    high_scores_toggle();redraw=1;
                 } else if (activate) {
                     menu.settings_page = 2;
                     menu.selected = 0;
@@ -2534,8 +2547,8 @@ static int hotd4_pause_loop(int w, int h)
                     pause_draw(&menu);
                     continue;
                 }
-                if (menu.selected != SETTINGS && menu.selected != ACHIEVEMENTS) { action = menu.selected; break; }
-                menu.settings_page = menu.selected == ACHIEVEMENTS ? 3 : 1;
+                if (menu.selected != SETTINGS && menu.selected != ACHIEVEMENTS && menu.selected != HIGH_SCORES) { action = menu.selected; break; }
+                menu.settings_page = menu.selected == ACHIEVEMENTS ? 3 : menu.selected == HIGH_SCORES ? 5 : 1;
                 menu.selected = 0;
                 redraw = 1;
             }
@@ -2662,6 +2675,7 @@ static void frame_gl(void *arg)
         /* Draw crosshair overlay on top of frame */
         draw_crosshair_overlay(win_w, win_h);
 #ifdef HOTD4_DESKTOP_PAUSE
+        high_scores_hud_draw(win_w,win_h);
         achievement_draw(win_w, win_h);
         sinden_border_draw(win_w, win_h);
 #endif

@@ -79,7 +79,7 @@ function(lindbergh_game id)
     endif()
     # The local builder clears the toolchain's default release flags.
     # Optimize lifted gameplay code on Windows without requiring a newer CPU.
-    if(id STREQUAL "hotd4" AND WIN32 AND NOT LINDBERGH_OPENXR AND CMAKE_C_COMPILER_ID STREQUAL "GNU")
+    if(id STREQUAL "hotd4" AND WIN32 AND CMAKE_C_COMPILER_ID STREQUAL "GNU")
         set_property(SOURCE ${lifted} APPEND PROPERTY
             COMPILE_OPTIONS "$<$<CONFIG:Release>:-O1>")
         # Sofdec/MPEG and ADX chunks need extra optimization for real-time playback.

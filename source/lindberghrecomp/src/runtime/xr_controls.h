@@ -22,6 +22,7 @@ typedef struct {
     int joystick;float thumb_x[2],thumb_y[2];
 } LgXrControlFrame;
 typedef struct { unsigned held;int coins; } LgXrCabinet;
+int lg_xr_debug_capture_requested(int enabled,int dual,int down,int previous,int menu_open);
 int lg_xr_controls_select(LgXrControls *state,const int trigger[2],int dual);
 LgXrCabinet lg_xr_controls_update(LgXrControls *state,const LgXrControlFrame *frame);
 #ifdef __cplusplus

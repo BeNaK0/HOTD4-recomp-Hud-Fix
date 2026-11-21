@@ -3,15 +3,15 @@
   "files": [
     {
       "path": "BUILD-VERIFICATION.md",
-      "sha256": "92cd4b1e5d9f8209ea0eba3aab00979d6977e98dba6a0af3f2ea25cc4ab82342"
+      "sha256": "a2748833030eb8ef8319d13c2d6e406c5d2dd75ee695134bb36a83534dc00f7f"
     },
     {
       "path": "README.md",
-      "sha256": "ee04fd38870b2c7ede679e924d9a8fe6e61501b8d977e18cf1dabcc804eb651d"
+      "sha256": "49507e1af59def75526b45da33a9db8dc57fc6e978524d5dab8febb66ee2cca9"
     },
     {
       "path": "RELEASE-NOTES.md",
-      "sha256": "1dc6930a7934456467dcc5ba503ea5f3ace91255d63ddf2ae82e89e1296c09e8"
+      "sha256": "d7e9aaffd1d6320661143c5c774c0efe5e1752ed4e3f3ffae6a71f8a39fde02c"
     },
     {
       "path": "Setup.cmd",
@@ -23,7 +23,7 @@
     },
     {
       "path": "source/CMakeLists.txt",
-      "sha256": "b8079abb18c3ddf4fce50c07737fa7baabf3870d256ad1874bb3fd2fe946af71"
+      "sha256": "c334e5b8c6e3dd26f4f765d6bf2d471539ee22680a7b5afb3a1fc40f57bc03ea"
     },
     {
       "path": "source/LICENSE",
@@ -39,7 +39,7 @@
     },
     {
       "path": "source/games/hotd4/src/host.c",
-      "sha256": "1d30e6d166d98d93fd5a6a7d24a58b23fcf49aa1e745a052458ffb12dbb6747b"
+      "sha256": "11c27739923e85fe13cfe4cf7f987eba3aa265514555b2b132d2291e92f52c64"
     },
     {
       "path": "source/games/hotd4/src/hotd4_hd_textures.c",
@@ -166,6 +166,14 @@
       "sha256": "923ff4d4c095489368f847249eeaf25735a37b8d504e7f7083600777435d16df"
     },
     {
+      "path": "source/lindberghrecomp/src/runtime/high_scores.h",
+      "sha256": "c772816dbf2e1914dd92c3f88ca9571979c3923d85ce630b220de1f3f04372f0"
+    },
+    {
+      "path": "source/lindberghrecomp/src/runtime/high_scores_ui.h",
+      "sha256": "fe5d3621d28d68373a1849baacafdfe5bf8b7d63385b3c93c40ed9853102cc7d"
+    },
+    {
       "path": "source/lindberghrecomp/src/runtime/hle.c",
       "sha256": "79b1ab707d3be65ec834f7af83d0603b669cefc1789bd5af6a5d4c88c3662bb2"
     },
@@ -243,7 +251,7 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/host_sdl.c",
-      "sha256": "09582c48246406d78c8f9c86f91edafd9e9ad26e5902689568f668d726339e39"
+      "sha256": "4a730768ea7acb89d031a9d087edbcb0513e7ce1aa67cb69362370d44f71a2f6"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/host_settings.c",
@@ -263,7 +271,7 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/host_xr.c",
-      "sha256": "5edc2955dcf94ea65fc1771580569d88b1ecf43a39339518241d36c3d8e348e2"
+      "sha256": "f638b239030ca56a0227be244127317d562a7dcf001dddac6e75495b0f1d5f02"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/hotd4_controls.h",
@@ -331,7 +339,7 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/stereo.c",
-      "sha256": "e0f198feb3af02b8da093456557a44342a28052959d0593d971ac97abdfc1d0c"
+      "sha256": "15251d543a6a3c12084c1336d3a8bf262b7444e86818268d3615d250fab23a9c"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/stereo.h",
@@ -367,11 +375,11 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/xr_controls.c",
-      "sha256": "180036e1fca3fc66175a2389353003e81fec5e2ac155f81f8b2053a814b5f551"
+      "sha256": "71ee5c1e7519888611ac6209b05e6e2cec0fc32027552636fbf159ab6d22f9b9"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/xr_controls.h",
-      "sha256": "8b313a6b6d97f5bb5b5a1a10aca6bc4618864f146ebd9da0976d86b10146b00f"
+      "sha256": "9a3f5f368f9c8e079ef3bf0f30f360259fd6c65c7bc46d0638e4c805a5108f25"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/xr_font.h",
@@ -575,7 +583,7 @@
     },
     {
       "path": "ui/Play HOTD4 (VR OpenXR).cmd",
-      "sha256": "2bf7d717e21521c8b0f403c3e28375fa54d5739d0d13f9d8de1128963dac721c"
+      "sha256": "199299cb157abffd79a4fa1b7fee81f7dce735b00c13741219a66b166cadad66"
     },
     {
       "path": "ui/Play HOTD4.cmd",
