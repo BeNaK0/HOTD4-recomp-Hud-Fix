@@ -13,7 +13,7 @@ typedef struct {
 #define LG_XR_CONTROLS_DEFAULT {1,{0,0},{0,0},{0,0},{0,0},0,0}
 typedef struct {
     int64_t time;
-    int dual,auto_coins,blocked;
+    int dual,auto_coins,blocked,disable_offscreen_reload;
     int trigger[2],grip[2],lower[2],upper[2],stick[2];
     int aimed[2],start_override[2];
     /* GL evaluates recoil/firing before panel callbacks can toggle it. */

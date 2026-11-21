@@ -34,7 +34,7 @@ LgXrCabinet lg_xr_controls_update(LgXrControls *s,const LgXrControlFrame *f)
     else for(int pl=0;pl<(f->dual?2:1);++pl) {
         const int h=pl?off:g;unsigned b=0;
         if(f->fire_supplied?f->firing[pl]:(f->trigger[h]&&f->aimed[pl]&&!f->blocked))b|=CAB_P1_TRIGGER;
-        if(f->trigger[h]&&!f->aimed[pl]&&!f->blocked)b|=CAB_P1_RELOAD;
+        if(f->trigger[h]&&!f->aimed[pl]&&!f->blocked&&!f->disable_offscreen_reload)b|=CAB_P1_RELOAD;
         if(f->grip[h]&&!s->prev_grip[h])s->grip_at[h]=f->time;
         if(f->grip[h]&&!f->blocked&&f->time-s->grip_at[h]<120000000)b|=CAB_P1_RELOAD;
         if(f->lower[h]&&!f->blocked)b|=CAB_P1_ACTION;

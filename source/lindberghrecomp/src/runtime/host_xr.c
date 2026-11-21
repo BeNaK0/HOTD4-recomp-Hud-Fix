@@ -1,6 +1,7 @@
 #include "display_cadence.h"
 #include "xr_settings.h"
 #include "xr_controls.h"
+#include "gameplay_options.h"
 #include "xr_actions.h"
 #include "xr_panel.h"
 #include "stereo_projection.h"
@@ -144,7 +145,7 @@ static const char *const SIGHT_NAME[] = { "none", "reddot", "holo" };
 
 static LgXrSettings cfg = LG_XR_SETTINGS_DEFAULT;
 static void cfg_save(void) { xr_settings_save(&cfg); }
-static void cfg_load(void) { xr_settings_load(&cfg); }
+static void cfg_load(void) { xr_settings_load(&cfg);gameplay_options_set(cfg.offscreen_reload,cfg.blood_splatter); }
 
 /* ---- the session ---- */
 static XrInstance  instance;
@@ -421,6 +422,7 @@ static int menu_hit(const float p[3],const float d[3],float *u,float *v,float hi
 static void menu_choose(int item)
 {
     const unsigned effects=xp_choose(&menu,&cfg,&gun_hand,item,rates,nrates);
+    gameplay_options_set(cfg.offscreen_reload,cfg.blood_splatter);
     if(effects&XP_CROSSHAIR_CHANGED)stereo_show_game_sight(cfg.crosshair);
     if(effects&XP_SCREEN_CHANGED)stereo_set_screen_distance(cfg.screen*cfg.scale);
     if(effects&XP_HUD_CHANGED)stereo_set_hud_pitch((float)cfg.hud_pitch);
@@ -664,7 +666,7 @@ static void input_frame(XrTime t)
                     aim_hit_t[pl] > 0 ? "read" : "assumed", stereo_flat_frame(), aim_on_box[pl] ? ", on a box" : "");
     }
 
-    LgXrControlFrame frame={0};frame.time=t;frame.dual=dual;frame.auto_coins=cfg.auto_coins;frame.blocked=menu.open;
+    LgXrControlFrame frame={0};frame.time=t;frame.dual=dual;frame.auto_coins=cfg.auto_coins;frame.blocked=menu.open;frame.disable_offscreen_reload=!cfg.offscreen_reload;
     for(int h=0;h<2;++h) {
         frame.trigger[h]=trig[h];frame.grip[h]=grip[h];frame.lower[h]=btn_a[h];frame.upper[h]=btn_b[h];frame.stick[h]=stick[h];
     }

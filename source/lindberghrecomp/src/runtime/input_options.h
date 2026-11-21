@@ -191,8 +191,7 @@ static void raw_decode(int player, const RAWMOUSE *mouse)
         if(mouse->usButtonFlags&(1u<<(b*2))){raw_held|=bits[b];g_cab_latch|=bits[b];}
         if(mouse->usButtonFlags&(2u<<(b*2)))raw_held&=~bits[b];
     }
-    if((mouse->usButtonFlags&RI_MOUSE_LEFT_BUTTON_DOWN) && (x<0 || y<0 || x>=g_win.w || y>=g_win.h))
-        g_cab_latch|=bits[1];
+
     if(!player)g_buttons=(raw_held&CAB_P1_TRIGGER?1:0)|(raw_held&CAB_P1_RELOAD?4:0);
 }
 static void remote_mouse_publish(void)
@@ -246,7 +245,6 @@ static void remote_mouse_event(UINT msg,const MSLLHOOKSTRUCT *event,int active)
         unsigned bit=bits[a-ACT_TRIGGER];
         if(down){remote_held|=bit;g_cab_latch|=bit;}else remote_held&=~bit;
     }
-    if(down && button==SDL_BUTTON_LEFT && (g_gun2_px<0 || g_gun2_py<0 || g_gun2_px>=g_win.w || g_gun2_py>=g_win.h))g_cab_latch|=CAB_P2_RELOAD;
 }
 /* A dedicated message thread keeps Windows' low-level hook alive while the
  * game loads assets or compiles shaders. It never touches SDL or game state. */

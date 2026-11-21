@@ -20,12 +20,41 @@
 #include "xr_overlay.h"
 #include "game_profile.h"
 #include "high_scores.h"
+#include "gameplay_options.h"
 #include "nn_culling.h"
 #include "lindbergh_rt.h"
+extern HleHandler dispatch_lifted(uint32_t va);
 
 #if defined(_WIN32) && !defined(LINDBERGH_OPENXR)
 #include <SDL.h>
 #endif
+
+/* Use the original emitter variants and lifecycle. The optional stronger
+ * body-hit variant does not replace severed-limb, head or boss effects. */
+static HleHandler lifted_blood_ctor;
+static void h_blood_ctor(CPU *c)
+{
+    uint32_t args=c->esp,self=rd32(args),type=rd32(args+12),scale_bits=rd32(args+24);
+    int enhanced=gameplay_blood_splatter() && type==1;
+    if(enhanced){
+        float scale;memcpy(&scale,&scale_bits,4);
+        if(isfinite(scale) && scale>0 && scale<=8){
+            scale*=1.25f;uint32_t bits;memcpy(&bits,&scale,4);wr32(args+24,bits);
+        }
+        wr32(args+12,type+1);
+    }
+    push32(c,rd32(args-4));lifted_blood_ctor(c);
+    if(enhanced){wr32(args+12,type);wr32(args+24,scale_bits);}
+    static int log=-1;
+    if(log<0){const char *v=getenv("LINDBERGH_BLOOD_LOG");log=v && !strcmp(v,"1");}
+    if(log){extern unsigned g_frame;fprintf(stderr,"[blood] frame %u: original %u, selected %u, active %u\n",g_frame,type,enhanced?type+1:type,rd32(self+0x78));}
+}
+static void install_blood_effects(void)
+{
+    const char *name="_ZN12CBloodEffectC9EP6MlTaskPPS_iP12KfVectorNNGLS5_f";
+    lifted_blood_ctor=dispatch_lifted(guest_symbol(name));
+    if(lifted_blood_ctor)guest_override(name,h_blood_ctor);
+}
 
 /* The gun, at the two functions the game's gun code reads it through. Both
  * take the board's raw words and the game's stored calibration; a mouse needs
@@ -52,6 +81,23 @@ static void h_gun_pos(CPU *c)
     wr8(c->eax, (uint8_t)(x < 0 ? 0 : x > 255 ? 255 : x));
     wr8(c->edx, (uint8_t)(y < 0 ? 0 : y > 255 ? 255 : y));
     c->eax = on;
+}
+
+/* The arcade also treats loss of gun tracking as an unconditional reload.
+ * Keep the position result, but let the host's trigger/reload policy decide
+ * when to reload. Otherwise simply pointing off screen bypasses the option. */
+static HleHandler lifted_gun_mainproc;
+static void h_gun_mainproc(CPU *c)
+{
+    uint32_t input=c->edx,player=c->ecx&0xff;
+    push32(c,rd32(c->esp-4));lifted_gun_mainproc(c);
+    if(player<2)wr32(input+0x0c,(host_cabinet_buttons() & (player?CAB_P2_RELOAD:CAB_P1_RELOAD))!=0);
+}
+static void install_gun_reload_policy(void)
+{
+    const char *name="_ZN7CGunMgr8MainProcEPNS_9INPUT_SETEh";
+    lifted_gun_mainproc=dispatch_lifted(guest_symbol(name));
+    if(lifted_gun_mainproc)guest_override(name,h_gun_mainproc);
 }
 
 #if defined(_WIN64) && !defined(LINDBERGH_OPENXR) && !defined(LINDBERGH_VULKAN)
@@ -854,7 +900,10 @@ int main(int argc, char **argv)
     /* Give the imports bodies. Everything the toolkit ships is bound here;
      * anything this game needs beyond that gets bound on top, and whatever is
      * still missing aborts naming itself on first call. */
+    gameplay_options_load();
     hle_register_all();
+    install_blood_effects();
+    install_gun_reload_policy();
 #if defined(_WIN32) && defined(LINDBERGH_OPENXR)
     install_cutscene_pacing();
 #endif

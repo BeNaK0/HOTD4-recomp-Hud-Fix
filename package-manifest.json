@@ -3,15 +3,15 @@
   "files": [
     {
       "path": "BUILD-VERIFICATION.md",
-      "sha256": "7becc21a7c79ec4dd4a8b311672b72ecdd0bffb683b80ab4a1df4f6afc6cb5d5"
+      "sha256": "24ac9b04ee809d3ec5a0dd963063157a2cb067a5a06bc8e5a2925a7e49edf4cd"
     },
     {
       "path": "README.md",
-      "sha256": "49507e1af59def75526b45da33a9db8dc57fc6e978524d5dab8febb66ee2cca9"
+      "sha256": "d74af0ce06e28fbf1504f44add751c535c95f0c23f9dbd987707c8473e298f4b"
     },
     {
       "path": "RELEASE-NOTES.md",
-      "sha256": "d7e9aaffd1d6320661143c5c774c0efe5e1752ed4e3f3ffae6a71f8a39fde02c"
+      "sha256": "699f649a91182ce2579d24717dcd3805bde3df61d0a3b98651ba27e901b58011"
     },
     {
       "path": "Setup.cmd",
@@ -39,7 +39,7 @@
     },
     {
       "path": "source/games/hotd4/src/host.c",
-      "sha256": "984a9ac655969a03f3dd15551da118684bcf59a0193ad80c35c7f83d9eba6f7d"
+      "sha256": "b44d31f2b7c20b7d6f915695974643fe80d60899c585387b6de03a59de46b7e3"
     },
     {
       "path": "source/games/hotd4/src/hotd4_hd_textures.c",
@@ -55,7 +55,7 @@
     },
     {
       "path": "source/lindberghrecomp/CMakeLists.txt",
-      "sha256": "58f5c1d85a7192d4496076dd00bbc8871f37a2946e1a82b1f659af8db85f2203"
+      "sha256": "83e3e6c22e4c6df6fd93ae63e6941ae35862dd080d06c68e11f72f7a8d4863c3"
     },
     {
       "path": "source/lindberghrecomp/LICENSE",
@@ -136,6 +136,14 @@
     {
       "path": "source/lindberghrecomp/src/runtime/game_states.h",
       "sha256": "caa9cf344da1d0f04c004d8a4feaa9e92722f64eda6976c4c6518ecde2b10e86"
+    },
+    {
+      "path": "source/lindberghrecomp/src/runtime/gameplay_options.c",
+      "sha256": "7e31a1d088965e186523d18ae6d826868cf9ded0ceeff64190967084306e5d73"
+    },
+    {
+      "path": "source/lindberghrecomp/src/runtime/gameplay_options.h",
+      "sha256": "34a17c2733c4388d7ff4efa93a0944ccb278f1d1062bd069f26f2c738940c178"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/gl_posix.h",
@@ -255,7 +263,7 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/host_sdl.c",
-      "sha256": "4a730768ea7acb89d031a9d087edbcb0513e7ce1aa67cb69362370d44f71a2f6"
+      "sha256": "0b649ed9ab89578c2adf60e20025104eea8b20eb1cfc3649cb9c126155d800cb"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/host_settings.c",
@@ -275,7 +283,7 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/host_xr.c",
-      "sha256": "0b05d0866f737c1486ea188a2dad5257160bf8de7a7abc786f75f84b92b41516"
+      "sha256": "628d5129977257b88829c3eb4a7dc564b965bf0b96d426d0ff499e4dae7b7c72"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/hotd4_controls.h",
@@ -287,7 +295,7 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/input_options.h",
-      "sha256": "13260f0b4e5cf37a7d1e8928529cf0ad8b32adb0297b8b01825a6f83876fac08"
+      "sha256": "8d2ae0c947146310557558e3ac87ca386f15d80c01a280d4d0596216e1672c11"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/lindbergh_rt.h",
@@ -379,11 +387,11 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/xr_controls.c",
-      "sha256": "71ee5c1e7519888611ac6209b05e6e2cec0fc32027552636fbf159ab6d22f9b9"
+      "sha256": "a7d92752b5f8239f76a6e9829c2403f49c331e4c95480a8228643fcfbe438cfb"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/xr_controls.h",
-      "sha256": "9a3f5f368f9c8e079ef3bf0f30f360259fd6c65c7bc46d0638e4c805a5108f25"
+      "sha256": "a8d0f8ac4c7536a0da3ee3124a92a402aa42fe901e7e01f2bebdc6ed9c5b95f6"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/xr_font.h",
@@ -407,7 +415,7 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/xr_menu.h",
-      "sha256": "1c9c513a57496ed40806e4664104988d96121e16ca71d817edadd8f462290d91"
+      "sha256": "5ece6ffc5a0e19f208a7f2d5bad49aad56437e6863b45065c6916d60249012ad"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/xr_overlay.c",
@@ -427,19 +435,19 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/xr_panel.c",
-      "sha256": "6edaa08dd0913b3489e5190014b8f96090d7bb9ac7ee40c18568552d11dd8e13"
+      "sha256": "9803eaf47cd112e492e857560201305fb0ef6c702a82c7239a07efcddf3e1bf1"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/xr_panel.h",
-      "sha256": "c09afb4581ff11b098efa983ae43635c3a7f81a53de1ee48e17a0b4ff1fb8452"
+      "sha256": "e8af668ffe1ee9dc33d58b0895e15a243347f7e9026c7ea01614f15db74b08ef"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/xr_settings.c",
-      "sha256": "6120d4c9014994487aee88ff78dd2f818300956afc1786f96816b465217a0149"
+      "sha256": "7aa6bc327fcbd6d86d20f1be93253f46851ba7d1484c88119fb152eeeb10014e"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/xr_settings.h",
-      "sha256": "0bab7160da0f6eebea8ffdad380a3b9401e18315fd1bc4ae735cb0257c190cab"
+      "sha256": "d70a6c9bc3923d51275c5392a5f776361743420139843a55c88bbb8b715f4f9e"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/xr_sight.h",
@@ -1491,7 +1499,7 @@
     },
     {
       "path": "ui/hotd4-startmenu.ps1",
-      "sha256": "d0ebcae2d9703452b26fc0f888371733f16422af17e16c880b9f3da6b8d95536"
+      "sha256": "889e59da05c16548dcb7417ce13b2e5f0b2d95610596d563fdcdd802d4d7052f"
     },
     {
       "path": "ui/lindbergh.ini",

@@ -11,7 +11,7 @@ void xp_items(const XpPanel *menu,const LgXrSettings *cfg,int hand,int hud_locke
     static const char *const labels[XP_COUNT] = {
         "Sight", "Laser", "Game crosshair", "Gun model", "Gun hand", "Dual wield", "Show stats", "Screen distance", "HUD position", "Display rate", "Resolution per eye",
         "Foveation", "Coins", "Insert a coin", "Recentre view", "Arcade Test button (select)",
-        "Arcade Service button (next)", "Reset game", "Close" };
+        "Arcade Service button (next)", "Off-screen reload", "Blood splatter", "Reset game", "Close" };
     for (int i = 0; i < XP_COUNT; i++) { it[i].label = labels[i]; it[i].value[0] = 0; }
     snprintf(it[XP_SIGHT].value, 40, "%s", sight[cfg->sight]);
     snprintf(it[XP_LASER].value, 40, "%s", laser[cfg->laser]);
@@ -20,6 +20,8 @@ void xp_items(const XpPanel *menu,const LgXrSettings *cfg,int hand,int hud_locke
     snprintf(it[XP_HAND].value, 40, "%s", hand == 0 ? "Left" : "Right");
     if (cfg->dual) it[XP_HAND].label = "Player 1 hand";    /* the other is player 2's */
     snprintf(it[XP_DUAL].value, 40, "%s", !cfg->dual ? "Off" : hand == 0 ? "On (right hand P2)" : "On (left hand P2)");
+    snprintf(it[XP_OFFSCREEN].value,40,"%s",cfg->offscreen_reload?"On":"Off");
+    snprintf(it[XP_BLOOD].value,40,"%s",cfg->blood_splatter?"Enhanced":"Original");
     snprintf(it[XP_STATS].value, 40, "%s", cfg->show_stats ? "On" : "Off");
     snprintf(it[XP_SCREEN].value, 40, "%.1f m", cfg->screen);
     if (!hud_locked) snprintf(it[XP_HUD].value, 40, "With the screen");
@@ -59,6 +61,8 @@ unsigned xp_choose(XpPanel *p,LgXrSettings *cfg,int *hand,int item,const float *
         while(k<5&&(sizes[k][1]<cfg->resolution||(sizes[k][1]==cfg->resolution&&sizes[k][0]<=cfg->width)))++k;
         cfg->width=sizes[k%5][0];cfg->resolution=sizes[k%5][1];break;}
     case XP_FOVEATION:cfg->foveation=(cfg->foveation+1)%4;effects|=XP_FOVEATION_CHANGED;break;
+    case XP_OFFSCREEN:cfg->offscreen_reload=!cfg->offscreen_reload;break;
+    case XP_BLOOD:cfg->blood_splatter=!cfg->blood_splatter;break;
     case XP_COINS:cfg->auto_coins=!cfg->auto_coins;break;
     case XP_COIN:p->coin=1;break;
     case XP_RECENTRE:effects|=XP_RECENTER;break;

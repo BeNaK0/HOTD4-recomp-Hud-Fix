@@ -70,22 +70,22 @@ Reproduced the v1.2.2 `hotd4-controls.ps1` startup error with a Restricted polic
 ## Windows desktop v1.3.0
 
 - Extracted the release builder to an empty directory and ran Setup on Windows 11 x64 with the original Rev A (DVP-0003A) dump and a cached MSYS2 toolchain. All 111 game compile/link steps completed. Setup built both graphical launchers and rendered the local menu background. The source ELF SHA-256 was unchanged. A cached reinstall preserved test settings, trophies, a cabinet save and the background.
-- Ran a Chapter 1 smoke test with the installed executable. Photo Mode saved five 3840 × 2160 PNGs covering camera movement and roll, the four filters, and resume on the same frame.
+- Ran a Chapter 1 smoke test with the installed executable. Photo Mode saved five 3840 Ãƒâ€” 2160 PNGs covering camera movement and roll, the four filters, and resume on the same frame.
 - Verified the graphical launchers without a console and validated 1,166 model records and 1,833 skeletal clips. The viewer applied locally enhanced textures to James Taylor, Kate Green and Justice in both static and animated previews. Three original diffuse texture references could not be resolved.
 - The changed host sources compiled with the optional OpenXR configuration. The new features were exercised on the Windows desktop. VR headset testing was outside this release check.
 - The manifest and ZIP were checked for game assets, lifted code and compiled binaries. The only bundled artwork is the existing trophy and crosshair illustrations.
 
 ## Windows desktop v1.3.1
 
-- Built and installed from a freshly extracted builder on Windows 11 x64 with an original Rev A (DVP-0003A) dump and a cached MSYS2 toolchain. Setup compiled both graphical launchers and created the local menu background. The installed build completed 1,300 frames in Chapter 1 on both 2560 × 1440 and 3440 × 1440 outputs.
+- Built and installed from a freshly extracted builder on Windows 11 x64 with an original Rev A (DVP-0003A) dump and a cached MSYS2 toolchain. Setup compiled both graphical launchers and created the local menu background. The installed build completed 1,300 frames in Chapter 1 on both 2560 Ãƒâ€” 1440 and 3440 Ãƒâ€” 1440 outputs.
 - Exercised the resolution field and display mode in the packaged start menu. Verified custom input, saving and reopening settings, and migration of a saved v1.3.0 windowed resolution.
-- Checked the gameplay viewport and aim mapping at 1280 × 720, 2560 × 1440, 3440 × 1440, and 3840 × 2160. Verified 720p rendered into 1440p output. A 3440 × 1440 framebuffer capture showed a full-height 2560 × 1440 gameplay area with the HUD in its intended position and two 440-pixel side bars.
+- Checked the gameplay viewport and aim mapping at 1280 Ãƒâ€” 720, 2560 Ãƒâ€” 1440, 3440 Ãƒâ€” 1440, and 3840 Ãƒâ€” 2160. Verified 720p rendered into 1440p output. A 3440 Ãƒâ€” 1440 framebuffer capture showed a full-height 2560 Ãƒâ€” 1440 gameplay area with the HUD in its intended position and two 440-pixel side bars.
 - The updated SDL host also compiled in the optional OpenXR configuration. Display and aim checks used the desktop build.
 
 ## Windows desktop v1.3.2
 
-- Captured the SEGA startup screen in the desktop build at 1920 × 1080 and 3840 × 2160. The startup artwork and serial numbers share a centered 4:3 canvas.
-- Triggered the native grab state during Chapter 1 using a local test hook. Before-and-after 1280 × 720 captures show the gauge end caps, track, fill and target label aligned, with the shake prompt centered.
+- Captured the SEGA startup screen in the desktop build at 1920 Ãƒâ€” 1080 and 3840 Ãƒâ€” 2160. The startup artwork and serial numbers share a centered 4:3 canvas.
+- Triggered the native grab state during Chapter 1 using a local test hook. Before-and-after 1280 Ãƒâ€” 720 captures show the gauge end caps, track, fill and target label aligned, with the shake prompt centered.
 - Entered the Justice encounter directly and shot through its shield. The health and cancel gauge sprites stayed together as the game applied damage.
 
 ## Windows installer v1.3.3
@@ -176,7 +176,7 @@ Production follow-up: the clean OpenXR executable completed the same threaded si
 The clean installed desktop binary also completed a 3300-frame 3840x2160 rendering regression (1280x720 window), reaching Chapter 1 gameplay and exiting 0. This is a desktop compatibility check, not a headset FPS measurement.
 
 
-## Unreleased OpenXR follow-up: restart, corridor and cutscene timing
+## v1.3.8 OpenXR follow-up: restart, corridor and cutscene timing
 
 - Added explicit OpenXR teardown after the graphics queue drains and the context returns to its owner. Close an owed frame, destroy action resources, destroy the session (and its child spaces/swapchains) and finally the instance. EndSession is only issued in STOPPING. The VR launcher now handles Reset Game exit 74 after the previous process fully exits, with a fresh session log for each run. Direct executable restarts release the old session before spawning the replacement.
 - Cabinet saves now write to a same-directory temporary file, flush fully and replace the destination atomically; SRAM/EEPROM operations are serialized. A native regression committed successive records, aborted a write and terminated a child writer before commit. The previous complete record survived the interrupted write. This guards persistent data; it is not proof that NVRAM caused the reported graphics corruption.
@@ -187,3 +187,15 @@ The clean installed desktop binary also completed a 3300-frame 3840x2160 renderi
 - The launcher reset integration test returned 74 once and then 0 from a harmless executable fixture, verifying sequential relaunch and two separate stdout/stderr logs in a path containing spaces. No system OpenXR runtime or user cabinet save was modified by the tests.
 - The supplied installer screenshot names mingw-w64-x86_64-python-pyelftools. The current installer already uses its isolated, hash-verified pyelftools distribution instead of that removed MINGW64 package. No manual package installation is needed for that dependency.
 - Physical Quest 3 / Virtual Desktop testing is still required to confirm the Alt+F4 issue in VDXR/SteamVR. The local tests cannot reproduce or certify external-runtime/driver persistence across process termination. Remaining orientation/gesture reports are not declared resolved here.
+
+
+## v1.3.8 gameplay options and full Windows release
+
+- Portable native tests cover independent P1/P2 off-screen triggers at the viewport edges, disabled routing, movement without a trigger, explicit reload, VR aim/grip/menu blocking, old VR config defaults, panel hit rows, and save/load of both desktop and VR choices. Existing mouse-shake, mixed co-op, ranking, diagnostic-capture and atomic-save tests passed again. Python release/dependency/operator discovery tests passed.
+- Injected Raw Input packets into a private native desktop fixture and joined both players in the original game. Actual firing depleted both magazines. P1's off-screen trigger refilled only P1 to 30 while P2 stayed empty; disabling the option prevented P2 refill; enabling it refilled P2 to 30. Subsequent real P2 shots depleted that magazine again, and explicit right-button reload refilled it with the off-screen option disabled. The 3300-frame integration run exited 0. This exercised the packet decoder, cabinet policy and original game ammo state; no physical Sinden/DolphinBar was connected.
+- The integration test exposed the arcade's separate unconditional tracking-loss reload path. The normal-game GunMgr wrapper now routes that reload flag through the same player-specific cabinet Reload policy. Keeping the original on/off-screen position result preserves aiming, while preventing loss of tracking alone from bypassing the option. The standalone trigger policy also suppresses off-screen shots. Relative-mouse/co-op movement and legacy leave-reload behavior remain unchanged.
+- The actual native pause menu was driven with SDL keyboard events: Settings > Gameplay, toggle both options, Back, Input & Anti-Aliasing, Esc back to Settings, then resume. Values were saved as Off/Enhanced and the process exited 0. Native menu framebuffer images and launcher WPF pages were rendered for inspection at 1280x720. The launcher saved/reloaded the choices, and the headset panel's two new rows and Close fit within its enlarged texture.
+- Instrumented original CBloodEffect constructor calls showed active type 1, 9 and 11 effects without any enhancement. There is no evidence here that these effects were removed from the final arcade executable. The optional Enhanced mode changes only ordinary type 1 body hits to original type 2 with a 1.25 scale multiplier; other effect selections remain unchanged. Separate 3500-frame Original and Enhanced native gameplay runs exited 0, confirmed active original emitters and were visually compared. Original is the default. No particle image, texture, bank or ELF is distributed.
+- Private QA packet injection, scene advancement and framebuffer helpers are confined to validation binaries. They are not in the release source. Physical gun and headset/runtime validation remains a separate limitation.
+
+Final production checks: Setup -NoDownload -OpenXR completed successfully with the cached isolated toolchain and the user dump, building desktop, operator and OpenXR executables. Three seeded preferences were unchanged. Scanned all three installed binaries for the private QA hook markers: absent. Rebuilt after centering text within the denser pause-menu rows and visually rechecked the actual native framebuffer. The installed desktop executable then completed 3300 frames at a 3840x2160 game resolution in a 1280x720 window with Enhanced blood selected (exit 0). The installed production OpenXR executable completed 3301 frames in the threaded simulated-runtime fixture with Enhanced blood enabled (exit 0), original emitter requests active, distinct nonblack submitted eye images (mean RGB 73.499/73.383 at frame 3300), successful session/instance destruction, and no diagnostic capture/recording overflow. Both submitted eye images were visually inspected. These checks do not replace physical lightgun/headset tests.

@@ -1,4 +1,5 @@
 #include "frame_timing.h"
+#include "gameplay_options.h"
 #include <pthread.h>
 #include "mouse_shake.h"
 /*
@@ -743,6 +744,7 @@ void host_cabinet_input(CabinetInput *out)
     g_cab.buttons = g_auto | (g_scripted ? 0 : g_held | g_pad_held | raw_held | remote_held);
     *out = g_cab;
     if (!g_scripted) out->buttons |= g_cab_latch;
+    if(!game_profile()->joystick)out->buttons=gameplay_offscreen_buttons(out->buttons,gameplay_offscreen_reload(),g_mouse_x,g_mouse_y,g_gun2_on,g_gun2_px,g_gun2_py,g_win.w,g_win.h);
     if (g_cab_button_filter) out->buttons = g_cab_button_filter(out->buttons);
     {   /* What the board reports, whenever it changes - and the gun, at most
          * once a second - so a report of "nothing registers" can be checked
@@ -764,6 +766,7 @@ void host_cabinet_input(CabinetInput *out)
 unsigned host_cabinet_buttons(void)
 {
     unsigned buttons = g_auto | (g_scripted ? 0 : g_held | g_pad_held | raw_held | remote_held | g_cab_latch);
+    if(!game_profile()->joystick)buttons=gameplay_offscreen_buttons(buttons,gameplay_offscreen_reload(),g_mouse_x,g_mouse_y,g_gun2_on,g_gun2_px,g_gun2_py,g_win.w,g_win.h);
     return g_cab_button_filter ? g_cab_button_filter(buttons) : buttons;
 }
 
@@ -1835,10 +1838,10 @@ static const wchar_t *achievement_descriptions[12];
 static GLuint achievement_star_texture(int metal);
 static int achievement_is_unlocked(int id);
 static int achievement_count(void);
-static int menu_row_count(const PauseMenu *menu) { return menu->settings_page == 2 ? 9 : menu->settings_page >= 2 ? 7 : menu->settings_page ? 9 : 7; }
+static int menu_row_count(const PauseMenu *menu) { return menu->settings_page==6?3:menu->settings_page==1?10:menu->settings_page==2?9:7; }
 
-static int menu_step(const PauseMenu *menu){return menu->settings_page==2?42:menu->settings_page==1?42:ROW_STEP;}
-static int menu_height(const PauseMenu *menu){return menu->settings_page==2?36:menu->settings_page==1?36:ROW_HEIGHT;}
+static int menu_step(const PauseMenu *menu){return menu->settings_page==2?42:menu->settings_page==1?38:menu->settings_page==6?42:ROW_STEP;}
+static int menu_height(const PauseMenu *menu){return menu->settings_page==2?36:menu->settings_page==1?32:menu->settings_page==6?36:ROW_HEIGHT;}
 
 static int pause_row_at(const PauseMenu *menu, SDL_Window *window, int x, int y)
 {
@@ -1940,7 +1943,7 @@ static int pause_panel(PauseMenu *menu)
         } else {
             pause_fill(dc, 0, 0, PANEL_W, PANEL_H, RGB(17, 17, 21));
             pause_fill(dc, 0, 0, PANEL_W, 3, RGB(183, 56, 53));
-            pause_text(dc, title, 31, 30, menu->settings_page == 3 ? L"Trophies" : menu->settings_page ? L"Settings" : L"Paused", white);
+            pause_text(dc, title, 31, 30, menu->settings_page==6?L"Gameplay":menu->settings_page == 3 ? L"Trophies" : menu->settings_page ? L"Settings" : L"Paused", white);
 
             wchar_t hud[64], reticle[64];
             int value = (int)lroundf(hud_custom_scale() * 100);
@@ -1960,7 +1963,7 @@ static int pause_panel(PauseMenu *menu)
             swprintf(color,64,L"Crosshair Color  < %ls >",crosshair_color_names[crosshair_color_get()]);
             wchar_t border_width[96];swprintf(border_width,96,L"Border Width   < %ls >",sinden_width_names[sinden_border_width_index()]);
             wchar_t score_display[96];swprintf(score_display,96,L"High Score Display  < %ls >",high_scores_enabled()?L"On":L"Off");
-            const wchar_t *settings_items[] = {hud, reticle, style, size, color, sinden, border_width, score_display, L"Input & Anti-Aliasing..."};
+            const wchar_t *settings_items[] = {hud, reticle, style, size, color, sinden, border_width, score_display, L"Gameplay...", L"Input & Anti-Aliasing..."};
             wchar_t mode[96],gun1[128],gun2[128],aa[80],mouse_speed[80],smoothing[80];
             swprintf(mode,96,L"Input  < %ls >",input_mode_names[input_pref_mode]);
             input_gun_label(0,gun1,128);input_gun_label(1,gun2,128);
@@ -1969,7 +1972,11 @@ static int pause_panel(PauseMenu *menu)
             swprintf(mouse_speed,80,L"Mouse Speed  < %.2fx >", (double)input_mouse_speed);
             swprintf(smoothing,80,L"Mouse Smoothing  < %ls >", mouse_smoothing_names[input_mouse_smoothing]);
             const wchar_t *input_items[]={mode,gun1,gun2,aa,mouse_speed,smoothing,L"Key Bindings...",L"Apply & Restart",L"Back"};
-            const wchar_t **items = menu->settings_page == 2 ? input_items : menu->settings_page ? settings_items : main_items;
+            wchar_t offscreen[96],blood[96];
+            swprintf(offscreen,96,L"Lightgun Off-Screen Reload  < %ls >",gameplay_offscreen_reload()?L"On":L"Off");
+            swprintf(blood,96,L"Blood Splatter  < %ls >",gameplay_blood_splatter()?L"Enhanced":L"Original");
+            const wchar_t *gameplay_items[]={offscreen,blood,L"Back"};
+            const wchar_t **items = menu->settings_page==6?gameplay_items:menu->settings_page == 2 ? input_items : menu->settings_page ? settings_items : main_items;
             for (int i = 0; i < menu_row_count(menu); ++i) {
                 int y = ROW_TOP + i * menu_step(menu);
                 int selected = i == menu->selected;
@@ -1979,7 +1986,10 @@ static int pause_panel(PauseMenu *menu)
                 int available = menu->settings_page != 2 ||
                     (i==1 ? input_pref_mode>=2 : i==2 ? input_pref_mode==2 :
                      (i==4 || i==5) ? (input_pref_mode==1 || input_pref_mode==4) : 1);
-                pause_text(dc, item, 49, y + 9, items[i], available ? white : muted);
+                SelectObject(dc,item);
+                SetTextColor(dc,available ? white : muted);
+                RECT text_box={49,y,PANEL_W-45,y+menu_height(menu)};
+                DrawTextW(dc,items[i],-1,&text_box,DT_SINGLELINE|DT_VCENTER|DT_NOPREFIX|DT_END_ELLIPSIS);
             }
             pause_text(dc, hint, 32, 515, menu->settings_page == 2 ?
                        input_pref_mode>=3 ? L"P1: gun buttons. P2: mouse / shooting keys. Restart to apply." :
@@ -2486,8 +2496,8 @@ static int hotd4_pause_loop(int w, int h)
                 SDL_Keycode key = event.key.keysym.sym;
                 if ((key == SDLK_ESCAPE || hc_matches(HC_PAUSE,key)) && !event.key.repeat) {
                     if (!menu.settings_page) break;
-                    menu.selected = menu.settings_page == 2 ? 8 : menu.settings_page == 3 ? ACHIEVEMENTS : SETTINGS;
-                    menu.settings_page = menu.settings_page == 2 ? 1 : 0;
+                    menu.selected=menu.settings_page==6?8:menu.settings_page==2?9:menu.settings_page==3?ACHIEVEMENTS:SETTINGS;
+                    menu.settings_page=(menu.settings_page==2 || menu.settings_page==6)?1:0;
                     redraw = 1;
                 } else if (key == SDLK_UP || key == SDLK_DOWN) {
                     int rows = menu_row_count(&menu);
@@ -2499,12 +2509,18 @@ static int hotd4_pause_loop(int w, int h)
                     activate = 1;
                 }
             }
-            if (menu.settings_page == 2) {
+            if(menu.settings_page==6){
+                if((activate || delta) && menu.selected<2){
+                    int off=gameplay_offscreen_reload(),blood=gameplay_blood_splatter();
+                    gameplay_options_set(menu.selected==0?!off:off,menu.selected==1?!blood:blood);
+                    gameplay_options_save();redraw=1;
+                }else if(activate){menu.settings_page=1;menu.selected=8;redraw=1;}
+            } else if (menu.settings_page == 2) {
                 if ((activate || delta) && menu.selected < 6) {
                     input_option_cycle(menu.selected,delta);redraw=1;
                 } else if(activate && menu.selected==6){menu.settings_page=4;menu.selected=0;menu.binding_capture=-1;menu.binding_message[0]=0;redraw=1;}
                 else if(activate && menu.selected==7){action=RESTART;break;}
-                else if(activate){menu.settings_page=1;menu.selected=8;redraw=1;}
+                else if(activate){menu.settings_page=1;menu.selected=9;redraw=1;}
             } else if (menu.settings_page) {
                 if ((activate || delta) && menu.selected == 0) {
                     pause_set_hud(delta ? delta : 1);
@@ -2529,6 +2545,8 @@ static int hotd4_pause_loop(int w, int h)
                     redraw = 1;
                 } else if ((activate || delta) && menu.selected == 7) {
                     high_scores_toggle();redraw=1;
+                } else if(activate && menu.selected==8){
+                    menu.settings_page=6;menu.selected=0;redraw=1;
                 } else if (activate) {
                     menu.settings_page = 2;
                     menu.selected = 0;

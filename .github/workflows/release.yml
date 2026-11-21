@@ -42,6 +42,11 @@ jobs:
         run: |
           cc -std=c11 -Wall -Wextra -Werror .release/test_atomic_file.c -o /tmp/hotd4-atomic-save-test
           /tmp/hotd4-atomic-save-test /tmp/hotd4-atomic-cabinet.bin
+      - name: Test off-screen reload and gameplay settings
+        run: |
+          cc -std=c11 -Wall -Wextra -Werror -Wno-array-parameter .release/test_gameplay.c source/lindberghrecomp/src/runtime/gameplay_options.c source/lindberghrecomp/src/runtime/xr_controls.c source/lindberghrecomp/src/runtime/xr_settings.c source/lindberghrecomp/src/runtime/xr_panel.c source/lindberghrecomp/src/runtime/xr_menu.c source/lindberghrecomp/src/runtime/stereo_projection.c -lm -o /tmp/hotd4-gameplay-test
+          mkdir -p /tmp/hotd4-gameplay-profiles
+          cd /tmp/hotd4-gameplay-profiles && /tmp/hotd4-gameplay-test
       - name: Verify package and publish
         env:
           GH_TOKEN: ${{ github.token }}

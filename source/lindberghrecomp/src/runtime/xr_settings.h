@@ -7,6 +7,7 @@ typedef struct {
     float scale,screen,aim;
     int resolution,width,refresh,left_handed,laser,auto_coins;
     int sight,crosshair,show_gun,hud_pitch,dual,show_stats;
+    int offscreen_reload,blood_splatter;
     int foveation;              /* 0 off, 1 low, 2 medium, 3 high (Vulkan host) */
 } LgXrSettings;
 /* Each eye's image by default: the headset's own panel, pixel for pixel.
@@ -24,7 +25,7 @@ typedef struct {
 #define LG_XR_NATIVE_HEIGHT 2280
 #endif
 /* ... dual off, stats panel on (vr.cfg "stats off" hides it), medium foveation */
-#define LG_XR_SETTINGS_DEFAULT {1.0f,3.0f,15.0f,LG_XR_NATIVE_HEIGHT,LG_XR_NATIVE_WIDTH,120,0,LASER_ON,1,0,1,1,0,0,1,3}
+#define LG_XR_SETTINGS_DEFAULT {1.0f,3.0f,15.0f,LG_XR_NATIVE_HEIGHT,LG_XR_NATIVE_WIDTH,120,0,LASER_ON,1,0,1,1,0,0,1,1,0,3}
 void xr_settings_load(LgXrSettings *settings);
 void xr_settings_set(LgXrSettings *settings,const char *key,const char *value);
 void xr_settings_save(const LgXrSettings *settings);

@@ -1,6 +1,6 @@
 # HOTD4 Local Builder
 
-Download and extract **HOTD4-Local-Builder-v1.3.7.zip** from the [v1.3.7 release](https://github.com/davidptrssvea/HOTD4-recomp/releases/tag/v1.3.7). Run **Setup.cmd**, select your own extracted arcade dump, then wait for the local build. Open **HOTD4-PC\Play HOTD4.exe** for the graphical menu or **Model Viewer.exe** to go directly to the viewer. All menus are in English.
+Download and extract **HOTD4-Local-Builder-v1.3.8.zip** from the [v1.3.8 release](https://github.com/davidptrssvea/HOTD4-recomp/releases/tag/v1.3.8). Run **Setup.cmd**, select your own extracted arcade dump, then wait for the local build. Open **HOTD4-PC\Play HOTD4.exe** for the graphical menu or **Model Viewer.exe** to go directly to the viewer. All menus are in English.
 
 To update, extract the new builder and run `Setup.cmd -InstallDir "C:\Path\To\HOTD4-PC"`, using your existing installation path. Select the same arcade dump when prompted. This keeps your settings, cabinet saves and trophies.
 
@@ -77,11 +77,11 @@ Filter the catalogue by **Enemies**, **Bosses**, **Players**, **Weapons**, **Env
 
 The bank and Sega NN format layouts were cross-checked against [Sega NN Tools](https://github.com/Argx2121/Sega_NN_tools).
 
-## High Scores (next desktop build)
+## High Scores
 
 The in-game **HI-SCORE** display shows the top score from the arcade's own saved ranking. Open **Pause > High Scores** to see all ten places with their original initials and scores. **Pause > Settings > High Score Display** toggles the small in-game display; the choice is saved.
 
-Scores follow the original game rules: qualify for the ranking and confirm your initials when prompted. The arcade saves that ranking in the cabinet NVRAM, which survives normal restarts and installer updates. Chapter practice uses a temporary cabinet copy and does not replace your arcade records. The display reads the existing ranking; it does not add a separate score database or alter scoring rules. This feature is included in v1.3.8-openxr-preview.1 and is not included in the stable v1.3.7 ZIP.
+Scores follow the original game rules: qualify for the ranking and confirm your initials when prompted. The arcade saves that ranking in the cabinet NVRAM, which survives normal restarts and installer updates. Chapter practice uses a temporary cabinet copy and does not replace your arcade records. The display reads the existing ranking; it does not add a separate score database or alter scoring rules.
 
 ## Key bindings and controls overview
 
@@ -95,6 +95,16 @@ In either mouse input mode, shake the mouse back and forth to escape zombie grab
 
 Profiles are stored locally in `HOTD4_Recomp/controls-profile.txt` and survive restarts and reinstalls. Once a custom profile is saved, legacy coin/start aliases and Alt+Enter are disabled so that the overview lists the actual bindings. Keyboard bindings work in all input modes. In Raw Lightgun mode, the selected lightgun's trigger/buttons keep their direct device mapping; mouse bindings apply to mouse input modes. Menu navigation remains arrow keys, Enter and Esc.
 
+## Gameplay options: lightgun reload and blood
+
+Open **Settings > Gameplay** in the launcher or the desktop pause menu.
+
+- **Lightgun Off-Screen Reload** defaults to **On**. Point outside the play area and pull the trigger to reload that player's gun, without firing an on-screen shot. P1 and P2 are handled independently. **Off** suppresses this off-screen trigger action; the ordinary Reload button still works.
+- Select **Lightgun (Raw Input)** and assign the appropriate devices in Input settings. The game needs an off-screen position from the gun driver. If Sinden/DolphinBar software retains the last on-screen position when tracking is lost, configure its off-screen trigger to send **Reload / right mouse button** instead. The game cannot infer tracking loss from a frozen coordinate. Keep the Sinden border enabled if your gun requires it. Normal relative-mouse aim remains bounded to the screen.
+- **Blood Splatter** defaults to **Original**. **Enhanced** uses a stronger original body-hit emitter variant with a modest scale increase. Head, dismemberment and special/boss effect selections are preserved. These effects come from the user's own dump. Testing confirmed that blood effects already run in the original game; this is an optional enhancement, not a verified restoration of cut content.
+
+In VR, the headset settings menu has separate **Off-screen reload** and **Blood splatter** choices, saved in `vr.cfg`. For VR reload, aim the controller outside the game's aim area and pull the trigger. Grip reload remains available.
+
 ## Parsec co-op: host lightgun + guest mouse (experimental)
 
 Choose **Settings > Input & Anti-Aliasing > Co-op: Gun P1 + Mouse P2**. Select the host's Sinden or DolphinBar under **Player 1 Device**. Explicitly select a relative device such as a DolphinBar; **Auto** only assigns absolute guns. Player 2 uses the guest's injected Windows mouse automatically. The P2 raw-device selector is hidden in this mode. Enable the Sinden border when needed.
@@ -107,23 +117,23 @@ This mode separates the selected raw gun from injected remote mouse packets. Loc
 
 ## Optional OpenXR PC VR
 
-**VR testing:** [v1.3.8-openxr-preview.1](https://github.com/davidptrssvea/HOTD4-recomp/releases/tag/v1.3.8-openxr-preview.1) targets the black right eye, duplicate gameplay rectangle and X-button diagnostic stall. It is a prerelease for headset feedback. The stable Windows release remains v1.3.7.
+**VR remains experimental.** The optional OpenXR build in v1.3.8 includes the earlier stereo/X-button fixes plus session teardown, sequential Reset Game relaunch, persistent scene-composite filtering and cutscene pacing improvements. Local tests use native graphics and a simulated runtime; **Quest 3 / Virtual Desktop (VDXR and SteamVR) testing is still needed**.
 
 Select **Yes** when Setup asks whether to build the OpenXR version. For unattended setup, pass `-OpenXR`. Setup builds a separate VR executable from the same local dump and installs **Play HOTD4 (VR OpenXR).cmd** next to the desktop launcher.
 
 Connect your PC VR headset and start an OpenXR runtime that supports OpenGL before using the VR launcher. Aim with a tracked controller, pull the trigger to shoot, squeeze the grip to reload and click the thumbstick to start. VR uses its own headset menu, controller bindings and cabinet save.
 
-For the preview, extract its ZIP and run **Setup.cmd** again with your existing extracted arcade dump and installation folder; select **Yes** for OpenXR. The builder compiles the new VR executable locally and preserves existing profiles and cabinet saves.
+To update, extract the current release ZIP and run **Setup.cmd** again with your existing extracted arcade dump and installation folder; select **Yes** for OpenXR. The builder compiles the new VR executable locally and preserves existing profiles and cabinet saves.
 
-The VR launcher writes a separate session log under **HOTD4_Recomp\VR Logs**. Please test each eye separately, confirm there is no extra gameplay rectangle over the scene, and press X during gameplay. Include the log and your headset/runtime/GPU when reporting results. For Virtual Desktop, mention VDXR or SteamVR. Performance, gestures, restart corruption and scene-specific obstructions still need headset retesting.
+The VR launcher writes a separate session log under **HOTD4_Recomp\VR Logs**. Please test each eye separately, confirm there is no extra gameplay rectangle over the scene, and press X during gameplay. Include the log and your headset/runtime/GPU when reporting results. For Virtual Desktop, mention VDXR or SteamVR. Please also check Alt+F4 and relaunch, the glass-walled Chapter 1 corridor, and cutscene timing. Orientation and gesture reports remain open; no physical-headset FPS or compatibility claim is made.
 
 The X-button render-target dump requires the developer switch `LINDBERGH_XR_DEBUG_CAPTURE=1`; leave it unset for normal play. Enabling it intentionally causes GPU readbacks and file writes.
 
 ## Lower GPU load
 
-On the desktop, select **960 × 540** or **1280 × 720** under **Settings > Render Resolution**. **Display Mode** independently controls whether the game uses a window or borderless fullscreen. Turn MSAA off under **Settings > Input & Anti-Aliasing** and restart the game to apply it.
+On the desktop, select **960 Ã— 540** or **1280 Ã— 720** under **Settings > Render Resolution**. **Display Mode** independently controls whether the game uses a window or borderless fullscreen. Turn MSAA off under **Settings > Input & Anti-Aliasing** and restart the game to apply it.
 
-**Render Resolution** accepts presets or a size you enter, such as **2560x1440**. **Desktop** uses the screen dimensions. The game fits its 16:9 picture within the window or desktop, with rendering capped at 3840 × 2160. Ultrawide screens show centered gameplay with side bars.
+**Render Resolution** accepts presets or a size you enter, such as **2560x1440**. **Desktop** uses the screen dimensions. The game fits its 16:9 picture within the window or desktop, with rendering capped at 3840 Ã— 2160. Ultrawide screens show centered gameplay with side bars.
 
 ## Recording the Chapter 1 elevator slowdown
 

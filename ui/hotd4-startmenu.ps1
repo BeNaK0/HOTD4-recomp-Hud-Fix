@@ -235,12 +235,23 @@
                                 </Grid>
                             </StackPanel>
                         </Grid>
-                        <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="180"/></Grid.ColumnDefinitions>
-                            <Button Name="InputOptions" Height="32" FontSize="14" Margin="0,0,6,6" Content="Input &amp; Anti-Aliasing..."/>
-                            <Button Grid.Column="1" Name="BindingsOpen" Height="32" FontSize="14" Margin="0,0,0,6" Content="Key Bindings..."/>
+                        <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <Button Name="InputOptions" Height="32" FontSize="14" Margin="0,0,6,6" Content="Input / AA..."/>
+                            <Button Grid.Column="1" Name="BindingsOpen" Height="32" FontSize="14" Margin="0,0,6,6" Content="Key Bindings..."/>
+                            <Button Grid.Column="2" Name="GameplayOpen" Height="32" FontSize="14" Margin="0,0,0,6" Content="Gameplay..."/>
                         </Grid>
                         <Button Name="SaveOptions" Height="38" Margin="0,0,0,6" Content="Save"/>
                         <Button Name="OptionsBack" Height="38" Content="Back"/>
+                    </StackPanel>
+                    <StackPanel Name="GameplayPage" Visibility="Collapsed">
+                        <TextBlock Text="Gameplay" FontSize="22" FontWeight="SemiBold" Margin="0,0,0,12"/>
+                        <Label Content="Lightgun Off-Screen Reload" Foreground="#F0EFEB" FontSize="15" Padding="0"/>
+                        <ComboBox Height="36" Margin="0,4,0,8" Name="OffscreenReload"/>
+                        <TextBlock Text="Point outside the play area and pull the trigger to reload. Applies to both lightguns. Your gun software can also map its off-screen trigger to the Reload button." TextWrapping="Wrap" Foreground="#D0C7C2" FontSize="14" Margin="0,0,0,18"/>
+                        <Label Content="Blood Splatter" Foreground="#F0EFEB" FontSize="15" Padding="0"/>
+                        <ComboBox Height="36" Margin="0,4,0,18" Name="BloodSplatter"/>
+                        <Button Name="SaveGameplay" Height="38" Margin="0,0,0,6" Content="Save"/>
+                        <Button Name="GameplayBack" Height="38" Content="Back"/>
                     </StackPanel>
                     <StackPanel Name="InputPage" Visibility="Collapsed">
                         <TextBlock Text="Input &amp; Anti-Aliasing" FontSize="22" FontWeight="SemiBold" Margin="0,0,0,12"/>
@@ -412,7 +423,7 @@
 
     $controls = @{}
     foreach ($name in 'MainPage','ChapterPage','OptionsPage','Arcade','Chapters','Options','Quit','ChapterList',
-            'BindingsPage','BindingsOpen','BindingsList','BindingsStatus','SaveBindings','BindingsBack','ResetBindings','CancelBinding','ControlSummary','ControlSummaryList','ChapterHelp','AaGuide','Achievements','ModelViewer','AchievementsPage','AchievementProgress','AchievementList','AchievementScroll','AchievementsBack','AchievementTotal','AchievementPercent','AchievementProgressFill','AchievementEndings','AchievementBronzeIcon','AchievementBronzeCount','AchievementSilverIcon','AchievementSilverCount','AchievementGoldIcon','AchievementGoldCount','AchievementAll','AchievementUnlocked','AchievementLocked','AchievementEmptyPanel','AchievementEmpty','AchievementEmptyHint','AchievementEmptyStar','InputGuide','CoopGuide','RawGuide','InputPage','InputOptions','InputMode','Gun1','Gun2','Gun2Label','AntiAliasing','MouseSpeed','MouseSmoothing','SaveInput','InputBack','ChapterBack','OptionsBack','SaveOptions','Resolution','DisplayMode','Hud','CrosshairStyle','CrosshairSize','CrosshairColor','CrosshairPreview','CrosshairPreviewImage','CrosshairPreviewLabel','Sinden','SindenWidth','SindenFrame','SindenInner','Hint') {
+            'GameplayPage','GameplayOpen','OffscreenReload','BloodSplatter','SaveGameplay','GameplayBack','BindingsPage','BindingsOpen','BindingsList','BindingsStatus','SaveBindings','BindingsBack','ResetBindings','CancelBinding','ControlSummary','ControlSummaryList','ChapterHelp','AaGuide','Achievements','ModelViewer','AchievementsPage','AchievementProgress','AchievementList','AchievementScroll','AchievementsBack','AchievementTotal','AchievementPercent','AchievementProgressFill','AchievementEndings','AchievementBronzeIcon','AchievementBronzeCount','AchievementSilverIcon','AchievementSilverCount','AchievementGoldIcon','AchievementGoldCount','AchievementAll','AchievementUnlocked','AchievementLocked','AchievementEmptyPanel','AchievementEmpty','AchievementEmptyHint','AchievementEmptyStar','InputGuide','CoopGuide','RawGuide','InputPage','InputOptions','InputMode','Gun1','Gun2','Gun2Label','AntiAliasing','MouseSpeed','MouseSmoothing','SaveInput','InputBack','ChapterBack','OptionsBack','SaveOptions','Resolution','DisplayMode','Hud','CrosshairStyle','CrosshairSize','CrosshairColor','CrosshairPreview','CrosshairPreviewImage','CrosshairPreviewLabel','Sinden','SindenWidth','SindenFrame','SindenInner','Hint') {
         $controls[$name] = $window.FindName($name)
     }
 
@@ -620,7 +631,7 @@
 
     $showPage = {
         param([string] $Page)
-        foreach ($name in 'MainPage','ChapterPage','OptionsPage','InputPage','BindingsPage') {
+        foreach ($name in 'MainPage','ChapterPage','OptionsPage','InputPage','GameplayPage','BindingsPage') {
             $controls[$name].Visibility = if ($name -eq $Page) { 'Visible' } else { 'Collapsed' }
         }
         $controls.ControlSummary.Visibility=if($Page -eq 'MainPage'){'Visible'}else{'Collapsed'}
@@ -700,6 +711,17 @@
     $controls.Arcade.Add_Click( { $state.Mode = '0'; $window.Close() } )
     $controls.Chapters.Add_Click( { & $showPage 'ChapterPage' } )
     $controls.Options.Add_Click( { & $showPage 'OptionsPage' } )
+    $gameplayPaths=@{OffscreenReload=(Join-Path $RecompDir 'offscreen-reload.txt');BloodSplatter=(Join-Path $RecompDir 'blood-effects.txt')}
+    foreach($field in 'OffscreenReload','BloodSplatter'){
+        $value=if($field -eq 'OffscreenReload'){'1'}else{'0'}
+        if([IO.File]::Exists($gameplayPaths[$field])){$read=[IO.File]::ReadAllText($gameplayPaths[$field]).Trim();if($read -in '0','1'){$value=$read}}
+        $labels=if($field -eq 'OffscreenReload'){@('Off','On')}else{@('Original','Enhanced')}
+        foreach($i in 0,1){$entry=[Windows.Controls.ComboBoxItem]::new();$entry.Tag=[string]$i;$entry.Content=$labels[$i];[void]$controls[$field].Items.Add($entry)}
+        $controls[$field].SelectedIndex=[int]$value
+    }
+    $controls.GameplayOpen.Add_Click({& $showPage 'GameplayPage'})
+    $controls.GameplayBack.Add_Click({& $showPage 'OptionsPage'})
+    $controls.SaveGameplay.Add_Click({foreach($field in 'OffscreenReload','BloodSplatter'){[IO.File]::WriteAllText($gameplayPaths[$field],[string]$controls[$field].SelectedItem.Tag)};& $showPage 'OptionsPage'})
     $controls.InputOptions.Add_Click({ & $showPage 'InputPage' })
     $controls.InputBack.Add_Click({ & $showPage 'OptionsPage' })
     $controls.SaveInput.Add_Click({
@@ -777,16 +799,18 @@
             if ($browse) { $eventArgs.Handled = $true; return }
         }
         if ($eventArgs.Key -eq 'Escape') {
+            if ($controls.OffscreenReload.IsDropDownOpen -or $controls.BloodSplatter.IsDropDownOpen) { return }
             if ($controls.InputMode.IsDropDownOpen -or $controls.Gun1.IsDropDownOpen -or $controls.Gun2.IsDropDownOpen -or $controls.AntiAliasing.IsDropDownOpen -or $controls.MouseSpeed.IsDropDownOpen -or $controls.MouseSmoothing.IsDropDownOpen) { return }
             if ($controls.Resolution.IsDropDownOpen -or $controls.DisplayMode.IsDropDownOpen -or $controls.Hud.IsDropDownOpen -or $controls.Sinden.IsDropDownOpen -or $controls.SindenWidth.IsDropDownOpen -or $controls.CrosshairStyle.IsDropDownOpen -or $controls.CrosshairSize.IsDropDownOpen -or $controls.CrosshairColor.IsDropDownOpen) { return }
             if ($controls.MainPage.IsVisible) { $window.Close() }
             elseif ($controls.AchievementsPage.IsVisible) { & $showPage 'MainPage'; [void]$controls.Achievements.Focus() }
             elseif ($controls.BindingsPage.IsVisible) {$controls.BindingsBack.RaiseEvent([Windows.RoutedEventArgs]::new([Windows.Controls.Button]::ClickEvent))}
+            elseif ($controls.GameplayPage.IsVisible) { & $showPage 'OptionsPage' }
             elseif ($controls.InputPage.IsVisible) { & $showPage 'OptionsPage' }
             elseif ($controls.OptionsPage.IsVisible) { & $showPage 'MainPage'; [void] $controls.Options.Focus() }
             else { & $showPage 'MainPage'; [void] $controls.Chapters.Focus() }
             $eventArgs.Handled = $true
-        } elseif ($eventArgs.Key -in 'Up','Down' -and !$controls.OptionsPage.IsVisible -and !$controls.InputPage.IsVisible -and !$controls.AchievementsPage.IsVisible -and !$controls.BindingsPage.IsVisible) {
+        } elseif ($eventArgs.Key -in 'Up','Down' -and !$controls.OptionsPage.IsVisible -and !$controls.InputPage.IsVisible -and !$controls.GameplayPage.IsVisible -and !$controls.AchievementsPage.IsVisible -and !$controls.BindingsPage.IsVisible) {
             $direction = if ($eventArgs.Key -eq 'Up') { 'Previous' } else { 'Next' }
             $focused = [Windows.Input.Keyboard]::FocusedElement
             if ($focused -is [Windows.UIElement]) {
