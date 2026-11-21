@@ -169,6 +169,7 @@ static void crosshair_color_apply(GLubyte r,GLubyte g,GLubyte b,GLubyte a)
 {
     static const GLubyte colors[8][3]={{249,38,51},{45,161,255},{64,255,50},{255,225,45},{255,255,255},{40,255,255},{255,60,220},{255,140,30}};
     int color=crosshair_color_get();
+    if(crosshair_drawing_player) color=(color==2 || (!color && b>r && b>g))?1:2;
     if(color){r=colors[color-1][0];g=colors[color-1][1];b=colors[color-1][2];}
     glColor4ub(r,g,b,a);
 }

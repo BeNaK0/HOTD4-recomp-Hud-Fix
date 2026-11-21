@@ -1,6 +1,6 @@
 # HOTD4 Local Builder
 
-Download and extract **HOTD4-Local-Builder-v1.3.6.zip** from the [v1.3.6 release](https://github.com/davidptrssvea/HOTD4-recomp/releases/tag/v1.3.6). Run **Setup.cmd**, select your own extracted arcade dump, then wait for the local build. Open **HOTD4-PC\Play HOTD4.exe** for the graphical menu or **Model Viewer.exe** to go directly to the viewer. All menus are in English.
+Download and extract **HOTD4-Local-Builder-v1.3.7.zip** from the [v1.3.7 release](https://github.com/davidptrssvea/HOTD4-recomp/releases/tag/v1.3.7). Run **Setup.cmd**, select your own extracted arcade dump, then wait for the local build. Open **HOTD4-PC\Play HOTD4.exe** for the graphical menu or **Model Viewer.exe** to go directly to the viewer. All menus are in English.
 
 To update, extract the new builder and run `Setup.cmd -InstallDir "C:\Path\To\HOTD4-PC"`, using your existing installation path. Select the same arcade dump when prompted. This keeps your settings, cabinet saves and trophies.
 
@@ -83,11 +83,21 @@ Open **Settings > Key Bindings** to change Add Coin, Start, Shoot, Reload / Shak
 
 The start menu displays all current controls, including Add Coin and Start. The chapter-selection hint also follows the selected Restart key. In the native pause menu, open **Settings > Input & Anti-Aliasing > Key Bindings**; changes there apply and save immediately. Esc goes back inside menus or cancels a pending capture; use Cancel when binding Esc to Pause.
 
-In **Settings > Input & Anti-Aliasing**, select **Mouse (Raw Relative)** to adjust **Raw Mouse Speed** (0.50x to 8.00x) and **Raw Mouse Smoothing** (Off, Low, High). Both settings update live from the pause menu.
+In **Settings > Input & Anti-Aliasing**, select **Mouse (Raw Relative)** to adjust **Mouse Speed** (0.50x to 8.00x) and **Mouse Smoothing** (Off, Low, High). Both settings update live from the pause menu.
 
 In either mouse input mode, shake the mouse back and forth to escape zombie grabs and other struggle events. A straight sweep or small jitter does not count. During a grab, the Reload and Fire Mode buttons do not substitute for shaking. Outside grabs, Reload works normally. Physical lightgun controls and OpenXR controller gestures keep their existing behavior.
 
 Profiles are stored locally in `HOTD4_Recomp/controls-profile.txt` and survive restarts and reinstalls. Once a custom profile is saved, legacy coin/start aliases and Alt+Enter are disabled so that the overview lists the actual bindings. Keyboard bindings work in all input modes. In Raw Lightgun mode, the selected lightgun's trigger/buttons keep their direct device mapping; mouse bindings apply to mouse input modes. Menu navigation remains arrow keys, Enter and Esc.
+
+## Parsec co-op: host lightgun + guest mouse (experimental)
+
+Choose **Settings > Input & Anti-Aliasing > Co-op: Gun P1 + Mouse P2**. Select the host's Sinden or DolphinBar under **Player 1 Device**. Explicitly select a relative device such as a DolphinBar; **Auto** only assigns absolute guns. Player 2 uses the guest's injected Windows mouse automatically. The P2 raw-device selector is hidden in this mode. Enable the Sinden border when needed.
+
+The host gun's buttons control P1. The guest mouse uses the configured Shoot / Reload / Grenade / Fire Mode bindings for P2; the shared keyboard bindings for these four actions also control P2. Coin and Start retain their separate P1/P2 bindings (defaults: **5 / 1** for P1, **6 / 2** for P2). P2 has a separate sight and a contrasting color. Choose **Co-op: Gun P1 + Mouse P2 (Relative)** for a separate relative cursor with adjustable speed and smoothing. Restart after changing input mode or device assignments.
+
+In Parsec, allow the guest keyboard and mouse access and disable **Exclusive Input**, then restart the stream. See [Parsec's input troubleshooting guide](https://support.parsec.app/hc/en-us/articles/32381827815188-Mouse-and-Keyboard-Isn-t-Working-Correctly-When-Connected). A host lightgun which only controls the shared Windows cursor cannot be separated this way: it must expose its own Raw Input device. The Parsec virtual mouse placeholder is not a P2 gun to select.
+
+This mode separates the selected raw gun from injected remote mouse packets. Local checks cover packet routing, two-player game input and cursor calculations; a real two-computer Parsec session with Sinden/DolphinBar still needs validation. Other remote software or virtual HID drivers which present guest movement as ordinary physical hardware may need a different input path.
 
 ## Optional OpenXR PC VR
 

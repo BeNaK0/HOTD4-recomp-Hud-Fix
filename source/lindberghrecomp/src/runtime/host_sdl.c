@@ -63,6 +63,8 @@ static void APIENTRY_GL4ES main_fb_size(int *w, int *h) { *w = 640; *h = 480; }
 #endif
 #include "stereo.h"
 
+static int crosshair_drawing_player;
+
 #if defined(_WIN64) && !defined(LINDBERGH_OPENXR) && !defined(LINDBERGH_VULKAN)
 #define HOTD4_DESKTOP_PAUSE 1
 #include "hotd4_controls.h"
@@ -289,6 +291,7 @@ int host_hotd4_start_binding(void){return hc_get(ACT_START1);}
 #else
 #define input_active_mode 0
 #define raw_held 0u
+#define remote_held 0u
 #endif
 
 static pthread_mutex_t g_mouse_shake_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -301,7 +304,7 @@ int host_mouse_shake(int active)
 {
     pthread_mutex_lock(&g_mouse_shake_mutex);
     int pulse;
-    if (input_active_mode == 2) {
+    if (input_active_mode >= 2) {
         g_mouse_shake_active = 0;
         mouse_shake_reset(&g_mouse_shake);
         pulse = -1;
@@ -446,6 +449,8 @@ static void cabinet_action(HostAction a, int down)
     default: break;
     }
     unsigned bit = CAB_OF[a];
+    /* The host gun supplies P1 directly; shared keyboard firing keys belong to P2. */
+    if (input_active_mode >= 3 && a >= ACT_TRIGGER && a <= ACT_FIREMODE) bit <<= CAB_P2_SHIFT;
     if (!bit) return;
     if (down) { g_held |= bit; g_cab_latch |= bit; } else g_held &= ~bit;
     if (down && bit == CAB_P1_TRIGGER && !g_lat_t) { g_lat_t = SDL_GetPerformanceCounter(); g_lat_f = g_frame; }
@@ -732,7 +737,7 @@ void host_cabinet_input(CabinetInput *out)
 #endif
     g_cab.screen_w = (int)w;
     g_cab.screen_h = (int)h;
-    g_cab.buttons = g_auto | (g_scripted ? 0 : g_held | g_pad_held | raw_held);
+    g_cab.buttons = g_auto | (g_scripted ? 0 : g_held | g_pad_held | raw_held | remote_held);
     *out = g_cab;
     if (!g_scripted) out->buttons |= g_cab_latch;
     if (g_cab_button_filter) out->buttons = g_cab_button_filter(out->buttons);
@@ -755,7 +760,7 @@ void host_cabinet_input(CabinetInput *out)
  * for a game hook that needs one switch (a gun's reload) between reads. */
 unsigned host_cabinet_buttons(void)
 {
-    unsigned buttons = g_auto | (g_scripted ? 0 : g_held | g_pad_held | raw_held | g_cab_latch);
+    unsigned buttons = g_auto | (g_scripted ? 0 : g_held | g_pad_held | raw_held | remote_held | g_cab_latch);
     return g_cab_button_filter ? g_cab_button_filter(buttons) : buttons;
 }
 
@@ -940,12 +945,12 @@ static void pump(void)
                 fprintf(stderr, "[window] pointer left\n");
                 /* Pointing a real gun off the screen is the reload; the
                  * nearest thing a mouse can do is leave the window. */
-                if (input_active_mode != 2 && !g_relative_mode && g_pointer_in && settings()->leave_reload && !game_profile()->joystick && !g_capture_or_calib()) g_cab_latch |= CAB_P1_RELOAD;
+                if (input_active_mode < 2 && !g_relative_mode && g_pointer_in && settings()->leave_reload && !game_profile()->joystick && !g_capture_or_calib()) g_cab_latch |= CAB_P1_RELOAD;
                 g_pointer_in = 0;
             }
             break;
         case SDL_MOUSEMOTION:
-            if (input_active_mode == 2) break;
+            if (input_active_mode >= 2) break;
             pthread_mutex_lock(&g_mouse_shake_mutex);
             if (g_mouse_shake_active)
                 mouse_shake_motion(&g_mouse_shake, e.motion.xrel, e.motion.yrel, SDL_GetTicks());
@@ -980,7 +985,7 @@ static void pump(void)
             break;
         case SDL_MOUSEBUTTONDOWN:
         case SDL_MOUSEBUTTONUP: {
-            if (input_active_mode == 2) break;
+            if (input_active_mode >= 2) break;
             int b = button_of(e.button.button), down = e.type == SDL_MOUSEBUTTONDOWN;
             if (settings()->raw_mouse && g_relative_mode) {
                 /* g_mouse_x and g_mouse_y are already maintained in game coords */
@@ -1011,7 +1016,7 @@ static void pump(void)
                 break;
             }
             if (hc_matches(HC_MOUSELOCK,e.key.keysym.sym)) {
-                if (input_active_mode == 2) break;
+                if (input_active_mode >= 2) break;
                 if (settings()->raw_mouse) {
                     g_relative_mode = !g_relative_mode;
                     SDL_SetRelativeMouseMode(g_relative_mode ? SDL_TRUE : SDL_FALSE);
@@ -1065,6 +1070,8 @@ static void pump(void)
     }
 #ifdef HOTD4_DESKTOP_PAUSE
     raw_mouse_publish();
+    remote_mouse_drain();
+    remote_mouse_publish();
 #endif
     pad_poll();
 }
@@ -1615,15 +1622,17 @@ static void red_crosshair(float cx, float cy, float scale)
 }
 #endif
 
-static void draw_crosshair_overlay(int win_w, int win_h)
+static void draw_player_crosshair(int win_w, int win_h, int player)
 {
     if (!settings()->crosshair || win_w <= 0 || win_h <= 0 || g_win.w <= 0 || g_win.h <= 0) return;
-    if (g_mouse_x < 0 || g_mouse_y < 0 || g_mouse_x >= g_win.w || g_mouse_y >= g_win.h) return;
+    int mx=player?g_gun2_px:g_mouse_x, my=player?g_gun2_py:g_mouse_y;
+    if (mx < 0 || my < 0 || mx >= g_win.w || my >= g_win.h) return;
+    crosshair_drawing_player=player;
 
     int vp_w = g_vp_w > 0 ? g_vp_w : win_w;
     int vp_h = g_vp_h > 0 ? g_vp_h : win_h;
-    float cx = (float)g_vp_x + ((float)g_mouse_x + 0.5f) * (float)vp_w / (float)g_win.w;
-    float cy = (float)(win_h - g_vp_y - vp_h) + ((float)g_mouse_y + 0.5f) * (float)vp_h / (float)g_win.h;
+    float cx = (float)g_vp_x + ((float)mx + 0.5f) * (float)vp_w / (float)g_win.w;
+    float cy = (float)(win_h - g_vp_y - vp_h) + ((float)my + 0.5f) * (float)vp_h / (float)g_win.h;
 
     glPushAttrib(GL_ALL_ATTRIB_BITS);
     glPushClientAttrib(GL_CLIENT_ALL_ATTRIB_BITS);
@@ -1696,7 +1705,7 @@ static void draw_crosshair_overlay(int win_w, int win_h)
     float r_tick  = 23.0f * base_scale;
     float dot_r   = 2.2f * base_scale;
 
-    int is_reloading = (host_cabinet_buttons() & CAB_P1_RELOAD) != 0;
+    int is_reloading = (host_cabinet_buttons() & (player?CAB_P2_RELOAD:CAB_P1_RELOAD)) != 0;
 
     float hud_scale = hud_custom_scale();
     if (hud_scale > 0) {
@@ -1775,6 +1784,13 @@ restore_crosshair_state:
 
     glPopClientAttrib();
     glPopAttrib();
+}
+
+static void draw_crosshair_overlay(int win_w, int win_h)
+{
+    draw_player_crosshair(win_w,win_h,0);
+    if (g_gun2_on) draw_player_crosshair(win_w,win_h,1);
+    crosshair_drawing_player=0;
 }
 
 #if defined(HOTD4_DESKTOP_PAUSE)
@@ -1944,8 +1960,8 @@ static int pause_panel(PauseMenu *menu)
             input_gun_label(0,gun1,128);input_gun_label(1,gun2,128);
             if(input_pref_aa)swprintf(aa,80,L"Anti-Aliasing  < MSAA %dx >",input_pref_aa);
             else wcscpy(aa,L"Anti-Aliasing  < Off >");
-            swprintf(mouse_speed,80,L"Raw Mouse Speed  < %.2fx >", (double)input_mouse_speed);
-            swprintf(smoothing,80,L"Raw Mouse Smoothing  < %ls >", mouse_smoothing_names[input_mouse_smoothing]);
+            swprintf(mouse_speed,80,L"Mouse Speed  < %.2fx >", (double)input_mouse_speed);
+            swprintf(smoothing,80,L"Mouse Smoothing  < %ls >", mouse_smoothing_names[input_mouse_smoothing]);
             const wchar_t *input_items[]={mode,gun1,gun2,aa,mouse_speed,smoothing,L"Key Bindings...",L"Apply & Restart",L"Back"};
             const wchar_t **items = menu->settings_page == 2 ? input_items : menu->settings_page ? settings_items : main_items;
             for (int i = 0; i < menu_row_count(menu); ++i) {
@@ -1954,10 +1970,13 @@ static int pause_panel(PauseMenu *menu)
                 pause_fill(dc, 31, y, PANEL_W - 62, menu_height(menu),
                            selected ? RGB(116, 34, 39) : RGB(38, 38, 45));
                 if (selected) pause_fill(dc, 31, y, 3, menu_height(menu), RGB(245, 115, 93));
-                int available = menu->settings_page != 2 || (i != 4 && i != 5) || input_pref_mode == 1;
+                int available = menu->settings_page != 2 ||
+                    (i==1 ? input_pref_mode>=2 : i==2 ? input_pref_mode==2 :
+                     (i==4 || i==5) ? (input_pref_mode==1 || input_pref_mode==4) : 1);
                 pause_text(dc, item, 49, y + 9, items[i], available ? white : muted);
             }
             pause_text(dc, hint, 32, 515, menu->settings_page == 2 ?
+                       input_pref_mode>=3 ? L"P1: gun buttons. P2: mouse / shooting keys. Restart to apply." :
                        L"Mouse tuning is live. Restart to apply input mode or MSAA." : menu->settings_page ?
                        L"Arrow keys to adjust     Enter to select     Esc to go back" :
                        L"Arrow keys or mouse     Enter to select     Esc to resume", muted);

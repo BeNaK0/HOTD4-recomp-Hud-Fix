@@ -153,11 +153,12 @@
 
         <Viewbox Stretch="Uniform">
             <Grid Width="1280" Height="720" KeyboardNavigation.TabNavigation="Cycle">
-                <Border Name="InputGuide" Visibility="Collapsed" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="160,268,0,0" Width="440" Background="#ED101218" BorderBrush="#575962" BorderThickness="1" Padding="24">
+                <Border Name="InputGuide" Visibility="Collapsed" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="160,120,0,0" Width="440" Background="#ED101218" BorderBrush="#575962" BorderThickness="1" Padding="24">
                     <StackPanel>
                         <TextBlock Text="Lightgun Setup" FontSize="22" Margin="0,0,0,18"/>
                         <TextBlock Text="For Sinden, select Lightgun (Raw Input) and enable the white border in Settings. Start the Sinden software before playing." TextWrapping="Wrap" FontSize="17" Foreground="#D0C7C2" Margin="0,0,0,16"/>
-                        <TextBlock Text="Auto assigns absolute guns in first-use order. Select individual devices to keep a fixed player order. Player 2 is disabled by default. In mouse modes, shake the mouse back and forth to escape grabs; Reload works normally outside grabs." TextWrapping="Wrap" FontSize="17" Foreground="#D0C7C2" Margin="0,0,0,16"/>
+                        <TextBlock Name="CoopGuide" Text="For Parsec co-op, select the host's Sinden / DolphinBar as Player 1 Device. P2 uses the guest mouse and shooting keys. Default P2 Coin / Start: 6 / 2. Disable Exclusive Input in Parsec. Relative mode adds speed and smoothing. Select a DolphinBar explicitly; Auto only assigns absolute guns." TextWrapping="Wrap" FontSize="17" Foreground="#D0C7C2" Margin="0,0,0,16"/>
+                        <TextBlock Name="RawGuide" Text="Auto assigns absolute guns in first-use order. Select individual devices to keep a fixed player order. Player 2 is disabled by default. In single-mouse modes, shake the mouse back and forth to escape grabs; Reload works normally outside grabs." TextWrapping="Wrap" FontSize="17" Foreground="#D0C7C2" Margin="0,0,0,16"/>
                         <TextBlock Name="AaGuide" Text="Restart the game to apply input and AA changes. If the GPU cannot create the selected MSAA mode, the game falls back to Off." TextWrapping="Wrap" FontSize="17" Foreground="#D0C7C2"/>
                     </StackPanel>
                 </Border>
@@ -247,17 +248,17 @@
                         <ComboBox Height="36" Margin="0,4,0,6" Name="InputMode"/>
                         <Label Content="Player 1 Device" Foreground="#F0EFEB" FontSize="15" Padding="0" Target="{Binding ElementName=Gun1}"/>
                         <ComboBox Height="36" Margin="0,4,0,6" Name="Gun1"/>
-                        <Label Content="Player 2 Device" Foreground="#F0EFEB" FontSize="15" Padding="0" Target="{Binding ElementName=Gun2}"/>
+                        <Label Name="Gun2Label" Margin="0,0,0,6" Content="Player 2 Device" Foreground="#F0EFEB" FontSize="15" Padding="0" Target="{Binding ElementName=Gun2}"/>
                         <ComboBox Height="36" Margin="0,4,0,6" Name="Gun2"/>
                         <Label Content="Anti-Aliasing" Foreground="#F0EFEB" FontSize="15" Padding="0" Target="{Binding ElementName=AntiAliasing}"/>
                         <ComboBox Height="36" Margin="0,4,0,8" Name="AntiAliasing"/>
                         <Grid Margin="0,0,0,6"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
                             <StackPanel Margin="0,0,5,0">
-                                <Label Content="Raw Mouse Speed" Foreground="#F0EFEB" FontSize="15" Padding="0" Target="{Binding ElementName=MouseSpeed}"/>
+                                <Label Content="Mouse Speed" Foreground="#F0EFEB" FontSize="15" Padding="0" Target="{Binding ElementName=MouseSpeed}"/>
                                 <ComboBox Height="36" Margin="0,4,0,0" Name="MouseSpeed"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1">
-                                <Label Content="Raw Mouse Smoothing" Foreground="#F0EFEB" FontSize="15" Padding="0" Target="{Binding ElementName=MouseSmoothing}"/>
+                                <Label Content="Mouse Smoothing" Foreground="#F0EFEB" FontSize="15" Padding="0" Target="{Binding ElementName=MouseSmoothing}"/>
                                 <ComboBox Height="36" Margin="0,4,0,0" Name="MouseSmoothing"/>
                             </StackPanel>
                         </Grid>
@@ -411,7 +412,7 @@
 
     $controls = @{}
     foreach ($name in 'MainPage','ChapterPage','OptionsPage','Arcade','Chapters','Options','Quit','ChapterList',
-            'BindingsPage','BindingsOpen','BindingsList','BindingsStatus','SaveBindings','BindingsBack','ResetBindings','CancelBinding','ControlSummary','ControlSummaryList','ChapterHelp','AaGuide','Achievements','ModelViewer','AchievementsPage','AchievementProgress','AchievementList','AchievementScroll','AchievementsBack','AchievementTotal','AchievementPercent','AchievementProgressFill','AchievementEndings','AchievementBronzeIcon','AchievementBronzeCount','AchievementSilverIcon','AchievementSilverCount','AchievementGoldIcon','AchievementGoldCount','AchievementAll','AchievementUnlocked','AchievementLocked','AchievementEmptyPanel','AchievementEmpty','AchievementEmptyHint','AchievementEmptyStar','InputGuide','InputPage','InputOptions','InputMode','Gun1','Gun2','AntiAliasing','MouseSpeed','MouseSmoothing','SaveInput','InputBack','ChapterBack','OptionsBack','SaveOptions','Resolution','DisplayMode','Hud','CrosshairStyle','CrosshairSize','CrosshairColor','CrosshairPreview','CrosshairPreviewImage','CrosshairPreviewLabel','Sinden','SindenWidth','SindenFrame','SindenInner','Hint') {
+            'BindingsPage','BindingsOpen','BindingsList','BindingsStatus','SaveBindings','BindingsBack','ResetBindings','CancelBinding','ControlSummary','ControlSummaryList','ChapterHelp','AaGuide','Achievements','ModelViewer','AchievementsPage','AchievementProgress','AchievementList','AchievementScroll','AchievementsBack','AchievementTotal','AchievementPercent','AchievementProgressFill','AchievementEndings','AchievementBronzeIcon','AchievementBronzeCount','AchievementSilverIcon','AchievementSilverCount','AchievementGoldIcon','AchievementGoldCount','AchievementAll','AchievementUnlocked','AchievementLocked','AchievementEmptyPanel','AchievementEmpty','AchievementEmptyHint','AchievementEmptyStar','InputGuide','CoopGuide','RawGuide','InputPage','InputOptions','InputMode','Gun1','Gun2','Gun2Label','AntiAliasing','MouseSpeed','MouseSmoothing','SaveInput','InputBack','ChapterBack','OptionsBack','SaveOptions','Resolution','DisplayMode','Hud','CrosshairStyle','CrosshairSize','CrosshairColor','CrosshairPreview','CrosshairPreviewImage','CrosshairPreviewLabel','Sinden','SindenWidth','SindenFrame','SindenInner','Hint') {
         $controls[$name] = $window.FindName($name)
     }
 
@@ -514,7 +515,7 @@
     $inputDefaults = @{ InputMode='1'; Gun1='auto'; Gun2='disabled'; AntiAliasing='4'; MouseSpeed='1.00'; MouseSmoothing='0' }
     $inputState = $inputDefaults.Clone()
     $choices = @{
-        InputMode = [ordered]@{'0'='Mouse (Absolute)'; '1'='Mouse (Raw Relative)'; '2'='Lightgun (Raw Input)'}
+        InputMode = [ordered]@{'0'='Mouse (Absolute)'; '1'='Mouse (Raw Relative)'; '2'='Lightgun (Raw Input)'; '3'='Co-op: Gun P1 + Mouse P2'; '4'='Co-op: Gun P1 + Mouse P2 (Relative)'}
         MouseSpeed = [ordered]@{}
         MouseSmoothing = [ordered]@{'0'='Off'; '1'='Low'; '2'='High'}
         AntiAliasing = [ordered]@{'0'='Off'; '2'='MSAA 2x'; '4'='MSAA 4x'; '8'='MSAA 8x'}
@@ -553,16 +554,21 @@
         }
     }
     $updateDeviceFields = {
-        $enabled=$null -ne $controls.InputMode.SelectedItem -and $controls.InputMode.SelectedItem.Tag -eq '2'
-        $controls.Gun1.IsEnabled=$enabled;$controls.Gun2.IsEnabled=$enabled
-        $rawMouse=$null -ne $controls.InputMode.SelectedItem -and $controls.InputMode.SelectedItem.Tag -eq '1'
+        $mode=if($null -ne $controls.InputMode.SelectedItem){[string]$controls.InputMode.SelectedItem.Tag}else{'1'}
+        $controls.Gun1.IsEnabled=$mode -in '2','3','4'
+        $controls.Gun2.IsEnabled=$mode -eq '2'
+        $controls.Gun2.Visibility=if($mode -in '3','4'){'Collapsed'}else{'Visible'}
+        $controls.Gun2Label.Content=if($mode -in '3','4'){'Player 2: Parsec / remote mouse (automatic)'}else{'Player 2 Device'}
+        $controls.CoopGuide.Visibility=if($mode -in '3','4'){'Visible'}else{'Collapsed'}
+        $controls.RawGuide.Visibility=if($mode -in '3','4'){'Collapsed'}else{'Visible'}
+        $rawMouse=$mode -in '1','4'
         $controls.MouseSpeed.IsEnabled=$rawMouse;$controls.MouseSmoothing.IsEnabled=$rawMouse
     }
     $controls.InputMode.Add_SelectionChanged({ & $updateDeviceFields })
     & $updateDeviceFields
 
     . (Join-Path $RecompDir 'hotd4-controls.ps1')
-    $bindingState=@{Data=(Read-Hotd4Controls $RecompDir);Working=$null;Capture=-1;Buttons=@{};Status='Keyboard keys work in every input mode. Mouse bindings apply to mouse modes; raw lightgun buttons use the selected device.'}
+    $bindingState=@{Data=(Read-Hotd4Controls $RecompDir);Working=$null;Capture=-1;Buttons=@{};Status='In co-op modes, Shoot / Reload / Grenade keys and remote mouse buttons control P2; the host gun controls P1. Coin / Start remain separate. Raw gun buttons use the selected device.'}
     $catalog=@(Get-Hotd4ControlCatalog)
     $refreshBindings={
         $controls.ControlSummaryList.Children.Clear()
@@ -591,7 +597,7 @@
     }}
     $openBindings={
         $bindingState.Data=Read-Hotd4Controls $RecompDir;$bindingState.Working=[ordered]@{};foreach($row in $catalog){$bindingState.Working[$row[0]]=$bindingState.Data.Values[$row[0]]}
-        $bindingState.Capture=-1;$bindingState.Status='Keyboard keys work in every input mode. Mouse bindings apply to mouse modes; raw lightgun buttons use the selected device.'
+        $bindingState.Capture=-1;$bindingState.Status='In co-op modes, Shoot / Reload / Grenade keys and remote mouse buttons control P2; the host gun controls P1. Coin / Start remain separate. Raw gun buttons use the selected device.'
         & $refreshBindings;& $showPage 'BindingsPage'
     }
     $controls.BindingsOpen.Add_Click({& $openBindings})
