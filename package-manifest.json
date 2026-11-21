@@ -3,15 +3,15 @@
   "files": [
     {
       "path": "BUILD-VERIFICATION.md",
-      "sha256": "c6b1a07abef87b8bfd5ae43a4598583d7fe40baa2bf02add9a5abd6e26fe0e73"
+      "sha256": "ef018f51ece8dd954fd63111c254614f400abbb08daa0fbfd0d4164486c7401b"
     },
     {
       "path": "README.md",
-      "sha256": "9cfdc161c5673fb2eef4d9042d385b9a59ffa3079986558f7863a90eb2e92a07"
+      "sha256": "80c950b8314f831e082eb6fe6553a2d9e763c048e7693b327c904918df6bd246"
     },
     {
       "path": "RELEASE-NOTES.md",
-      "sha256": "ed233bcbb67aa5cf00092a95fc766b14dc99ea02535214580aadc33d5be2811c"
+      "sha256": "e7765b860de65fcc567339c95ccc3327cfa82c620d6cd542663ecc7dffeafd37"
     },
     {
       "path": "Setup.cmd",
@@ -19,7 +19,7 @@
     },
     {
       "path": "setup.ps1",
-      "sha256": "d3e297ebd0709c8aae0c9e1896790d751b1dc7d9337bb0fa9c6d31c4f7ac903e"
+      "sha256": "8ffffb3fe3f501f84ec4863d3dc916f757b141075928a1a504866d6c7f59d09f"
     },
     {
       "path": "source/CMakeLists.txt",
@@ -540,6 +540,10 @@
     {
       "path": "tools/menu_background.py",
       "sha256": "42d12f0a27b8b968092a5eaf29e71e72f9927c278bb1a20b273da247b369b110"
+    },
+    {
+      "path": "tools/python_deps.py",
+      "sha256": "8bacd0037f5f310467c69ff75adb04da24a3de35d935844ea11a0a8203f1f3c2"
     },
     {
       "path": "tools/windows-launcher.cs",

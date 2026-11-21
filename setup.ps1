@@ -124,7 +124,7 @@ try {
         # A core MSYS2 update can close this first shell; always reopen and
         # require the second complete update and dependency install to succeed.
         & $bash '--login' '-c' 'pacman -Syu --noconfirm'
-        Invoke-Checked $bash @('--login','-c','pacman -Syu --noconfirm && pacman -S --needed --noconfirm mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja mingw-w64-x86_64-python mingw-w64-x86_64-python-capstone mingw-w64-x86_64-python-pyelftools mingw-w64-x86_64-SDL2 mingw-w64-x86_64-glew mingw-w64-x86_64-openal mingw-w64-x86_64-zlib')
+        Invoke-Checked $bash @('--login','-c','pacman -Syu --noconfirm && pacman -S --needed --noconfirm mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja mingw-w64-x86_64-python mingw-w64-x86_64-python-capstone mingw-w64-x86_64-SDL2 mingw-w64-x86_64-glew mingw-w64-x86_64-openal mingw-w64-x86_64-zlib')
         Set-Content -LiteralPath $ready -Value '1'
     }
     if($OpenXR -and !(Test-Path -LiteralPath (Join-Path $ToolchainPath 'mingw64\lib\cmake\openxr\OpenXRConfig.cmake'))){
@@ -133,6 +133,17 @@ try {
         Invoke-Checked $bash @('--login','-c','pacman -S --needed --noconfirm mingw-w64-x86_64-openxr-sdk')
     }
     $python=Join-Path $ToolchainPath 'mingw64\bin\python.exe'
+    # The pure-Python ELF reader is no longer published in MINGW64. Keep a
+    # hash-verified copy in this isolated toolchain instead of changing pip
+    # policy or requiring a separately installed Python.
+    $pythonDeps=Join-Path $ToolchainPath 'hotd4-python'
+    $pythonModules=Join-Path $pythonDeps 'pyelftools-0.33'
+    $env:PYTHONPATH=if($env:PYTHONPATH){$pythonModules+[IO.Path]::PathSeparator+$env:PYTHONPATH}else{$pythonModules}
+    $dependencyArgs=@((Join-Path $PSScriptRoot 'tools\python_deps.py'),'--cache',$pythonDeps)
+    if($NoDownload){$dependencyArgs+='--no-download'}
+    Invoke-Checked $python $dependencyArgs
+    Invoke-Checked $python @('-c','import capstone; from elftools.elf.elffile import ELFFile')
+    Write-Host 'Python build dependencies verified.'
     Write-Host 'Generating and compiling HOTD4 locally. This can take several minutes...'
     $buildArgs = @((Join-Path $PSScriptRoot 'tools\build.py'),'--dump',$dump,'--output',$InstallDir,'--toolchain',$ToolchainPath,'--jobs',[string]$Jobs)
     if($OpenXR){$buildArgs += '--openxr'}

@@ -1,6 +1,6 @@
 # HOTD4 Local Builder
 
-Download and extract **HOTD4-Local-Builder-v1.3.3.zip** from the [v1.3.3 release](https://github.com/davidptrssvea/HOTD4-recomp/releases/tag/v1.3.3). Run **Setup.cmd**, select your own extracted arcade dump, then wait for the local build. Open **HOTD4-PC\Play HOTD4.exe** for the graphical menu or **Model Viewer.exe** to go directly to the viewer. All menus are in English.
+Download and extract **HOTD4-Local-Builder-v1.3.4.zip** from the [v1.3.4 release](https://github.com/davidptrssvea/HOTD4-recomp/releases/tag/v1.3.4). Run **Setup.cmd**, select your own extracted arcade dump, then wait for the local build. Open **HOTD4-PC\Play HOTD4.exe** for the graphical menu or **Model Viewer.exe** to go directly to the viewer. All menus are in English.
 
 To update, extract the new builder and run `Setup.cmd -InstallDir "C:\Path\To\HOTD4-PC"`, using your existing installation path. Select the same arcade dump when prompted. This keeps your settings, cabinet saves and trophies.
 
@@ -9,6 +9,8 @@ To update, extract the new builder and run `Setup.cmd -InstallDir "C:\Path\To\HO
 **What can I delete after installing?** You can delete the downloaded ZIP, the extracted builder files and the build-tool cache at `%LOCALAPPDATA%\HOTD4-Builder`. If you used the default install path, `HOTD4-PC` is inside the extracted builder folder. Leave that subfolder in place when cleaning up. The next Setup will download the build tools again if you clear the cache.
 
 **What should I keep for future updates?** Keep your original extracted arcade dump and your installed `HOTD4-PC` folder. Your settings, cabinet saves and trophies are stored inside `HOTD4-PC\HOTD4_Recomp`. Point the new builder at the existing installation with `-InstallDir` and select the same dump when prompted.
+
+**Setup reports `target not found: mingw-w64-x86_64-python-pyelftools`.** Use v1.3.4 or newer. MSYS2 removed that dependency from its active MINGW64 repository; this installer obtains the pinned ELF reader automatically. Extract the new builder, run `Setup.cmd` with the same dump, and select your existing install folder if updating. No manual script edits or separate Python installation are needed.
 
 ## Supported arcade dump
 
@@ -32,14 +34,14 @@ If `hod4M.elf` has an unsupported hash, Setup checks for `hod4Ms_HD.elf` in the 
 
 - **Operating system:** Windows 10 or Windows 11 on an x64 (Intel or AMD) PC, with Windows PowerShell 5.1 and the Windows .NET Framework 4.x compiler available. The v1.3.1 clean setup was verified on Windows 11 x64. An earlier installer was verified on Windows 10 Enterprise LTSC 2021 x64 (build 19044.1288).
 - **Disk and permissions:** Allow around **10 GB of free space** beyond your existing dump for the toolchain, build files and installed copy of the game. Use writable folders for the extracted builder and game installation. The toolchain uses `%LOCALAPPDATA%\HOTD4-Builder\msys64` by default, so allow space there as well if the builder is on another drive. Setup can run under a regular user account.
-- **Internet:** Required for the first setup to download MSYS2 and its build dependencies. Setup installs its own compiler, Python and runtime dependencies. A separate xz tool is unnecessary.
+- **Internet:** Required for the first setup to download MSYS2 and its build dependencies. Setup installs its own compiler, Python and runtime dependencies. A separate xz tool is unnecessary. The pure-Python ELF reader is downloaded from PyPI/files.pythonhosted.org with a pinned SHA-256 and kept inside the HOTD4 build-tool cache.
 - **Graphics:** Desktop gameplay and the optional menu background use a GPU driver with desktop OpenGL compatibility support. The desktop build requests an OpenGL 2.1 context with the extensions it uses for rendering. The installer can compile on a VM without working 3D graphics. No minimum CPU, RAM or GPU for gameplay has been benchmarked.
 - **Optional OpenXR VR:** A compatible PC VR headset, tracked controllers, an active OpenXR runtime with OpenGL support, and a driver that can create an OpenGL 4.3 compatibility context.
 
 ## What happens on your PC
 
 1. Verify this package and your ELF.
-2. Download the official self-extracting MSYS2 archive, verify its pinned SHA-256, and install signed build dependencies using pacman. The archive extracts without a system xz utility.
+2. Download the official self-extracting MSYS2 archive, verify its pinned SHA-256, and install signed compiler/runtime dependencies using pacman. Install the pure-Python ELF reader in the isolated cache from a SHA-256-verified PyPI wheel, without pip or changes to system Python. The archive extracts without a system xz utility.
 3. Prepare the HD ELF from your copy, lift it to C locally, generate OpenGL bindings, and compile the Windows executable.
 4. Copy your dump into the chosen installation folder and add the launcher, runtime DLLs, menus and original project artwork. The source dump stays unchanged.
 5. Run the locally built game in a hidden window with isolated temporary settings, muted audio and fresh temporary cabinet state. Render the Chapter 1 zombie scene at 1920x1080 and save it locally as the menu background. This usually adds about one minute. Your controls, trophies and cabinet saves are untouched.

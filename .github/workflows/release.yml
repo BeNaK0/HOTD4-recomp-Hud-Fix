@@ -18,6 +18,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Test release publishing
         run: python3 .release/test_publish.py -v
+      - name: Test isolated Python dependency setup
+        run: python3 .release/test_python_deps.py -v
       - name: Verify package and publish
         env:
           GH_TOKEN: ${{ github.token }}
