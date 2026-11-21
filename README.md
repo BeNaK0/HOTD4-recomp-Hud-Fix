@@ -1,6 +1,6 @@
 # HOTD4 Local Builder
 
-Download and extract **HOTD4-Local-Builder-v1.3.4.zip** from the [v1.3.4 release](https://github.com/davidptrssvea/HOTD4-recomp/releases/tag/v1.3.4). Run **Setup.cmd**, select your own extracted arcade dump, then wait for the local build. Open **HOTD4-PC\Play HOTD4.exe** for the graphical menu or **Model Viewer.exe** to go directly to the viewer. All menus are in English.
+Download and extract **HOTD4-Local-Builder-v1.3.5.zip** from the [v1.3.5 release](https://github.com/davidptrssvea/HOTD4-recomp/releases/tag/v1.3.5). Run **Setup.cmd**, select your own extracted arcade dump, then wait for the local build. Open **HOTD4-PC\Play HOTD4.exe** for the graphical menu or **Model Viewer.exe** to go directly to the viewer. All menus are in English.
 
 To update, extract the new builder and run `Setup.cmd -InstallDir "C:\Path\To\HOTD4-PC"`, using your existing installation path. Select the same arcade dump when prompted. This keeps your settings, cabinet saves and trophies.
 
@@ -84,6 +84,8 @@ Open **Settings > Key Bindings** to change Add Coin, Start, Shoot, Reload / Shak
 The start menu displays all current controls, including Add Coin and Start. The chapter-selection hint also follows the selected Restart key. In the native pause menu, open **Settings > Input & Anti-Aliasing > Key Bindings**; changes there apply and save immediately. Esc goes back inside menus or cancels a pending capture; use Cancel when binding Esc to Pause.
 
 In **Settings > Input & Anti-Aliasing**, select **Mouse (Raw Relative)** to adjust **Raw Mouse Speed** (0.50x to 8.00x) and **Raw Mouse Smoothing** (Off, Low, High). Both settings update live from the pause menu.
+
+In either mouse input mode, shake the mouse back and forth to escape zombie grabs and other struggle events. A straight sweep or small jitter does not count. During a grab, the Reload and Fire Mode buttons do not substitute for shaking. Outside grabs, Reload works normally. Physical lightgun controls and OpenXR controller gestures keep their existing behavior.
 
 Profiles are stored locally in `HOTD4_Recomp/controls-profile.txt` and survive restarts and reinstalls. Once a custom profile is saved, legacy coin/start aliases and Alt+Enter are disabled so that the overview lists the actual bindings. Keyboard bindings work in all input modes. In Raw Lightgun mode, the selected lightgun's trigger/buttons keep their direct device mapping; mouse bindings apply to mouse input modes. Menu navigation remains arrow keys, Enter and Esc.
 

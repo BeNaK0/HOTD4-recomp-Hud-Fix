@@ -3,15 +3,15 @@
   "files": [
     {
       "path": "BUILD-VERIFICATION.md",
-      "sha256": "ef018f51ece8dd954fd63111c254614f400abbb08daa0fbfd0d4164486c7401b"
+      "sha256": "be4ada8fec9e679e1d963cc3b79a0fd5f1e4ce4a7cee41d2401b36899fd66ebf"
     },
     {
       "path": "README.md",
-      "sha256": "80c950b8314f831e082eb6fe6553a2d9e763c048e7693b327c904918df6bd246"
+      "sha256": "901d446ee2af72a2bdb68e473ca6dce9a56184be37086123be7dd938146366b4"
     },
     {
       "path": "RELEASE-NOTES.md",
-      "sha256": "e7765b860de65fcc567339c95ccc3327cfa82c620d6cd542663ecc7dffeafd37"
+      "sha256": "1b225d24ee391d6014f4ddd737c386a263e75aae04a7642dd722658a319f42e3"
     },
     {
       "path": "Setup.cmd",
@@ -39,7 +39,7 @@
     },
     {
       "path": "source/games/hotd4/src/host.c",
-      "sha256": "5232c46c57d32f5247f01278d644424aaa39af3a01d40fc8aa45a495e6518a9e"
+      "sha256": "361a9e07f78d3becf669afc80e3a516a838d169c173f2b20f970a43e95a4f878"
     },
     {
       "path": "source/games/hotd4/src/hotd4_hd_textures.c",
@@ -235,7 +235,7 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/host_sdl.c",
-      "sha256": "45a3786405a39bc995f666f629f9cb61119f09a055e409914f244b3102363475"
+      "sha256": "fc7c1d5b24847b5a6378274bff20a8cd96b510b3d4caa658cbc95a90cea70eb8"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/host_settings.c",
@@ -271,7 +271,11 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/lindbergh_rt.h",
-      "sha256": "ca746a89d54796ec2c77d096b8f0a28794ba01a9dcb22e4d57b7e5fd385832bd"
+      "sha256": "5e190ebd9287e67ca1c7d09ab0bb0ee111040029cf6c7f5f00343e524155e9b9"
+    },
+    {
+      "path": "source/lindberghrecomp/src/runtime/mouse_shake.h",
+      "sha256": "30047f678eaffc3e3b4c5c859dcf3a4ecb86e51acafdc5f9fdac008fac8b6508"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/nn_culling.c",
@@ -1463,7 +1467,7 @@
     },
     {
       "path": "ui/hotd4-startmenu.ps1",
-      "sha256": "f11f1a49db1f35f8c26bd20aecaa649661b24622acc5fb8467c59b969b717d0f"
+      "sha256": "fe71f1922561b22ac23be70dce458ce14710e8bc98af1ec446dd95c4b059e1be"
     },
     {
       "path": "ui/lindbergh.ini",

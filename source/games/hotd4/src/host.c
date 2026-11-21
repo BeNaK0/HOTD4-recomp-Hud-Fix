@@ -53,12 +53,35 @@ static void h_gun_pos(CPU *c)
     c->eax = on;
 }
 
+#if defined(_WIN64) && !defined(LINDBERGH_OPENXR) && !defined(LINDBERGH_VULKAN)
+/* Rev A CPlayerMgr::GetCatchType checks these three grab/struggle flags.
+ * Special has a different manager layout; never reuse its offsets here. */
+static int mouse_grab_shake(void)
+{
+    uint32_t manager = rd32(0x0a7117a8u);
+    int caught = manager && (rd32(manager + 0x54) || rd32(manager + 0x74) || rd32(manager + 0x7c));
+    int shake = host_mouse_shake(caught);
+    return caught ? shake : -1;
+}
+
+static unsigned mouse_grab_buttons(unsigned buttons)
+{
+    int shake = mouse_grab_shake();
+    if (shake >= 0) {
+        buttons &= ~(CAB_P1_RELOAD | CAB_P1_FIREMODE);
+        if (shake) buttons |= CAB_P1_RELOAD;
+    }
+    return buttons;
+}
+#endif
+
 /* The reload. A House of the Dead 4 gun has an accelerometer and the game
  * reloads when it is shaken. GetAdjstGunAccel(&a, &b, rawa, rawb, adjust)
  * gives the two axes as 0..1 past the calibrated dead zone, and anything over
- * zero is a shake. A mouse cannot shake, so the cabinet's reload input (the
- * right button held, or the pointer leaving the window, which is a single
- * frame) shakes the gun hard for a quarter of a second. Register arguments:
+ * zero is a shake. Outside grabs, the cabinet's reload input (the right
+ * button or pointer leaving the window) shakes it for a quarter second.
+ * During desktop mouse grabs, only actual back-and-forth motion contributes;
+ * old reload pulses must not carry over into a new grab. Register arguments:
  * eax = &a, edx = &b. */
 static void h_gun_accel(CPU *c)
 {
@@ -67,9 +90,19 @@ static void h_gun_accel(CPU *c)
     uint32_t adj = rd32(c->esp + 16);
     int pl = g_gun_adjust[1] && adj == g_gun_adjust[1] + 12;
     static unsigned left[2];
-    if (host_cabinet_buttons() & (pl ? CAB_P2_RELOAD : CAB_P1_RELOAD)) left[pl] = 15;
-    float v = left[pl] ? 1.0f : 0.0f;
-    if (left[pl]) left[pl]--;
+    int shake = -1;
+#if defined(_WIN64) && !defined(LINDBERGH_OPENXR) && !defined(LINDBERGH_VULKAN)
+    if (!pl) shake = mouse_grab_shake();
+#endif
+    float v;
+    if (shake >= 0) {
+        left[pl] = 0;
+        v = shake ? 1.0f : 0.0f;
+    } else {
+        if (host_cabinet_buttons() & (pl ? CAB_P2_RELOAD : CAB_P1_RELOAD)) left[pl] = 15;
+        v = left[pl] ? 1.0f : 0.0f;
+        if (left[pl]) left[pl]--;
+    }
     uint32_t bits; memcpy(&bits, &v, 4);
     wr32(c->eax, bits);
     wr32(c->edx, bits);
@@ -741,6 +774,10 @@ int main(int argc, char **argv)
      * anything this game needs beyond that gets bound on top, and whatever is
      * still missing aborts naming itself on first call. */
     hle_register_all();
+#if defined(_WIN64) && !defined(LINDBERGH_OPENXR) && !defined(LINDBERGH_VULKAN)
+    host_cabinet_button_filter(mouse_grab_buttons);
+    fprintf(stderr, "[hotd4] mouse grabs: shake the mouse back and forth to escape\n");
+#endif
 #if defined(_WIN32) && !defined(LINDBERGH_OPENXR)
     install_cutscene_pacing();
     install_practice();

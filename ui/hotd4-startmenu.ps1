@@ -157,7 +157,7 @@
                     <StackPanel>
                         <TextBlock Text="Lightgun Setup" FontSize="22" Margin="0,0,0,18"/>
                         <TextBlock Text="For Sinden, select Lightgun (Raw Input) and enable the white border in Settings. Start the Sinden software before playing." TextWrapping="Wrap" FontSize="17" Foreground="#D0C7C2" Margin="0,0,0,16"/>
-                        <TextBlock Text="Auto assigns absolute guns in first-use order. Select individual devices to keep a fixed player order. Player 2 is disabled by default." TextWrapping="Wrap" FontSize="17" Foreground="#D0C7C2" Margin="0,0,0,16"/>
+                        <TextBlock Text="Auto assigns absolute guns in first-use order. Select individual devices to keep a fixed player order. Player 2 is disabled by default. In mouse modes, shake the mouse back and forth to escape grabs; Reload works normally outside grabs." TextWrapping="Wrap" FontSize="17" Foreground="#D0C7C2" Margin="0,0,0,16"/>
                         <TextBlock Name="AaGuide" Text="Restart the game to apply input and AA changes. If the GPU cannot create the selected MSAA mode, the game falls back to Off." TextWrapping="Wrap" FontSize="17" Foreground="#D0C7C2"/>
                     </StackPanel>
                 </Border>

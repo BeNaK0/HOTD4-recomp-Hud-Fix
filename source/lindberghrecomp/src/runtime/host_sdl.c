@@ -1,5 +1,6 @@
 #include "frame_timing.h"
 #include <pthread.h>
+#include "mouse_shake.h"
 /*
  * host_sdl.c - the host window on a POSIX host, through SDL2.
  *
@@ -283,6 +284,32 @@ int host_hotd4_start_binding(void){return hc_get(ACT_START1);}
 #define input_active_mode 0
 #define raw_held 0u
 #endif
+
+static pthread_mutex_t g_mouse_shake_mutex = PTHREAD_MUTEX_INITIALIZER;
+static MouseShake g_mouse_shake;
+static int g_mouse_shake_active;
+static unsigned (*g_cab_button_filter)(unsigned);
+void host_cabinet_button_filter(unsigned (*filter)(unsigned)) { g_cab_button_filter = filter; }
+
+int host_mouse_shake(int active)
+{
+    pthread_mutex_lock(&g_mouse_shake_mutex);
+    int pulse;
+    if (input_active_mode == 2) {
+        g_mouse_shake_active = 0;
+        mouse_shake_reset(&g_mouse_shake);
+        pulse = -1;
+    } else {
+#ifdef HOTD4_DESKTOP_PAUSE
+        if (raw_suspended) active = 0;
+#endif
+        if (!active || !g_mouse_shake_active) mouse_shake_reset(&g_mouse_shake);
+        g_mouse_shake_active = active != 0;
+        pulse = active && mouse_shake_pulse(&g_mouse_shake, SDL_GetTicks());
+    }
+    pthread_mutex_unlock(&g_mouse_shake_mutex);
+    return pulse;
+}
 
 int host_gun2_state(int *x, int *y)
 {
@@ -702,6 +729,7 @@ void host_cabinet_input(CabinetInput *out)
     g_cab.buttons = g_auto | (g_scripted ? 0 : g_held | g_pad_held | raw_held);
     *out = g_cab;
     if (!g_scripted) out->buttons |= g_cab_latch;
+    if (g_cab_button_filter) out->buttons = g_cab_button_filter(out->buttons);
     {   /* What the board reports, whenever it changes - and the gun, at most
          * once a second - so a report of "nothing registers" can be checked
          * against what the game was actually given. */
@@ -721,7 +749,8 @@ void host_cabinet_input(CabinetInput *out)
  * for a game hook that needs one switch (a gun's reload) between reads. */
 unsigned host_cabinet_buttons(void)
 {
-    return g_auto | (g_scripted ? 0 : g_held | g_pad_held | raw_held | g_cab_latch);
+    unsigned buttons = g_auto | (g_scripted ? 0 : g_held | g_pad_held | raw_held | g_cab_latch);
+    return g_cab_button_filter ? g_cab_button_filter(buttons) : buttons;
 }
 
 /* A headset's controllers (host_xr.c): where the gun points, in the game's
@@ -894,6 +923,7 @@ static void pump(void)
                 }
             }
             if (e.window.event == SDL_WINDOWEVENT_FOCUS_LOST) {
+                host_mouse_shake(0);
                 fprintf(stderr, "[window] focus lost\n");
                 if (settings()->raw_mouse && g_relative_mode) {
                     SDL_SetRelativeMouseMode(SDL_FALSE);
@@ -910,6 +940,10 @@ static void pump(void)
             break;
         case SDL_MOUSEMOTION:
             if (input_active_mode == 2) break;
+            pthread_mutex_lock(&g_mouse_shake_mutex);
+            if (g_mouse_shake_active)
+                mouse_shake_motion(&g_mouse_shake, e.motion.xrel, e.motion.yrel, SDL_GetTicks());
+            pthread_mutex_unlock(&g_mouse_shake_mutex);
             if (settings()->raw_mouse && g_relative_mode) {
                 float sens = settings()->mouse_sens > 0.0f ? settings()->mouse_sens : 1.0f;
 #ifdef HOTD4_DESKTOP_PAUSE

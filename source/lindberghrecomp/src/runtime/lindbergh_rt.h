@@ -282,6 +282,10 @@ typedef struct {
 void       guest_install_thread_handlers(void);
 void       host_cabinet_input(CabinetInput *out);
 unsigned   host_cabinet_buttons(void);
+/* Game-specific filtering applies consistently to board reads and direct reads. */
+void       host_cabinet_button_filter(unsigned (*filter)(unsigned));
+/* 0/1 mouse shake pulse while active; -1 preserves physical lightgun inputs. */
+int        host_mouse_shake(int active);
 void       host_cabinet_switches_read(void);
 void       host_audio_toggle_mute(void);
 void       host_audio_pause_devices(int pause);
