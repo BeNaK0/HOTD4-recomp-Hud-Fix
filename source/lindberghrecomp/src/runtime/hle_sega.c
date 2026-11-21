@@ -21,6 +21,8 @@
 #include <time.h>
 #include <string.h>
 #include <zlib.h>
+#include <pthread.h>
+#include "atomic_file.h"
 
 #include "lindbergh_rt.h"
 #if !defined(_WIN32)
@@ -361,6 +363,7 @@ static void h_serial_id(CPU *c)
 static unsigned char g_sram[SRAM_SIZE];
 static unsigned char g_eeprom[EEPROM_SIZE];
 static int           g_nvram_loaded;
+static pthread_mutex_t g_nvram_mutex=PTHREAD_MUTEX_INITIALIZER;
 
 static const char *nvram_path(void)
 {
@@ -419,11 +422,15 @@ static void nvram_read(void)
 
 static void nvram_save(void)
 {
-    FILE *f = fopen(nvram_path(), "wb");
-    if (!f) return;
-    fwrite(g_sram, 1, sizeof g_sram, f);
-    fwrite(g_eeprom, 1, sizeof g_eeprom, f);
-    fclose(f);
+    LgAtomicFile file;
+    if (!lg_atomic_file_begin(&file,nvram_path())) {
+        fprintf(stderr,"[sega] cannot open cabinet save temporary file\n");return;
+    }
+    if (fwrite(g_sram,1,sizeof g_sram,file.stream)!=sizeof g_sram ||
+        fwrite(g_eeprom,1,sizeof g_eeprom,file.stream)!=sizeof g_eeprom) {
+        lg_atomic_file_abort(&file);fprintf(stderr,"[sega] cabinet save write failed\n");return;
+    }
+    if (!lg_atomic_file_commit(&file)) fprintf(stderr,"[sega] cabinet save replacement failed\n");
 }
 
 /* The wrappers answer 0, or -12 the way the real ones do when the base board
@@ -433,11 +440,13 @@ static void nvram_save(void)
 static int nvram_copy(unsigned char *store, unsigned size, uint32_t guest,
                       uint32_t addr, uint32_t len, int writing)
 {
-    nvram_load();
     if (!guest || addr > size || len > size - addr) return AM_BACKUP_FAIL;
+    pthread_mutex_lock(&g_nvram_mutex);
+    nvram_load();
     void *g = (void *)GP(guest);
     if (writing) { memcpy(store + addr, g, len); nvram_save(); }
     else           memcpy(g, store + addr, len);
+    pthread_mutex_unlock(&g_nvram_mutex);
     return AM_OK;
 }
 
@@ -869,7 +878,8 @@ void hle_register_sega(void)
     {
         const char *g = getenv("LINDBERGH_GOD");
         if (g && *g == '1' && (guest_override("_Z26check_player_damage_enablei", h_no_damage) |
-                               guest_override("_Z21PlMgr_CanDamagePlayeri", h_no_damage)))  /* The House of the Dead 4 */
+                               guest_override("_Z21PlMgr_CanDamagePlayeri", h_no_damage) |
+                               guest_override("_ZN7CPlayer15CanDamagePlayerEv", h_no_damage)))  /* The House of the Dead 4 */
             fprintf(stderr, "[sega] the player takes no damage (LINDBERGH_GOD)\n");
     }
     if (widen_culling()) fprintf(stderr, "[sega] model culling widened to %.0f degrees\n", g_cull_fov);

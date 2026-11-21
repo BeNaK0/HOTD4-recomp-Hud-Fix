@@ -38,6 +38,10 @@ jobs:
         run: |
           cc -std=c11 -Wall -Wextra -Werror .release/test_xr_capture.c source/lindberghrecomp/src/runtime/xr_controls.c -o /tmp/hotd4-xr-capture-test
           /tmp/hotd4-xr-capture-test
+      - name: Test interruption-safe cabinet saves
+        run: |
+          cc -std=c11 -Wall -Wextra -Werror .release/test_atomic_file.c -o /tmp/hotd4-atomic-save-test
+          /tmp/hotd4-atomic-save-test /tmp/hotd4-atomic-cabinet.bin
       - name: Verify package and publish
         env:
           GH_TOKEN: ${{ github.token }}

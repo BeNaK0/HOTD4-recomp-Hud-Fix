@@ -3,7 +3,7 @@
   "files": [
     {
       "path": "BUILD-VERIFICATION.md",
-      "sha256": "a2748833030eb8ef8319d13c2d6e406c5d2dd75ee695134bb36a83534dc00f7f"
+      "sha256": "7becc21a7c79ec4dd4a8b311672b72ecdd0bffb683b80ab4a1df4f6afc6cb5d5"
     },
     {
       "path": "README.md",
@@ -39,7 +39,7 @@
     },
     {
       "path": "source/games/hotd4/src/host.c",
-      "sha256": "11c27739923e85fe13cfe4cf7f987eba3aa265514555b2b132d2291e92f52c64"
+      "sha256": "984a9ac655969a03f3dd15551da118684bcf59a0193ad80c35c7f83d9eba6f7d"
     },
     {
       "path": "source/games/hotd4/src/hotd4_hd_textures.c",
@@ -84,6 +84,10 @@
     {
       "path": "source/lindberghrecomp/src/runtime/arbprog.h",
       "sha256": "75f44b24ccc3157d2002ad9eff13bb3d9ffc2d98a73dbf5e1bce4d1326aefad7"
+    },
+    {
+      "path": "source/lindberghrecomp/src/runtime/atomic_file.h",
+      "sha256": "1ea08000fcd8df7ff82ac15c97da8e75f316c8801964c76a699cf702562832ec"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/cabinet_buttons.h",
@@ -227,7 +231,7 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/hle_sega.c",
-      "sha256": "365dfca8b9a590a8456432c5932dab916b023367f03bd8b8025bafe78132eefd"
+      "sha256": "1554af5519c062d45a9350b86afe2e17d91b6945fa69b6bc6e0e0bdb0701a4ee"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/hle_segaapi.c",
@@ -271,7 +275,7 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/host_xr.c",
-      "sha256": "f638b239030ca56a0227be244127317d562a7dcf001dddac6e75495b0f1d5f02"
+      "sha256": "0b05d0866f737c1486ea188a2dad5257160bf8de7a7abc786f75f84b92b41516"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/hotd4_controls.h",
@@ -339,7 +343,7 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/stereo.c",
-      "sha256": "15251d543a6a3c12084c1336d3a8bf262b7444e86818268d3615d250fab23a9c"
+      "sha256": "d03c98010f89e455e5c88f78c2bcea1cd2763f88470f79029fa85fa7a469c72a"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/stereo.h",
@@ -583,7 +587,7 @@
     },
     {
       "path": "ui/Play HOTD4 (VR OpenXR).cmd",
-      "sha256": "199299cb157abffd79a4fa1b7fee81f7dce735b00c13741219a66b166cadad66"
+      "sha256": "b50c0604e977e02383286e0489041a9bd2e4216e3177a8a24ec480cbac6397f7"
     },
     {
       "path": "ui/Play HOTD4.cmd",

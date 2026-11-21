@@ -835,7 +835,7 @@ static void fixed_function_rect_done(void)
  * The game makes 20-30 thousand GL calls a frame; telling them apart by name
  * on every call cost more than the calls. */
 enum {
-    K_OTHER, K_DRAWMULTIELEMENTS, K_DRAWMULTIARRAYS, K_BINDFB, K_VIEWPORT, K_SCISSOR, K_FBTEX2D, K_ACTIVETEX, K_BINDTEX, K_ENABLE, K_DISABLE,
+    K_OTHER, K_DELETETEX, K_DRAWMULTIELEMENTS, K_DRAWMULTIARRAYS, K_BINDFB, K_VIEWPORT, K_SCISSOR, K_FBTEX2D, K_ACTIVETEX, K_BINDTEX, K_ENABLE, K_DISABLE,
     K_DRAWARRAYS, K_DRAWELEMENTS, K_DRAWOTHER, K_BEGIN, K_END, K_MATRIXMODE, K_VERTEX,
     K_LOADID, K_LOADMATRIX, K_MULTMATRIX, K_ORTHO, K_ORTHO2D, K_FRUSTUM, K_PERSPECTIVE,
     K_PUSHMATRIX, K_POPMATRIX, K_TRANSLATE, K_SCALE, K_GETINTEGERV, K_GETFLOATV, K_GETOTHER, K_UNMAP, K_CLEAR, K_COPYTEXSUB, K_COPYTEX,
@@ -943,6 +943,7 @@ static const Cls *cls(HleId id)
         { "glActiveTexture", K_ACTIVETEX }, { "glActiveTextureARB", K_ACTIVETEX }, { "glBindTexture", K_BINDTEX },
         { "glEnable", K_ENABLE }, { "glDisable", K_DISABLE },
         { "glDrawArrays", K_DRAWARRAYS }, { "glDrawElements", K_DRAWELEMENTS },
+        { "glDeleteTextures", K_DELETETEX },
         { "glMultiDrawElements", K_DRAWMULTIELEMENTS }, { "glMultiDrawElementsEXT", K_DRAWMULTIELEMENTS },
         { "glMultiDrawArrays", K_DRAWMULTIARRAYS }, { "glMultiDrawArraysEXT", K_DRAWMULTIARRAYS },
         { "glBegin", K_BEGIN }, { "glEnd", K_END }, { "glMatrixMode", K_MATRIXMODE },
@@ -1140,7 +1141,6 @@ static int weapon_draw(void)
 #define MAX_SCREEN_COPIES 8
 static GLuint   g_screen_copy[MAX_SCREEN_COPIES];
 static unsigned g_nscreen_copy;
-static unsigned g_screen_copy_frame[MAX_SCREEN_COPIES];
 static int g_pbuffers; /* glX pbuffers use the eye target, not a game FBO. */
 static int      g_skip_begin;           /* inside a glBegin/glEnd that is left out */
 static HleId    g_cur_id;               /* the call transform_call is looking at */
@@ -1149,6 +1149,13 @@ static int screen_copy(GLuint tex)
 {
     for (unsigned i = 0; i < g_nscreen_copy; i++) if (g_screen_copy[i] == tex) return 1;
     return 0;
+}
+
+static void screen_copy_forget(GLuint tex)
+{
+    for(unsigned i=0;i<g_nscreen_copy;i++)if(g_screen_copy[i]==tex){
+        g_screen_copy[i]=g_screen_copy[--g_nscreen_copy];return;
+    }
 }
 
 /* GLX pbuffers and the window share virtual framebuffer 0. It cannot
@@ -1267,7 +1274,6 @@ static int copy_from_eyes(CPU *c, int k)
     unsigned at=0;while(at<g_nscreen_copy && g_screen_copy[at]!=(GLuint)tex)at++;
     if(full && at==g_nscreen_copy && at<MAX_SCREEN_COPIES){g_screen_copy[g_nscreen_copy++]=(GLuint)tex;
         fprintf(stderr,"[stereo] texture %d: native full-screen composite\n",tex);}
-    if(at<g_nscreen_copy)g_screen_copy_frame[at]=full?g_frame:~0u;
     return 1;
 #endif
 }
@@ -1470,17 +1476,31 @@ static int transform_call(CPU *c, HleId id, const char *n)
         tex_hist((GLuint)bt, g_side ? "copied from a side pass" : g_game_fb ? "copied from a target" : "copied from the eyes",
                  k == K_COPYTEX ? AI32(5) : AI32(6), k == K_COPYTEX ? AI32(6) : AI32(7));
     }
+    /* Side passes use the game's unmodified camera and a shared texture,
+     * independent of the eye. The left pass already rendered them. */
+    if(g_on && g_side && g_replaying && !g_mv && !g_wide &&
+       (is_draw(k) || k==K_COPYTEXSUB || k==K_COPYTEX || k==K_BEGIN)) {
+        if(k==K_BEGIN)g_skip_begin=1;
+        return 1;
+    }
     if (g_on && (k == K_COPYTEXSUB || k == K_COPYTEX)) return copy_from_eyes(c, k);
     /* A copy of the screen drawn back over a world drawn this frame (a post
      * effect) would flatten it to one eye's picture: left out. Over no world
      * it is the whole picture - a transition, last frame's view swept away -
      * and leaving it out left the eyes black: it goes over the whole view. */
-    int native_composite=0;
-    if(g_pbuffers && !g_mv && !g_flat)for(unsigned i=0;i<g_nscreen_copy;i++)
-        if(g_screen_copy[i]==g_tex2d_bound && g_screen_copy_frame[i]==g_frame)native_composite=1;
+    /* Transitions reuse a previous frame's composite too. Keep its role
+     * until the texture is deleted or redefined, rather than for one frame. */
+    int native_composite=g_pbuffers && !g_mv && !g_flat && screen_copy(g_tex2d_bound);
     if (g_on && (g_mv || native_composite) && !g_side && (is_draw(k) || k == K_BEGIN) && g_tex2d_on && g_nscreen_copy && screen_copy(g_tex2d_bound) && g_scene_draws) {
         if (k == K_BEGIN) g_skip_begin = 1;
         return 1;
+    }
+    if(k==K_DELETETEX){
+        int n=AI32(0);const GLuint *names=(const GLuint *)APTR(1);
+        for(int i=0;names && i<n && i<65536;i++)screen_copy_forget(names[i]);
+    }
+    if(k==K_TEXIMAGE && A32(0)==GL_TEXTURE_2D && AI32(1)==0){
+        GLint tex=0;glGetIntegerv(GL_TEXTURE_BINDING_2D,&tex);screen_copy_forget((GLuint)tex);
     }
     if (k == K_BINDFB) {
         bind_framebuffer(A32(0), A32(1));
@@ -1949,6 +1969,13 @@ static int snapshot_draw(CPU *c, int kind, uint32_t *args_va)
         memcpy(G2H(saved_counts),counts,(size_t)draws*4);memcpy(G2H(saved_firsts),firsts,(size_t)draws*4);
         wr32(*args_va+4*(elements?1:2),saved_counts);wr32(*args_va+4*(elements?3:1),saved_firsts);
     }
+    /* Buffer-backed vertex arrays are replayed from their existing buffers.
+     * Reading the index buffer back merely to derive unused client-array
+     * bounds forces hundreds of GPU/CPU synchronizations in a busy scene. */
+    int need_vertices=0;
+    for(int i=0;i<ARR_COUNT;i++)if(g_arr[i].on && !g_arr[i].vbo && g_arr[i].ptr)need_vertices=1;
+    const int element_buffer=elements && gl_bound_buffer(GL_ELEMENT_ARRAY_BUFFER)!=0;
+    if(!need_vertices && (!elements || element_buffer))return 1;
     for(int d=0;d<draws;d++){
         int32_t count=multi?counts[d]:AI32(elements?1:2);if(count<=0)continue;
         uint32_t first=multi?firsts[d]:A32(elements?3:1);
@@ -1966,6 +1993,7 @@ static int snapshot_draw(CPU *c, int kind, uint32_t *args_va)
             memcpy(G2H(copy),GP(first),(size_t)count*ib);
             if(multi)wr32(saved_firsts+4*d,copy);else wr32(*args_va+12,copy);idx=G2H(copy);
         }
+        if(!need_vertices){free(tmp);continue;}
         for(int32_t j=0;j<count;j++){
             uint32_t v=ib==1?((const uint8_t *)idx)[j]:ib==2?((const uint16_t *)idx)[j]:((const uint32_t *)idx)[j];
             if(v<lo)lo=v;if(v>hi)hi=v;

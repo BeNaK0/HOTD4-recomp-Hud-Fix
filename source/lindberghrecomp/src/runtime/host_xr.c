@@ -312,6 +312,8 @@ static void menu_items(XmItem *it)
 
 /* The arcade's reset: the game starts again from its boot, as a new process
  * (the activity's restartGame, which needs a game whose activity has it) */
+static void xr_shutdown(void);
+
 static void reset_game(void)
 {
 #ifdef __ANDROID__
@@ -331,16 +333,24 @@ static void reset_game(void)
     (*env)->DeleteLocalRef(env, cls);
     (*env)->DeleteLocalRef(env, activity);
 #else
+    const char *launcher=getenv("HOTD4_VR_LAUNCHER");
+    if(launcher && !strcmp(launcher,"1")){
+        fprintf(stderr,"[xr] restart requested: return to VR launcher\n");
+        exit(74); /* teardown completes before the launcher starts a new process */
+    }
     STARTUPINFOA startup = { .cb = sizeof startup };
     PROCESS_INFORMATION process;
     char *command = _strdup(GetCommandLineA());
-    if (command && CreateProcessA(NULL, command, NULL, NULL, FALSE, 0, NULL, NULL, &startup, &process)) {
+    if (!command) return;
+    xr_shutdown(); /* release this runtime session before the replacement starts */
+    if (CreateProcessA(NULL, command, NULL, NULL, FALSE, 0, NULL, NULL, &startup, &process)) {
         CloseHandle(process.hThread); CloseHandle(process.hProcess);
         free(command);
         exit(0);
     }
     free(command);
     fprintf(stderr, "[xr] restart failed: %lu\n", GetLastError());
+    exit(1);
 #endif
 }
 
@@ -735,6 +745,32 @@ static int poll_events(void)
     return 1;
 }
 
+/* Registered before the GL worker's shutdown hook. exit() first drains and
+ * joins that worker and reclaims its context, then releases OpenXR handles.
+ * xrDestroySession is valid in every state and destroys its child handles;
+ * xrEndSession, in contrast, is only legal after STOPPING. */
+static void xr_shutdown(void)
+{
+    static int done;
+    if(done || !instance)return;
+    done=1;
+    if(session && in_frame && running){
+        XrFrameEndInfo end={XR_TYPE_FRAME_END_INFO};
+        end.displayTime=frame.predictedDisplayTime;
+        end.environmentBlendMode=XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
+        xrEndFrame(session,&end);in_frame=0;
+    }
+    lg_xr_actions_destroy(&actions);
+    XrResult destroyed=XR_SUCCESS;
+    if(session){
+        if(running && state==XR_SESSION_STATE_STOPPING)xrEndSession(session);
+        destroyed=xrDestroySession(session);session=XR_NULL_HANDLE;
+    }
+    running=views_ok=0;
+    XrResult released=xrDestroyInstance(instance);instance=XR_NULL_HANDLE;
+    fprintf(stderr,"[xr] shutdown: session %d, instance %d\n",(int)destroyed,(int)released);
+}
+
 /* ---- set-up ---- */
 static float symmetric(float a, float b) { a = fabsf(tanf(a)); b = fabsf(tanf(b)); return a > b ? a : b; }
 
@@ -817,6 +853,7 @@ int xr_init(void)
     ic.applicationInfo.applicationVersion = 1;
     ic.applicationInfo.apiVersion = XR_MAKE_VERSION(1, 0, 34);
     XRCHECK(xrCreateInstance(&ic, &instance));
+    atexit(xr_shutdown);
     if (have_rate) {
         xrGetInstanceProcAddr(instance, "xrRequestDisplayRefreshRateFB", (PFN_xrVoidFunction *)&request_rate);
         xrGetInstanceProcAddr(instance, "xrEnumerateDisplayRefreshRatesFB", (PFN_xrVoidFunction *)&enumerate_rates);

@@ -8,6 +8,8 @@ pushd "%~dp0game\disk0\elf" || exit /b 1
 set "PATH=%~dp0HOTD4_Recomp;%PATH%"
 for %%D in ("..") do set "TEA_DIR=%%~fD"
 set "LINDBERGH_NVRAM=%~dp0HOTD4_Recomp\vr-nvram.bin"
+set "HOTD4_VR_LAUNCHER=1"
+:vr_session
 set "HOTD4_VR_LOG_DIR=%~dp0HOTD4_Recomp\VR Logs"
 if not exist "%HOTD4_VR_LOG_DIR%" mkdir "%HOTD4_VR_LOG_DIR%"
 if not exist "%HOTD4_VR_LOG_DIR%" (
@@ -21,6 +23,7 @@ echo Diagnostic log: "%HOTD4_VR_LOG%"
 >"%HOTD4_VR_LOG%" echo HOTD4 OpenXR session: %DATE% %TIME%
 "%~dp0HOTD4_Recomp\hotd4-vr.exe" hod4M.elf >>"%HOTD4_VR_LOG%" 2>&1
 set "HOTD4_EXIT=%ERRORLEVEL%"
+if "%HOTD4_EXIT%"=="74" goto vr_session
 popd
 if not "%HOTD4_EXIT%"=="0" (
     echo HOTD4 VR exited with code %HOTD4_EXIT%.

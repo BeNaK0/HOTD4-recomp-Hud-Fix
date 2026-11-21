@@ -209,7 +209,6 @@ static const LgGameProfile k_profile = {
 
 #if defined(_WIN32) && !defined(LINDBERGH_OPENXR)
 extern HleHandler dispatch_lifted(uint32_t va);
-static HleHandler lifted_frame_rate_init;
 
 static HleHandler lifted_practice_stage_init;
 static HleHandler lifted_practice_end_frame;
@@ -507,8 +506,15 @@ static void install_hud(void)
 }
 #endif
 
+#endif /* Windows desktop helpers */
+
+#if defined(_WIN32)
+static HleHandler lifted_frame_rate_init;
 static void sync_cutscene_swap(int cutscene)
 {
+#if defined(LINDBERGH_OPENXR)
+    (void)cutscene; /* OpenXR presents the eyes; the desktop swap is unused. */
+#else
     static int restore_interval;
     static int previous_interval;
     if (!SDL_GL_GetCurrentContext() || getenv("LINDBERGH_VSYNC")) return;
@@ -522,6 +528,7 @@ static void sync_cutscene_swap(int cutscene)
         SDL_GL_SetSwapInterval(previous_interval);
         restore_interval = 0;
     }
+#endif
 }
 
 static void h_frame_rate_init(CPU *c)
@@ -545,12 +552,17 @@ static void install_cutscene_pacing(void)
 {
     const char *enabled = getenv("LINDBERGH_HOTD4_PACE_CUTSCENES");
     const char *unpaced = getenv("LINDBERGH_UNPACED");
-    if (!enabled || strcmp(enabled, "1") != 0 || (unpaced && atoi(unpaced) != 0))
-        return;
+#if defined(LINDBERGH_OPENXR)
+    if (enabled && strcmp(enabled,"0")==0) return;
+#else
+    if (!enabled || strcmp(enabled,"1")!=0) return;
+#endif
+    if (unpaced && atoi(unpaced)!=0) return;
 
     const char *name = "_ZN13CFrameRateMgr5Init0EP19tagFRAMERATE_CONFIG";
     lifted_frame_rate_init = dispatch_lifted(guest_symbol(name));
-    if (lifted_frame_rate_init) guest_override(name, h_frame_rate_init);
+    if (lifted_frame_rate_init && guest_override(name, h_frame_rate_init))
+        fprintf(stderr,"[hotd4] cutscenes: original 30 Hz cadence, wait at presentation\n");
 }
 #endif
 
@@ -843,6 +855,9 @@ int main(int argc, char **argv)
      * anything this game needs beyond that gets bound on top, and whatever is
      * still missing aborts naming itself on first call. */
     hle_register_all();
+#if defined(_WIN32) && defined(LINDBERGH_OPENXR)
+    install_cutscene_pacing();
+#endif
 #if defined(_WIN64) && !defined(LINDBERGH_OPENXR) && !defined(LINDBERGH_VULKAN)
     original_system=g_hle_handlers[HLE_system];
     hle_bind("system",h_operator_request);
