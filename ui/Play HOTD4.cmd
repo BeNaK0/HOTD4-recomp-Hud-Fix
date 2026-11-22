@@ -13,6 +13,8 @@ $gameRoot = Split-Path -Parent $env:HOTD4_4K_SCRIPT
 $recompDir = Join-Path $gameRoot 'HOTD4_Recomp'
 $diskDir = [IO.File]::ReadAllText((Join-Path $gameRoot 'dump-path.txt')).Trim()
 $elfDir = Join-Path $diskDir 'elf'
+. (Join-Path $recompDir 'hotd4-native-crosshair.ps1')
+[void](Initialize-Hotd4NativeCrosshair $recompDir $diskDir)
 $desktopExe = Join-Path $recompDir 'hotd4-desktop.exe'
 $originalElf = Join-Path $elfDir 'hod4M.elf'
 $expectedHash = '72FDD45830ACD9317EC1E4F97DE35A270C94746068FDAF827381C91BB47AA296'

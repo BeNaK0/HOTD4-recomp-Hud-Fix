@@ -1,6 +1,6 @@
 # HOTD4 Local Builder
 
-Download and extract **HOTD4-Local-Builder-v1.3.8.zip** from the [v1.3.8 release](https://github.com/davidptrssvea/HOTD4-recomp/releases/tag/v1.3.8). Run **Setup.cmd**, select your own extracted arcade dump, then wait for the local build. Open **HOTD4-PC\Play HOTD4.exe** for the graphical menu or **Model Viewer.exe** to go directly to the viewer. All menus are in English.
+Download and extract **HOTD4-Local-Builder-v1.3.9.zip** from the [v1.3.9 release](https://github.com/davidptrssvea/HOTD4-recomp/releases/tag/v1.3.9). Run **Setup.cmd**, select your own extracted arcade dump, then wait for the local build. Open **HOTD4-PC\Play HOTD4.exe** for the graphical menu or **Model Viewer.exe** to go directly to the viewer. All menus are in English.
 
 To update, extract the new builder and run `Setup.cmd -InstallDir "C:\Path\To\HOTD4-PC"`, using your existing installation path. Select the same arcade dump when prompted. This keeps your settings, cabinet saves and trophies.
 
@@ -53,6 +53,8 @@ The first build can take several minutes and uses multiple gigabytes of temporar
 Resolution selection up to 4K, chapter practice, HUD scale, native pause menu, Trophies gallery with 12 base-game goals, Sinden border with selectable thickness, crosshair style/size/color previews, Raw Input device selection, and selectable MSAA. The default Pause key is Esc; it can be changed. This Windows release also includes Photo Mode, the animated Model Viewer and locally enhanced character textures in the viewer.
 
 This package contains hand-maintained source, build tools/scripts, procedural crosshair previews and newly generated metallic star artwork. It contains **no arcade ELF, game assets, game movies, game audio, textures from the game, prebuilt game executable, lifted game code, saved progress or cabinet NVRAM**. The game is never uploaded. Only the build tools and their dependencies are downloaded.
+
+Choose **Settings > Crosshair Style > Name Entry (Original)** to use the game's original red P1 / blue P2 crosshairs, including the idle pulse and shot animation. The launcher reads the sprite textures, crop rectangles and animation timelines from your own `fs/test/playerranking.bnk` and creates a local cache. Size, color, animated settings preview and the in-game pause selector are supported. The existing styles remain available. Generated `native-crosshair.bin` files belong to the user's installation and are never included in the downloadable builder.
 
 The menu background is created on the user's PC from their own dump. No screenshot or game artwork is included in the distribution. Existing menu backgrounds are preserved on reinstall. If the optional render fails (for example without working OpenGL graphics), installation completes with a plain background and a local menu-background.log; rerun Setup to retry.
 

@@ -1954,7 +1954,7 @@ static int pause_panel(PauseMenu *menu)
                                           L"Restart Chapter" : L"Restart Arcade", L"Settings", L"Trophies", L"High Scores", L"Photo Mode", L"Main Menu"};
             wchar_t sinden[64];
             swprintf(sinden, 64, L"Sinden Border     < %ls >", sinden_border_enabled() ? L"On" : L"Off");
-            const wchar_t *styles[] = {L"Original Red",L"Blue Circle",L"Red Square"};
+            const wchar_t *styles[] = {L"Original Red",L"Blue Circle",L"Red Square",L"Name Entry (Original)"};
             wchar_t style[80];
             swprintf(style,80,L"Crosshair Style  < %ls >",styles[crosshair_style_get()]);
             wchar_t size[64];

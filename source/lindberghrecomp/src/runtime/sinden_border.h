@@ -103,12 +103,12 @@ static int crosshair_style_get(void)
     }
     crosshair_style = 0;
     FILE *file = fopen(crosshair_profile, "rb");
-    if (file) { int value=fgetc(file)-'0'; if(value>=0 && value<=2)crosshair_style=value; fclose(file); }
+    if (file) { int value=fgetc(file)-'0'; if(value>=0 && value<=3)crosshair_style=value; fclose(file); }
     return crosshair_style;
 }
 static void crosshair_style_cycle(int delta)
 {
-    crosshair_style=(crosshair_style_get()+(delta<0?2:1))%3;
+    crosshair_style=(crosshair_style_get()+(delta<0?3:1))%4;
     FILE *file=fopen(crosshair_profile,"wb");
     if(file){fprintf(file,"%d",crosshair_style);fclose(file);}
     else fprintf(stderr,"[crosshair] Could not save %s\n",crosshair_profile);
@@ -128,7 +128,7 @@ static int crosshair_size_get(void)
     }
     crosshair_size=100;
     FILE *file=fopen(crosshair_size_profile,"rb");
-    if(file){int value=0;if(fscanf(file,"%d",&value)==1 && value>=50 && value<=200 && value%25==0)crosshair_size=value;fclose(file);}
+    if(file){int value=0;if(fscanf(file,"%d",&value)==1 && value>=50 && value<=300 && value%25==0)crosshair_size=value;fclose(file);}
     return crosshair_size;
 }
 static void crosshair_size_cycle(int delta)
@@ -173,10 +173,13 @@ static void crosshair_color_apply(GLubyte r,GLubyte g,GLubyte b,GLubyte a)
     if(color){r=colors[color-1][0];g=colors[color-1][1];b=colors[color-1][2];}
     glColor4ub(r,g,b,a);
 }
+
+#include "native_crosshair.h"
 static int extra_crosshair_draw(float x,float y,float scale)
 {
     int style=crosshair_style_get();
     if(!style)return 0;
+    if(style==3)return native_sight_draw(x,y,scale,crosshair_color_get());
     if(style==1){
         float radius=22*scale;
         for(int pass=0;pass<2;pass++){

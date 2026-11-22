@@ -437,7 +437,7 @@
     $crosshairPath = Join-Path $RecompDir 'crosshair-profile.txt'
     if ([IO.File]::Exists($crosshairPath)) {
         $saved = [IO.File]::ReadAllText($crosshairPath).Trim()
-        if ($saved -match '^[0-2]$') { $state.Crosshair = $saved }
+        if ($saved -match '^[0-3]$') { $state.Crosshair = $saved }
     }
     $crosshairColorPath = Join-Path $RecompDir 'crosshair-color.txt'
     if ([IO.File]::Exists($crosshairColorPath)) {
@@ -460,8 +460,8 @@
         $item.Content = "$percent %"; $item.Tag = [string]$percent
         [void] $controls.CrosshairSize.Items.Add($item)
     }
-    $styles = @('Original Red','Blue Circle','Red Square')
-    foreach ($index in 0..2) {
+    $styles = @('Original Red','Blue Circle','Red Square','Name Entry (Original)')
+    foreach ($index in 0..3) {
         $item = [Windows.Controls.ComboBoxItem]::new()
         $item.Content = $styles[$index]; $item.Tag = [string]$index
         [void] $controls.CrosshairStyle.Items.Add($item)
@@ -694,17 +694,32 @@
         [void] $controls.ChapterList.Children.Add($button)
     }
 
+    . (Join-Path $RecompDir 'hotd4-native-crosshair.ps1')
+    $nativePreview=@{Ready=(Initialize-Hotd4NativeCrosshair $RecompDir '');Tick=0}
     $updateCrosshairPreview = {
         if ($null -eq $controls.CrosshairStyle.SelectedItem -or $null -eq $controls.CrosshairSize.SelectedItem -or $null -eq $controls.CrosshairColor.SelectedItem) { return }
         $style = [string] $controls.CrosshairStyle.SelectedItem.Tag
         $size = [string] $controls.CrosshairSize.SelectedItem.Tag
         $color = [string] $controls.CrosshairColor.SelectedItem.Tag
         $asset = Join-Path $RecompDir "crosshair-previews/$style-$size-$color.png"
-        if ([IO.File]::Exists($asset)) {
+        if($style -eq '3') {
+            if(!$nativePreview.Ready){$nativePreview.Ready=Select-Hotd4NativeCrosshairSource $RecompDir $window}
+            if($nativePreview.Ready){$controls.CrosshairPreviewImage.Source=[Hotd4NativeCrosshair]::Preview($RecompDir,0,[int]$nativePreview.Tick,[int]$size,[int]$color)}
+            else {$controls.CrosshairPreviewImage.Source=$null}
+        } elseif ([IO.File]::Exists($asset)) {
             $controls.CrosshairPreviewImage.Source = [Windows.Media.Imaging.BitmapImage]::new([uri]$asset)
         }
         $controls.CrosshairPreviewLabel.Text = "$($controls.CrosshairStyle.SelectedItem.Content) · $size % · $($controls.CrosshairColor.SelectedItem.Content)"
     }
+    $nativeTimer=New-Object Windows.Threading.DispatcherTimer
+    $nativeTimer.Interval=[TimeSpan]::FromMilliseconds(50)
+    $nativeTimer.Add_Tick({
+        if($controls.OptionsPage.IsVisible -and $controls.CrosshairStyle.SelectedItem -and $controls.CrosshairStyle.SelectedItem.Tag -eq '3' -and $nativePreview.Ready){
+            $nativePreview.Tick+=3
+            $controls.CrosshairPreviewImage.Source=[Hotd4NativeCrosshair]::Preview($RecompDir,0,[int]$nativePreview.Tick,[int]$controls.CrosshairSize.SelectedItem.Tag,[int]$controls.CrosshairColor.SelectedItem.Tag)
+        }
+    })
+    $nativeTimer.Start();$window.Add_Closed({$nativeTimer.Stop()})
     $controls.CrosshairStyle.Add_SelectionChanged({ & $updateCrosshairPreview })
     $controls.CrosshairSize.Add_SelectionChanged({ & $updateCrosshairPreview })
     $controls.CrosshairColor.Add_SelectionChanged({ & $updateCrosshairPreview })

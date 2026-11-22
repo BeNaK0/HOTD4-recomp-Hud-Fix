@@ -3,15 +3,15 @@
   "files": [
     {
       "path": "BUILD-VERIFICATION.md",
-      "sha256": "24ac9b04ee809d3ec5a0dd963063157a2cb067a5a06bc8e5a2925a7e49edf4cd"
+      "sha256": "aac6c786f59164e7228aff23d5e4ac8c396836a59c6681a461a9d0102840d298"
     },
     {
       "path": "README.md",
-      "sha256": "d74af0ce06e28fbf1504f44add751c535c95f0c23f9dbd987707c8473e298f4b"
+      "sha256": "9f2836227add34f29760712de9532e8d7656621ab0fc7a4d9790b4e70c7e5dae"
     },
     {
       "path": "RELEASE-NOTES.md",
-      "sha256": "699f649a91182ce2579d24717dcd3805bde3df61d0a3b98651ba27e901b58011"
+      "sha256": "2a6ff7d1c43655f732bb7abf5e68131bdcc8388fa7be239ecc308b8bf548f4f0"
     },
     {
       "path": "Setup.cmd",
@@ -263,7 +263,7 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/host_sdl.c",
-      "sha256": "0b649ed9ab89578c2adf60e20025104eea8b20eb1cfc3649cb9c126155d800cb"
+      "sha256": "2e9d7bd64a29451d689afcd2ebbf8c5e5d2897f821f65c6e45fd71b81894e01f"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/host_settings.c",
@@ -306,6 +306,10 @@
       "sha256": "30047f678eaffc3e3b4c5c859dcf3a4ecb86e51acafdc5f9fdac008fac8b6508"
     },
     {
+      "path": "source/lindberghrecomp/src/runtime/native_crosshair.h",
+      "sha256": "62b79f346b225896d72652f97f5016a7384e6d3bdfa716347219060fd1d16510"
+    },
+    {
       "path": "source/lindberghrecomp/src/runtime/nn_culling.c",
       "sha256": "5ba449725a37b093659d5d3d2a2c0e006e9f6951ceebdfc74fbed4cec877f380"
     },
@@ -339,7 +343,7 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/sinden_border.h",
-      "sha256": "d5e8dd5ed23c7d452649665cc7a09f73b404537eabd58b37bf70f76120334bee"
+      "sha256": "5d6905f2e551b03dc7ef33d3ce237479f60865da0b5a57a9d8ed978a2bae9616"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/solib.c",
@@ -599,7 +603,7 @@
     },
     {
       "path": "ui/Play HOTD4.cmd",
-      "sha256": "68b4e0ea9a0b6cd6e2083d59b576bd2630db6444ec1ea4c88f7b5f33e59ab8be"
+      "sha256": "e6ce4196ce170f73f4cbc8e6cf4253a1b0724c4614256238ab25f662af94c9e3"
     },
     {
       "path": "ui/achievement-assets/bronze.png",
@@ -1498,8 +1502,16 @@
       "sha256": "b28e3a16f0d58dbee35384a69dbf06adae6f63633385336b535be5b35639e11f"
     },
     {
+      "path": "ui/hotd4-native-crosshair.cs",
+      "sha256": "238f0c5f4eecf3f3aeef0f90c902b062ec8120be2f775925827caf79c0703d22"
+    },
+    {
+      "path": "ui/hotd4-native-crosshair.ps1",
+      "sha256": "e07c64dda71af17e9bb53a7c4196bcef65c55ab0caf621f3da74241ded60987f"
+    },
+    {
       "path": "ui/hotd4-startmenu.ps1",
-      "sha256": "889e59da05c16548dcb7417ce13b2e5f0b2d95610596d563fdcdd802d4d7052f"
+      "sha256": "6d69882afae14e702b4d19f7f66234d7e3d3e336599739ba24ab82c261f68e74"
     },
     {
       "path": "ui/lindbergh.ini",
