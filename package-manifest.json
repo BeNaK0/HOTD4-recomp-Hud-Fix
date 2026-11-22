@@ -3,15 +3,15 @@
   "files": [
     {
       "path": "BUILD-VERIFICATION.md",
-      "sha256": "aac6c786f59164e7228aff23d5e4ac8c396836a59c6681a461a9d0102840d298"
+      "sha256": "ffab82d72ef415a99ff92f1c34c33cf7e5e3824077a83e9d093f6b1309fa7745"
     },
     {
       "path": "README.md",
-      "sha256": "9f2836227add34f29760712de9532e8d7656621ab0fc7a4d9790b4e70c7e5dae"
+      "sha256": "cc83b64ca86c235c6c5c420bae540d51972fafdce38707e1319a72a712796918"
     },
     {
       "path": "RELEASE-NOTES.md",
-      "sha256": "2a6ff7d1c43655f732bb7abf5e68131bdcc8388fa7be239ecc308b8bf548f4f0"
+      "sha256": "1e6b61ed778784b010975630fb62bc17be8d71f8d046eff2da426e963e8be5ae"
     },
     {
       "path": "Setup.cmd",
@@ -587,7 +587,7 @@
     },
     {
       "path": "tools/windows-launcher.cs",
-      "sha256": "b3e068df40b59fee85334c238bbb3cfd8bdb5f99bf5921bbec93854e0f3c5d76"
+      "sha256": "e5bff9aa7396401078e0d036a067a6fb687142bf27fb672297b9e62aca7452d1"
     },
     {
       "path": "ui/Model Viewer.cmd",
@@ -603,7 +603,7 @@
     },
     {
       "path": "ui/Play HOTD4.cmd",
-      "sha256": "e6ce4196ce170f73f4cbc8e6cf4253a1b0724c4614256238ab25f662af94c9e3"
+      "sha256": "e66ba97e95fb605028707db23b7a0f31c980aca360e2c5555085a1d5abda7500"
     },
     {
       "path": "ui/achievement-assets/bronze.png",

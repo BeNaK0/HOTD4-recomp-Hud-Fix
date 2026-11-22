@@ -1,6 +1,6 @@
 # HOTD4 Local Builder
 
-Download and extract **HOTD4-Local-Builder-v1.3.9.zip** from the [v1.3.9 release](https://github.com/davidptrssvea/HOTD4-recomp/releases/tag/v1.3.9). Run **Setup.cmd**, select your own extracted arcade dump, then wait for the local build. Open **HOTD4-PC\Play HOTD4.exe** for the graphical menu or **Model Viewer.exe** to go directly to the viewer. All menus are in English.
+Download and extract **HOTD4-Local-Builder-v1.3.10.zip** from the [v1.3.10 release](https://github.com/davidptrssvea/HOTD4-recomp/releases/tag/v1.3.10). Run **Setup.cmd**, select your own extracted arcade dump, then wait for the local build. Open **HOTD4-PC\Play HOTD4.exe** for the graphical menu or **Model Viewer.exe** to go directly to the viewer. All menus are in English.
 
 To update, extract the new builder and run `Setup.cmd -InstallDir "C:\Path\To\HOTD4-PC"`, using your existing installation path. Select the same arcade dump when prompted. This keeps your settings, cabinet saves and trophies.
 
@@ -11,6 +11,8 @@ To update, extract the new builder and run `Setup.cmd -InstallDir "C:\Path\To\HO
 **What should I keep for future updates?** Keep your original extracted arcade dump and your installed `HOTD4-PC` folder. Your settings, cabinet saves and trophies are stored inside `HOTD4-PC\HOTD4_Recomp`. Point the new builder at the existing installation with `-InstallDir` and select the same dump when prompted.
 
 **Setup reports `target not found: mingw-w64-x86_64-python-pyelftools`.** Use v1.3.4 or newer. MSYS2 removed that dependency from its active MINGW64 repository; this installer obtains the pinned ELF reader automatically. Extract the new builder, run `Setup.cmd` with the same dump, and select your existing install folder if updating. No manual script edits or separate Python installation are needed.
+
+**Setup reports `Build-tools download failed its SHA-256 check`.** The downloaded build-tools archive differs from the pinned file. With current releases, you can download [the exact MSYS2 archive](https://repo.msys2.org/distrib/x86_64/msys2-base-x86_64-20260927.sfx.exe) in your browser, save it as `msys2-base-x86_64-20260927.sfx.exe` in `%LOCALAPPDATA%\HOTD4-Builder` (the default tool cache), then rerun Setup. Setup verifies and reuses a matching archive. The verified file is 43,117,824 bytes, SHA-256 `AD336CCCFDA47758B5E15CDA993FBBA421115CB0B126697DAEF1EE4DFE37209F`. If it still fails, report your builder version and the downloaded file's name, byte size and SHA-256.
 
 ## Supported arcade dump
 
@@ -57,6 +59,16 @@ This package contains hand-maintained source, build tools/scripts, procedural cr
 Choose **Settings > Crosshair Style > Name Entry (Original)** to use the game's original red P1 / blue P2 crosshairs, including the idle pulse and shot animation. The launcher reads the sprite textures, crop rectangles and animation timelines from your own `fs/test/playerranking.bnk` and creates a local cache. Size, color, animated settings preview and the in-game pause selector are supported. The existing styles remain available. Generated `native-crosshair.bin` files belong to the user's installation and are never included in the downloadable builder.
 
 The menu background is created on the user's PC from their own dump. No screenshot or game artwork is included in the distribution. Existing menu backgrounds are preserved on reinstall. If the optional render fails (for example without working OpenGL graphics), installation completes with a plain background and a local menu-background.log; rerun Setup to retry.
+
+## Start directly without the menu
+
+Create a shortcut with this target (using your installation path):
+
+```text
+"D:\Games\HOTD4-PC\Play HOTD4.exe" --no-launcher
+```
+
+This starts Arcade directly with your saved resolution, display mode, HUD scale and other settings. The temporary ELF is prepared automatically and cleaned up on exit. Returning to Main Menu exits to the desktop in this mode. Launch without the argument to open the normal graphical menu. `--skip-launcher` is an alias; both flags also work with `Play HOTD4.cmd` and the performance-logging CMD file. Legacy numeric CMD chapter arguments remain available.
 
 ## Photo Mode (Windows desktop)
 

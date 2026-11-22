@@ -2,6 +2,10 @@
 setlocal
 set "HOTD4_4K_SCRIPT=%~dpnx0"
 set "HOTD4_4K_MODE=%~1"
+set "HOTD4_NO_LAUNCHER=0"
+if /I "%~1"=="--no-launcher" set "HOTD4_NO_LAUNCHER=1"
+if /I "%~1"=="--skip-launcher" set "HOTD4_NO_LAUNCHER=1"
+if "%HOTD4_NO_LAUNCHER%"=="1" set "HOTD4_4K_MODE=0"
 powershell.exe -NoProfile -ExecutionPolicy Bypass -STA -Command "$parts = (Get-Content -Raw -Encoding UTF8 -LiteralPath $env:HOTD4_4K_SCRIPT) -split '(?m)^:PowerShell\r?$', 2; & ([scriptblock]::Create($parts[1]))"
 set "HOTD4_EXIT=%ERRORLEVEL%"
 if not "%HOTD4_EXIT%"=="0" pause
@@ -220,6 +224,20 @@ function Invoke-Hotd4 {
     return $exitCode
 }
 
+function Invoke-Hotd4Selection {
+    param($Selection, [int]$DesktopWidth, [int]$DesktopHeight)
+    $width, $height = $DesktopWidth, $DesktopHeight
+    $windowed = $Selection.DisplayMode -eq 'Windowed'
+    if ($Selection.Resolution -ne 'auto') { $width, $height = $Selection.Resolution.Split('x') }
+    $outputWidth, $outputHeight = $width, $height
+    if ($windowed) {
+        $scale = [Math]::Min(1.0, [Math]::Min(($DesktopWidth - 32) / $width, ($DesktopHeight - 72) / $height))
+        $outputWidth = [int][Math]::Floor($width * $scale)
+        $outputHeight = [int][Math]::Floor($height * $scale)
+    }
+    return (Invoke-Hotd4 -Mode $Selection.Mode -Hud $Selection.Hud -Width $width -Height $height -Windowed $windowed -OutputWidth $outputWidth -OutputHeight $outputHeight -Borderless:(!$windowed))
+}
+
 try {
     $env:Path = "$recompDir;$env:Path"
     . (Join-Path $recompDir 'hotd4-controls.ps1')
@@ -234,19 +252,7 @@ try {
         do {
             $selection = Show-Hotd4StartMenu -RecompDir $recompDir -DesktopWidth $desktopWidth -DesktopHeight $desktopHeight
             if (!$selection) { exit 0 }
-            $width = $desktopWidth
-            $height = $desktopHeight
-            $windowed = $selection.DisplayMode -eq 'Windowed'
-            if ($selection.Resolution -ne 'auto') {
-                $width, $height = $selection.Resolution.Split('x')
-            }
-            $outputWidth, $outputHeight = $width, $height
-            if ($windowed) {
-                $scale = [Math]::Min(1.0, [Math]::Min(($desktopWidth - 32) / $width, ($desktopHeight - 72) / $height))
-                $outputWidth = [int][Math]::Floor($width * $scale)
-                $outputHeight = [int][Math]::Floor($height * $scale)
-            }
-            $exitCode = Invoke-Hotd4 -Mode $selection.Mode -Hud $selection.Hud -Width $width -Height $height -Windowed $windowed -OutputWidth $outputWidth -OutputHeight $outputHeight -Borderless:(!$windowed)
+            $exitCode = Invoke-Hotd4Selection $selection $desktopWidth $desktopHeight
         } while ($exitCode -eq 0)
     } else {
         $hud = '0'
@@ -255,13 +261,30 @@ try {
             if ($savedHud -match '^(0|75|100|125)$') { $hud = $savedHud }
         }
         if (!$mode) { $mode = '0' }
-        if ($env:LINDBERGH_WINDOW -match '^([1-9][0-9]*)x([1-9][0-9]*)$') {
+        if ($env:HOTD4_NO_LAUNCHER -eq '1') {
+            $desktopWidth, $desktopHeight = Get-Hotd4DesktopSize
+            $resolution = 'auto'; $displayMode = 'Borderless'
+            $resolutionFile = Join-Path $recompDir 'display-profile.txt'
+            if ([IO.File]::Exists($resolutionFile)) {
+                $saved = ConvertTo-Hotd4Resolution ([IO.File]::ReadAllText($resolutionFile).Trim())
+                if ($saved) { $resolution = $saved }
+                if ($resolution -ne 'auto') { $displayMode = 'Windowed' }
+            }
+            $displayFile = Join-Path $recompDir 'display-mode.txt'
+            if ([IO.File]::Exists($displayFile)) {
+                $saved = [IO.File]::ReadAllText($displayFile).Trim()
+                if ($saved -in 'Borderless','Windowed') { $displayMode = $saved }
+            }
+            $selection = @{Mode=$mode;Hud=$hud;Resolution=$resolution;DisplayMode=$displayMode}
+            $exitCode = Invoke-Hotd4Selection $selection $desktopWidth $desktopHeight
+        } elseif ($env:LINDBERGH_WINDOW -match '^([1-9][0-9]*)x([1-9][0-9]*)$') {
             $width = [int]$Matches[1]
             $height = [int]$Matches[2]
+            $exitCode = Invoke-Hotd4 -Mode $mode -Hud $hud -Width $width -Height $height -Windowed $false
         } else {
             $width, $height = Get-Hotd4DesktopSize
+            $exitCode = Invoke-Hotd4 -Mode $mode -Hud $hud -Width $width -Height $height -Windowed $false
         }
-        $exitCode = Invoke-Hotd4 -Mode $mode -Hud $hud -Width $width -Height $height -Windowed $false
     }
     exit $exitCode
 } catch {

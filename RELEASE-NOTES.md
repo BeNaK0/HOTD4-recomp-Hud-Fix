@@ -1,13 +1,13 @@
-# HOTD4 Local Builder v1.3.9
+# HOTD4 Local Builder v1.3.10
 
-Full Windows release, including the optional OpenXR build and all v1.3.8 features and fixes.
+Full Windows release with all v1.3.9 features, the original animated Name Entry crosshair and optional OpenXR.
 
-- New **Name Entry (Original)** crosshair: the arcade game’s original red P1 / blue P2 sprites, idle pulse and firing animation. Select it in Settings > Crosshair Style. Size, color and animated preview are supported.
-- Original crosshair textures and animation data are read locally from your own normal HOTD4 dump. No game assets or lifted code are shipped.
-- HOTD4 Special now has its own [separate full Windows release](https://github.com/davidptrssvea/HOTD-4-Special-recomp/releases/tag/v1.0.0).
+- **Direct Arcade start:** run `"Play HOTD4.exe" --no-launcher` to skip the graphical menu and use your saved resolution, display mode, HUD scale and settings. `--skip-launcher` is an alias. Both flags also work with the CMD launcher and performance-logging entry.
+- ELF preparation and cleanup happen automatically, so shortcuts and cabinet frontends do not need the temporary ELF path. Start without the flag for the normal menu. Exiting back to Main Menu closes the game in direct mode.
+- README includes troubleshooting for a failed MSYS2 download checksum, with the verified archive link, file size and SHA-256.
 
-Download and extract **HOTD4-Local-Builder-v1.3.9.zip**, then run **Setup.cmd** with your supported extracted Rev A arcade dump. For an update, use the same dump and select your existing HOTD4-PC installation (`Setup.cmd -InstallDir "C:\Path\To\HOTD4-PC"`). Settings, saves and trophies are preserved. Choose Yes when asked about OpenXR if you want the optional VR build.
+Download **HOTD4-Local-Builder-v1.3.10.zip**, extract it and run **Setup.cmd** with your own supported normal HOTD4 Rev A dump. To update, use the same dump and your existing installation path: `Setup.cmd -InstallDir "D:\Games\HOTD4-PC"`. Settings, cabinet saves and trophies are preserved.
 
-Requirements: Windows 10/11 x64, Windows PowerShell 5.1/.NET Framework 4.x, a supported normal HOTD4 Rev A dump, writable folders, internet for first-time tool downloads, and approximately 10 GB free beyond the dump. OpenGL driver support is needed for gameplay; OpenXR additionally requires a compatible runtime/headset. See README for supported ELF hashes and details.
+[HOTD4 Special has its own full Windows release](https://github.com/davidptrssvea/HOTD-4-Special-recomp/releases/tag/v1.0.0).
 
-The ZIP contains source, scripts, tools and original/procedural project artwork only. No arcade ELF, texture, movie, audio, generated game code, prebuilt game executable or cabinet state is included. All arcade processing happens on your PC.
+This source-only builder contains no arcade ELF, game textures, movies, audio, lifted game code, saved state or prebuilt game executable. All game processing happens locally on the user's PC. See README for supported ELF hashes and system requirements. OpenXR remains experimental and needs physical headset/runtime testing.

@@ -36,7 +36,7 @@ internal static class Launcher
     }
 
     [STAThread]
-    private static int Main()
+    private static int Main(string[] args)
     {
         string directory = AppDomain.CurrentDomain.BaseDirectory;
         bool viewer = Path.GetFileNameWithoutExtension(Application.ExecutablePath) == "Model Viewer";
@@ -63,7 +63,12 @@ internal static class Launcher
                 if (!File.Exists(script)) script = Path.Combine(directory, "Spela HOTD4 i 4K.cmd");
                 if (!File.Exists(script)) throw new FileNotFoundException("Could not find the game launch script.");
                 start.EnvironmentVariables["HOTD4_4K_SCRIPT"] = script;
+                bool direct = Array.Exists(args, arg =>
+                    String.Equals(arg, "--no-launcher", StringComparison.OrdinalIgnoreCase) ||
+                    String.Equals(arg, "--skip-launcher", StringComparison.OrdinalIgnoreCase));
                 start.EnvironmentVariables.Remove("HOTD4_4K_MODE");
+                start.EnvironmentVariables["HOTD4_NO_LAUNCHER"] = direct ? "1" : "0";
+                if (direct) start.EnvironmentVariables["HOTD4_4K_MODE"] = "0";
                 start.EnvironmentVariables["HOTD4_GUI_LAUNCH"] = "1";
                 start.Arguments += "-Command \"$parts = (Get-Content -Raw -Encoding UTF8 -LiteralPath $env:HOTD4_4K_SCRIPT) " +
                     "-split '(?m)^:PowerShell\\r?$', 2; & ([scriptblock]::Create($parts[1]))\"";

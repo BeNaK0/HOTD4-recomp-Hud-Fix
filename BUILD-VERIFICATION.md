@@ -208,3 +208,14 @@ Added style 3, Name Entry (Original), without changing the existing style IDs. T
 ## v1.3.9 release package verification
 
 Extracted the source-only ZIP into a new directory and ran Setup -NoDownload -OpenXR with the isolated cached toolchain and the owner's supported dump. Generated guest code locally and built desktop, operator and OpenXR executables; the menu screenshot was rendered locally and installation completed successfully. The freshly installed desktop loaded the original Name Entry texture/timeline cache and completed 1203 frames, exit 0. WPF tests from the release sources passed animated preview, style/size/color persistence, mixed input selection and gameplay-setting persistence for both normal HOTD4 and Special. Portable mouse-shake, co-op, ranking, XR capture, atomic-save and gameplay tests passed; Python publishing, dependency, operator-discovery and signed switch-range tests passed. No physical headset or lightgun is certified by these checks.
+
+
+## v1.3.10 direct start
+
+The actual compiled WinForms launcher was exercised with no arguments, --no-launcher and the case-insensitive --skip-launcher alias using a harmless script fixture. Flags route to Arcade mode and regular launch clears stale inherited mode settings. Actual CMD entry tests cover both flags and the legacy numeric argument. Existing complete crash-report, bounded-dialog and write-failure tests passed with the new launcher.
+
+Two real native game runs through the compiled GUI executable completed 1203 frames each, exit 0, using saved Windowed 1920x1080 and Borderless 1280x720 settings without opening the start menu. The prepared temporary ELF was inspected while the game ran: all three size fields and the initial mode/width matched the saved resolution. Temporary ELFs were removed on exit and the original installed ELF hash stayed unchanged. Gameplay and graphics binaries use the already validated v1.3.9 source.
+
+The pinned MSYS2 archive was independently downloaded again through Python, PowerShell and Windows PowerShell 5.1; each returned 43,117,824 bytes with SHA-256 AD336CCCFDA47758B5E15CDA993FBBA421115CB0B126697DAEF1EE4DFE37209F. The reported user's specific download failure is not declared fixed without their received file details. Newly reported Parsec reconnect, Wiimote QTE/button mapping and co-op HUD issues remain follow-up items, not fixes claimed by this release.
+
+The cached installer update also completed with desktop, operator and OpenXR targets, generated both GUI frontends and preserved the existing menu background. Its Setup-produced Play HOTD4.exe then completed a real direct-start smoke test (120 frames, exit 0) with no menu or temporary ELF residue.
