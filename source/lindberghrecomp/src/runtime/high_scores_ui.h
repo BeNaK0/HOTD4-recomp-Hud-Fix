@@ -19,7 +19,7 @@ static int high_scores_snapshot(HighScoreState *state)
 }
 static int high_scores_texture(GLuint texture,const HighScoreState *state,int compact)
 {
-    int width=compact?246:PANEL_W,height=compact?66:PANEL_H;
+    int width=compact?(state->player_mask==3?498:340):PANEL_W,height=compact?66:PANEL_H;
     BITMAPINFO info={0};info.bmiHeader.biSize=sizeof(BITMAPINFOHEADER);info.bmiHeader.biWidth=width;
     info.bmiHeader.biHeight=-height;info.bmiHeader.biPlanes=1;info.bmiHeader.biBitCount=32;
     HDC dc=CreateCompatibleDC(NULL);if(!dc)return 0;
@@ -32,12 +32,20 @@ static int high_scores_texture(GLuint texture,const HighScoreState *state,int co
         HGDIOBJ old_bitmap=SelectObject(dc,bitmap),old_font=GetCurrentObject(dc,OBJ_FONT);SetBkMode(dc,TRANSPARENT);
         pause_fill(dc,0,0,width,height,RGB(17,19,25));pause_fill(dc,0,0,width,3,RGB(207,162,84));
         if(compact){
-            wchar_t score[32];swprintf(score,32,L"%08u",state->rows[0].score);
-            pause_text(dc,title,16,9,L"HI-SCORE",RGB(224,186,115));
-            pause_text(dc,number,15,28,score,RGB(248,245,237));
+            int column=0;wchar_t label[32],score[32];
+            for(unsigned p=0;p<2;p++)if(state->player_mask&(1u<<p)){
+                int x=16+column*158;
+                swprintf(label,32,state->practice?L"P%u PRACTICE":L"P%u TOTAL",p+1);
+                swprintf(score,32,L"%08u",state->total[p]);
+                pause_text(dc,title,x,9,label,p?RGB(134,201,255):RGB(255,161,159));
+                pause_text(dc,number,x-1,28,score,RGB(248,245,237));column++;
+            }
+            int x=width-166;swprintf(score,32,L"%08u",state->rows[0].score);
+            pause_text(dc,title,x,9,L"HI-SCORE",RGB(224,186,115));
+            pause_text(dc,number,x-1,28,score,RGB(248,245,237));
         }else{
             pause_text(dc,title,31,27,L"High Scores",RGB(248,245,237));
-            pause_text(dc,small,32,70,state->practice?L"Practice copy - your arcade records stay unchanged.":L"Your arcade ranking - saved locally.",RGB(176,181,193));
+            pause_text(dc,small,32,70,state->practice?L"Practice copy - your arcade records stay unchanged.":L"Run totals across all chapters - saved locally.",RGB(176,181,193));
             pause_text(dc,small,46,108,L"RANK",RGB(179,185,198));pause_text(dc,small,132,108,L"NAME",RGB(179,185,198));
             pause_text(dc,small,455,108,L"SCORE",RGB(179,185,198));
             if(state->count){for(int i=0;i<state->count;i++){
@@ -79,8 +87,8 @@ static int high_scores_back(const SDL_Event *event)
 }
 static void high_scores_hud_draw(int w,int h)
 {
-    HighScoreState state;if(!high_scores_enabled() || !high_scores_snapshot(&state) || !state.playing || w<=0 || h<=0)return;
-    static GLuint panel;static uint32_t cached=~0u;
+    HighScoreState state;if(!high_scores_enabled() || !high_scores_snapshot(&state) || !state.playing || !state.player_mask || w<=0 || h<=0)return;
+    static GLuint panel;static HighScoreState cached;static int have_cache;
     GLint program,unpack;glGetIntegerv(GL_CURRENT_PROGRAM,&program);glGetIntegerv(GL_PIXEL_UNPACK_BUFFER_BINDING,&unpack);
     glPushAttrib(GL_ALL_ATTRIB_BITS);glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
     glUseProgram(0);glBindBuffer(GL_PIXEL_UNPACK_BUFFER,0);glPixelStorei(GL_UNPACK_ALIGNMENT,1);
@@ -94,11 +102,15 @@ static void high_scores_hud_draw(int w,int h)
     glMatrixMode(GL_PROJECTION);glPushMatrix();glLoadIdentity();glOrtho(0,w,h,0,-1,1);
     glMatrixMode(GL_MODELVIEW);glPushMatrix();glLoadIdentity();
     if(!panel)glGenTextures(1,&panel);
-    if(cached!=state.rows[0].score && high_scores_texture(panel,&state,1))cached=state.rows[0].score;
+    if(!have_cache || cached.rows[0].score!=state.rows[0].score || cached.player_mask!=state.player_mask ||
+       cached.practice!=state.practice || memcmp(cached.total,state.total,sizeof state.total)){
+        if(high_scores_texture(panel,&state,1)){cached=state;have_cache=1;}
+    }
     int vw=g_vp_w>0?g_vp_w:w,vh=g_vp_h>0?g_vp_h:h;
-    float scale=fmaxf(.5f,vh/1080.0f),x=g_vp_x+vw-274*scale,y=h-g_vp_y-vh+80*scale;
+    int panel_width=state.player_mask==3?498:340;
+    float scale=fmaxf(.5f,vh/1080.0f),x=g_vp_x+vw-(panel_width+28)*scale,y=h-g_vp_y-vh+80*scale;
     glEnable(GL_TEXTURE_2D);glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);glColor4f(1,1,1,1);
-    glBindTexture(GL_TEXTURE_2D,panel);pause_quad(x,y,246*scale,66*scale,0);
+    glBindTexture(GL_TEXTURE_2D,panel);pause_quad(x,y,panel_width*scale,66*scale,0);
     glPopMatrix();glMatrixMode(GL_PROJECTION);glPopMatrix();glMatrixMode(GL_TEXTURE);glPopMatrix();glMatrixMode(GL_MODELVIEW);
     glPopClientAttrib();glPopAttrib();glBindBuffer(GL_PIXEL_UNPACK_BUFFER,(GLuint)unpack);glUseProgram((GLuint)program);
 }

@@ -3,23 +3,23 @@
   "files": [
     {
       "path": "BUILD-VERIFICATION.md",
-      "sha256": "ffab82d72ef415a99ff92f1c34c33cf7e5e3824077a83e9d093f6b1309fa7745"
+      "sha256": "5c3ee335a06257a05e45e77ff3dcaf3a8d7b46b50aff48c5d96b195999749220"
     },
     {
       "path": "README.md",
-      "sha256": "cc83b64ca86c235c6c5c420bae540d51972fafdce38707e1319a72a712796918"
+      "sha256": "b50a506789e27dc8c7d7e127fac8b27cd47c75d80c06ce219f618c4436d82166"
     },
     {
       "path": "RELEASE-NOTES.md",
-      "sha256": "1e6b61ed778784b010975630fb62bc17be8d71f8d046eff2da426e963e8be5ae"
+      "sha256": "6048cb3f04085ef730075c08824f2eeaa196db18c59b5796970d5ea21b95176e"
     },
     {
       "path": "Setup.cmd",
-      "sha256": "59570f95065917e75941b1123f9e12c3b4fad9d9be44575dc28f979b19e06de6"
+      "sha256": "d07dcb3fbb6bf5d280d8d7e90d660e81018afe21a2f4163a8740bd5bd30ad45f"
     },
     {
       "path": "setup.ps1",
-      "sha256": "8ffffb3fe3f501f84ec4863d3dc916f757b141075928a1a504866d6c7f59d09f"
+      "sha256": "fa4c339843220f639f4915218c5ef13025369813ba37004d92d85148f627a986"
     },
     {
       "path": "source/CMakeLists.txt",
@@ -39,7 +39,7 @@
     },
     {
       "path": "source/games/hotd4/src/host.c",
-      "sha256": "b44d31f2b7c20b7d6f915695974643fe80d60899c585387b6de03a59de46b7e3"
+      "sha256": "98d07f5d4805d05100465e6ffca75f6f3f7e8aeb7469bba1c36e1bb160588d35"
     },
     {
       "path": "source/games/hotd4/src/hotd4_hd_textures.c",
@@ -179,11 +179,11 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/high_scores.h",
-      "sha256": "c772816dbf2e1914dd92c3f88ca9571979c3923d85ce630b220de1f3f04372f0"
+      "sha256": "6a88e4eb8127654d49ac7fe0a406e57636c4b764a4640834530e68f3ef50dbec"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/high_scores_ui.h",
-      "sha256": "fe5d3621d28d68373a1849baacafdfe5bf8b7d63385b3c93c40ed9853102cc7d"
+      "sha256": "a570092fc1faf2e5611c4878a26ceb409e8849ec17eb3f41c00df7df8a152306"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/hle.c",
@@ -263,7 +263,7 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/host_sdl.c",
-      "sha256": "2e9d7bd64a29451d689afcd2ebbf8c5e5d2897f821f65c6e45fd71b81894e01f"
+      "sha256": "9cd91bb09c8eafe886bbbc59b5d6f859ef957d3786f8c5290a0bc3af7eff09a0"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/host_settings.c",
@@ -559,7 +559,11 @@
     },
     {
       "path": "tools/build.py",
-      "sha256": "6460e120f892f35f370b65575a8ddfb270e7e4976430cf6edacb2c28bfb159d6"
+      "sha256": "2f092c85e436342a00caacf08d9710e06f069565213d92cbb113f7aaff6ed857"
+    },
+    {
+      "path": "tools/build_support.py",
+      "sha256": "74739ce2f9172ab2e02d9acfb8efc3781f66edd004dc5200fb1e0a1fda2a37bd"
     },
     {
       "path": "tools/elf-variants.json",
@@ -583,7 +587,11 @@
     },
     {
       "path": "tools/python_deps.py",
-      "sha256": "8bacd0037f5f310467c69ff75adb04da24a3de35d935844ea11a0a8203f1f3c2"
+      "sha256": "a9dc03d9fabb4130d52ffe06968e5d21477f32a350c3e4cc0bc41ca262edb405"
+    },
+    {
+      "path": "tools/setup_support.ps1",
+      "sha256": "2c42b211a08173056786b0214335af752be9765bf23b202bf3bcb951d7108cde"
     },
     {
       "path": "tools/windows-launcher.cs",
@@ -1486,6 +1494,10 @@
       "sha256": "40638b83b99a8eca0526170b3172b97495a6bc051ae940066cb308f326216e10"
     },
     {
+      "path": "ui/hotd4-game-library.ps1",
+      "sha256": "25809b0b3257e509109d8e6bb6a76c3b3d45a5085113186454321fc82db51112"
+    },
+    {
       "path": "ui/hotd4-model-motion.cs",
       "sha256": "67069a7c53d58a316b5a8e4b7d0c8db60a39445d53c3486e7abcebc801b8134d"
     },
@@ -1511,7 +1523,7 @@
     },
     {
       "path": "ui/hotd4-startmenu.ps1",
-      "sha256": "6d69882afae14e702b4d19f7f66234d7e3d3e336599739ba24ab82c261f68e74"
+      "sha256": "290f3896e50c285146dff943211bec557017976769232a5d7ea003838a867c68"
     },
     {
       "path": "ui/lindbergh.ini",

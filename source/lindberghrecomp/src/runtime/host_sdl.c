@@ -1962,7 +1962,7 @@ static int pause_panel(PauseMenu *menu)
             wchar_t color[64];
             swprintf(color,64,L"Crosshair Color  < %ls >",crosshair_color_names[crosshair_color_get()]);
             wchar_t border_width[96];swprintf(border_width,96,L"Border Width   < %ls >",sinden_width_names[sinden_border_width_index()]);
-            wchar_t score_display[96];swprintf(score_display,96,L"High Score Display  < %ls >",high_scores_enabled()?L"On":L"Off");
+            wchar_t score_display[96];swprintf(score_display,96,L"Score Display  < %ls >",high_scores_enabled()?L"On":L"Off");
             const wchar_t *settings_items[] = {hud, reticle, style, size, color, sinden, border_width, score_display, L"Gameplay...", L"Input & Anti-Aliasing..."};
             wchar_t mode[96],gun1[128],gun2[128],aa[80],mouse_speed[80],smoothing[80];
             swprintf(mode,96,L"Input  < %ls >",input_mode_names[input_pref_mode]);

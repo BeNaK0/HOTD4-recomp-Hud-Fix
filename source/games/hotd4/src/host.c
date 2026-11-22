@@ -684,7 +684,20 @@ static int hotd4_read_high_scores(HighScoreState *out)
     if(!high_scores_decode(out,words))return 0;
     uint32_t game=rd32(0x0a7117f8u);
     out->playing=game && rd32(game+0x34)==3;
-    out->practice=getenv("HOTD4_PRACTICE_CHAPTER")!=NULL;
+    const char *chapter=getenv("HOTD4_PRACTICE_CHAPTER");
+    out->practice=chapter && chapter[0]>='1' && chapter[0]<='6' && !chapter[1];
+    /* CPlayer::GetPlayerParam(9, chapter, 0) reads +0x4c+4*chapter.
+     * CalcPlayerRankingInfo sums those six counters for the final result.
+     * StageParameterInit leaves them intact; GameParameterInit resets them. */
+    uint32_t players=rd32(0x0a7117a8u);
+    for(unsigned i=0;i<2 && players;i++){
+        uint32_t player=rd32(players+0x34+4*i);
+        if(!player || rd8(player+0x34)!=i || !rd32(player+0x38))continue;
+        uint32_t chapters[6];
+        for(unsigned j=0;j<6;j++)chapters[j]=rd32(player+0x4c+4*j);
+        out->total[i]=high_scores_run_total(chapters);
+        out->player_mask|=1u<<i;
+    }
     return 1;
 }
 

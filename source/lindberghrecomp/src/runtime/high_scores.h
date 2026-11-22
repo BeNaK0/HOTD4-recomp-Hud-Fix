@@ -4,9 +4,20 @@
 #include <string.h>
 enum { HOTD4_SCORE_ROWS=10, HOTD4_SCORE_WORDS=6 };
 typedef struct { uint32_t score; char initials[4]; } HighScoreEntry;
-typedef struct { HighScoreEntry rows[HOTD4_SCORE_ROWS]; int count,playing,practice; } HighScoreState;
+typedef struct {
+    HighScoreEntry rows[HOTD4_SCORE_ROWS];
+    int count,playing,practice;
+    uint32_t total[2],player_mask;
+} HighScoreState;
 typedef int (*HighScoreReader)(HighScoreState *);
 void host_high_scores_register(HighScoreReader reader);
+/* CalcPlayerRankingInfo sums six chapter counters, then caps the final score. */
+static inline uint32_t high_scores_run_total(const uint32_t chapters[6])
+{
+    uint64_t total=0;
+    for(unsigned i=0;i<6;i++)total+=chapters[i];
+    return total>9999999u?9999999u:(uint32_t)total;
+}
 /* Decode the original game's rank records. Never import defaults or game data. */
 static inline int high_scores_decode(HighScoreState *out,const uint32_t words[HOTD4_SCORE_ROWS*HOTD4_SCORE_WORDS])
 {

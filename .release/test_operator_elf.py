@@ -5,8 +5,10 @@ import io
 from pathlib import Path
 import tempfile
 import unittest
+import sys
 from unittest.mock import patch
 
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'tools'))
 spec=importlib.util.spec_from_file_location('local_builder',Path(__file__).resolve().parents[1]/'tools/build.py')
 builder=importlib.util.module_from_spec(spec);spec.loader.exec_module(builder)
 

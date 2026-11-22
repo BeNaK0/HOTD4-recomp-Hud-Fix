@@ -22,3 +22,7 @@ hotd4-menu.jpg
 native-crosshair.bin
 native-crosshair.bin.sha256
 native-crosshair-source.txt
+
+/.hotd4-setup.lock
+/cache/
+/Setup Logs/

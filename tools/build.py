@@ -2,6 +2,7 @@
 import argparse,hashlib,json,os,re,shutil,subprocess,sys,tempfile,time
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
+from build_support import run, build_jobs
 ELF_VARIANTS = json.loads((ROOT/'tools/elf-variants.json').read_text(encoding='utf-8'))
 EXPECTED = ELF_VARIANTS['prepared_sha256']
 
@@ -62,11 +63,10 @@ def find_operator_elf(dump,layout):
  print('Warning: verified hod4testM.elf/hod4testM_HD.elf missing; arcade Test Menu will not be available.',flush=True)
  return None
 
-def run(args,cwd=None,stdout=None):
- print('+ '+' '.join(map(str,args)),flush=True)
- subprocess.run(list(map(str,args)),cwd=cwd,stdout=stdout,check=True)
 def main():
- ap=argparse.ArgumentParser();ap.add_argument('--dump',required=True);ap.add_argument('--output',required=True);ap.add_argument('--toolchain',required=True);ap.add_argument('--jobs',type=int,default=4);ap.add_argument('--validate-only',action='store_true');ap.add_argument('--openxr',action='store_true');a=ap.parse_args()
+ ap=argparse.ArgumentParser();ap.add_argument('--dump',required=True);ap.add_argument('--output',required=True);ap.add_argument('--toolchain',required=True);ap.add_argument('--jobs',type=int,default=0);ap.add_argument('--validate-only',action='store_true');ap.add_argument('--openxr',action='store_true');a=ap.parse_args()
+ a.jobs=build_jobs(a.jobs)
+ print(f'Compiler workers: {a.jobs} (use -Jobs N in Setup to override).',flush=True)
  dump, layout=find_dump(Path(a.dump))
  image, source_hash=prepare_elf(dump/layout['elf'],dump/layout['hd_elf'])
  print('Verified HOTD4 Rev A arcade dump:',dump,flush=True)
@@ -179,6 +179,10 @@ def main():
   run([compiler,'/nologo','/target:winexe','/platform:x64','/reference:System.Windows.Forms.dll',
        '/out:'+str(out/name).replace('/', '\\'),str(ROOT/'tools/windows-launcher.cs').replace('/', '\\')])
  (out/'dump-path.txt').write_text(str(localdump),encoding='utf-8')
+ try:
+  run(['powershell.exe','-NoProfile','-ExecutionPolicy','Bypass','-File',app/'hotd4-game-library.ps1','-RegisterOnly','-LibraryRecompDir',app,'-LibraryGame','Normal'])
+ except subprocess.CalledProcessError:
+  print('The game was installed, but automatic library registration failed. Use Locate other game in the start menu.',flush=True)
  licenses=app/'licenses';licenses.mkdir(exist_ok=True)
  for label,p in [('ports',source/'LICENSE'),('lindberghrecomp',source/'lindberghrecomp/LICENSE'),('pcrecomp',source/'lindberghrecomp/pcrecomp/LICENSE')]:shutil.copy2(p,licenses/(label+'.txt'))
  # Toolchain package license notices for libraries, including indirect DLLs.

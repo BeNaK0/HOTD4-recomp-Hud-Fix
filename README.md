@@ -1,6 +1,6 @@
 # HOTD4 Local Builder
 
-Download and extract **HOTD4-Local-Builder-v1.3.10.zip** from the [v1.3.10 release](https://github.com/davidptrssvea/HOTD4-recomp/releases/tag/v1.3.10). Run **Setup.cmd**, select your own extracted arcade dump, then wait for the local build. Open **HOTD4-PC\Play HOTD4.exe** for the graphical menu or **Model Viewer.exe** to go directly to the viewer. All menus are in English.
+Download and extract **HOTD4-Local-Builder-v1.3.11.zip** from the [v1.3.11 release](https://github.com/davidptrssvea/HOTD4-recomp/releases/tag/v1.3.11). Run **Setup.cmd**, select your own extracted arcade dump, then wait for the local build. Open **HOTD4-PC\Play HOTD4.exe** for the graphical menu or **Model Viewer.exe** to go directly to the viewer. All menus are in English.
 
 To update, extract the new builder and run `Setup.cmd -InstallDir "C:\Path\To\HOTD4-PC"`, using your existing installation path. Select the same arcade dump when prompted. This keeps your settings, cabinet saves and trophies.
 
@@ -12,7 +12,7 @@ To update, extract the new builder and run `Setup.cmd -InstallDir "C:\Path\To\HO
 
 **Setup reports `target not found: mingw-w64-x86_64-python-pyelftools`.** Use v1.3.4 or newer. MSYS2 removed that dependency from its active MINGW64 repository; this installer obtains the pinned ELF reader automatically. Extract the new builder, run `Setup.cmd` with the same dump, and select your existing install folder if updating. No manual script edits or separate Python installation are needed.
 
-**Setup reports `Build-tools download failed its SHA-256 check`.** The downloaded build-tools archive differs from the pinned file. With current releases, you can download [the exact MSYS2 archive](https://repo.msys2.org/distrib/x86_64/msys2-base-x86_64-20260927.sfx.exe) in your browser, save it as `msys2-base-x86_64-20260927.sfx.exe` in `%LOCALAPPDATA%\HOTD4-Builder` (the default tool cache), then rerun Setup. Setup verifies and reuses a matching archive. The verified file is 43,117,824 bytes, SHA-256 `AD336CCCFDA47758B5E15CDA993FBBA421115CB0B126697DAEF1EE4DFE37209F`. If it still fails, report your builder version and the downloaded file's name, byte size and SHA-256.
+**Setup reports `Build-tools download failed its SHA-256 check`.** Setup v1.3.11 retries failed downloads and tries the official mirror automatically. If all attempts still fail, the downloaded archive differs from the pinned file. You can download [the exact MSYS2 archive](https://repo.msys2.org/distrib/x86_64/msys2-base-x86_64-20260927.sfx.exe) in your browser, save it as `msys2-base-x86_64-20260927.sfx.exe` in `%LOCALAPPDATA%\HOTD4-Builder` (the default tool cache), then rerun Setup. Setup verifies and reuses a matching archive. The verified file is 43,117,824 bytes, SHA-256 `AD336CCCFDA47758B5E15CDA993FBBA421115CB0B126697DAEF1EE4DFE37209F`. If it still fails, report your builder version and the downloaded file's name, byte size and SHA-256.
 
 ## Supported arcade dump
 
@@ -93,7 +93,7 @@ The bank and Sega NN format layouts were cross-checked against [Sega NN Tools](h
 
 ## High Scores
 
-The in-game **HI-SCORE** display shows the top score from the arcade's own saved ranking. Open **Pause > High Scores** to see all ten places with their original initials and scores. **Pause > Settings > High Score Display** toggles the small in-game display; the choice is saved.
+The in-game display shows your current **P1 TOTAL**, a separate **P2 TOTAL** when the second player joins, and **HI-SCORE** from the arcade's own saved ranking. Totals accumulate across all six chapters of the current run; they are not separate records for each chapter. Chapter practice is labelled **P1/P2 PRACTICE** instead. Open **Pause > High Scores** to see all ten places with their original initials and scores. **Pause > Settings > Score Display** toggles the small in-game display; the choice is saved.
 
 Scores follow the original game rules: qualify for the ranking and confirm your initials when prompted. The arcade saves that ranking in the cabinet NVRAM, which survives normal restarts and installer updates. Chapter practice uses a temporary cabinet copy and does not replace your arcade records. The display reads the existing ranking; it does not add a separate score database or alter scoring rules.
 
@@ -186,3 +186,15 @@ The House of the Dead 4 is a Sega property. This independent local build project
 
 
 Sinden border thickness is selectable in Settings and in Esc > Settings > Border Width. The default is Thin, 1.5% of screen height (half the previous 3%). Choices are 0.75%, 1.5%, 2.25% and 3% (original). The black inner edge scales too. The choice is saved in HOTD4_Recomp/sinden-width.txt and is applied immediately from the pause menu. Existing On/Off preferences are preserved; profiles without a saved thickness use 1.5%.
+
+## Setup diagnostics and recovery
+
+Setup verifies download size and SHA-256, retries interrupted or mismatched downloads, and tries the official GitHub mirror for the same pinned MSYS2 archive. Existing compiler executables, headers and Python imports are checked before a cached toolchain is reused. No checksum check is bypassed.
+
+The default compiler worker count adapts to available RAM and CPU cores; use `-Jobs 1` to reduce memory pressure further. Long-running commands print a periodic working message. Setup checks writable/protected paths and reports available disk space before downloading; keep the free-space allowance listed in the system requirements. Concurrent installers using the same builder, destination or tool cache are blocked.
+
+Each run writes a diagnostic log under `%LOCALAPPDATA%\HOTD4-Builder\Logs`. If Setup fails, send the latest log with the error report (review local paths/usernames before sharing). Rerun Setup to reuse verified downloads and repair missing tool packages. If the tool cache remains broken, run `Setup.cmd -RepairTools`: it preserves the previous recognizable MSYS2 folder under a `.backup-...` name and installs a fresh isolated cache. This needs internet access. Your original dump, installed settings and saves are retained.
+
+## Switch between HOTD4 and HOTD4 Special
+
+Both start menus include **HOTD4** and **HOTD4 SPECIAL** buttons. Select the other installed game to open its menu, with its own chapters, settings and saved progress. The current menu closes during the handoff. Setup registers each installation in your Windows user profile; nearby installations are also detected automatically. If the games are elsewhere, choose **Locate other game...** once and select the other installed game folder. A missing game stays disabled until located. Install each game separately using its own supported arcade dump; linking the menus does not copy any game assets between installations.
