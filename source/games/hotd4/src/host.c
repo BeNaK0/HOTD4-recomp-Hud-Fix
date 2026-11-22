@@ -843,8 +843,44 @@ static void install_reload_feedback(void)
     if (lifted_sprite_next) guest_override(next, h_reload_sprite_next);
 }
 
+/* Result panels form one original 640x480 canvas. Per-quad gameplay HUD
+ * anchoring splits scores/rank labels from their player frames, especially
+ * in co-op. Carry one centered layout through the deferred primitive queue
+ * for chapter results and the final player ranking, including their fonts. */
+static HleHandler result_layout_draws[7];
+static void result_layout_draw(CPU *c, unsigned index)
+{
+    HudSpriteLayout previous=queuing_layout;
+    queuing_layout=HUD_LAYOUT_CENTER;
+    push32(c,rd32(c->esp-4));result_layout_draws[index](c);
+    queuing_layout=previous;
+}
+#define RESULT_DRAW(n) static void result_layout_##n(CPU*c){result_layout_draw(c,n);}
+RESULT_DRAW(0) RESULT_DRAW(1) RESULT_DRAW(2) RESULT_DRAW(3)
+RESULT_DRAW(4) RESULT_DRAW(5) RESULT_DRAW(6)
+#undef RESULT_DRAW
+static void install_result_layout(void)
+{
+    static const char *names[]={
+        "_ZN13CResultScreen4DrawEv",
+        "_ZN13CResultPlayer4DrawEv",
+        "_ZN12CResultMeter4DrawEv",
+        "_ZN16CPlRankingScreen4DrawEv",
+        "_ZN16CPlRankingPlayer4DrawEv",
+        "_ZN15CPlRankingMeter4DrawEv",
+        "_ZN17CPlRankingTtlRank4DrawEv",
+    };
+    static const HleHandler draws[]={result_layout_0,result_layout_1,result_layout_2,
+        result_layout_3,result_layout_4,result_layout_5,result_layout_6};
+    for(unsigned i=0;i<sizeof names/sizeof *names;i++){
+        result_layout_draws[i]=dispatch_lifted(guest_symbol(names[i]));
+        if(result_layout_draws[i])guest_override(names[i],draws[i]);
+    }
+}
+
 static void install_wide_hud_layout(void)
 {
+    install_result_layout();
     lifted_font_ctor=dispatch_lifted(guest_symbol("_ZN5CFontC9EP6MlTask"));
     if(lifted_font_ctor)guest_override("_ZN5CFontC9EP6MlTask",h_font_ctor);
     lifted_font_clear=dispatch_lifted(guest_symbol("_ZN5CFont5ClearEv"));

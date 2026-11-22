@@ -1,8 +1,12 @@
 # HOTD4 Local Builder
 
-Download and extract **HOTD4-Local-Builder-v1.3.12.zip** from the [v1.3.12 release](https://github.com/davidptrssvea/HOTD4-recomp/releases/tag/v1.3.12). Run **Setup.cmd**, select your own extracted arcade dump, then wait for the local build. Open **HOTD4-PC\Play HOTD4.exe** for the graphical menu or **Model Viewer.exe** to go directly to the viewer. All menus are in English.
+Download and extract **HOTD4-Local-Builder-v1.3.13.zip** from the [v1.3.13 release](https://github.com/davidptrssvea/HOTD4-recomp/releases/tag/v1.3.13). Run **Setup.cmd**, select your own extracted arcade dump, then wait for the local build. Open **HOTD4-PC\Play HOTD4.exe** for the graphical menu or **Model Viewer.exe** to go directly to the viewer. All menus are in English.
 
 To update, extract the new builder and run `Setup.cmd -InstallDir "C:\Path\To\HOTD4-PC"`, using your existing installation path. Select the same arcade dump when prompted. This keeps your settings, cabinet saves and trophies.
+
+## Co-op result panel fix (v1.3.13)
+
+Chapter result screens and the final player ranking now keep each player's scores, accuracy, critical-shot counters, portraits and rating pieces aligned with their panel. This fixes the reported P1 misalignment after chapters 5 and 6. Result screens retain their original layout regardless of the gameplay HUD scale, including supersampled output. All v1.3.12 features are included.
 
 ## FAQ
 

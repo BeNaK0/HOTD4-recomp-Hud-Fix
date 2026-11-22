@@ -170,7 +170,8 @@ static void push(int op, GLenum target, float a, float b, float cc, float d)
 
 static void w_glBegin(CPU *c)
 {
-    int centered_canvas = g_sprite_layout == HUD_LAYOUT_GRAB || g_sprite_layout == HUD_LAYOUT_SPLASH;
+    int centered_canvas = g_sprite_layout == HUD_LAYOUT_GRAB || g_sprite_layout == HUD_LAYOUT_SPLASH ||
+                          g_sprite_layout == HUD_LAYOUT_CENTER;
     if (g_f > 0 && (g_mv_identity || route_layout_active() || centered_canvas) && A32(0) == GL_QUADS) {
         g_recording = 1; g_nops = 0; g_overflow = 0; g_prim = A32(0);
         return;

@@ -3,15 +3,15 @@
   "files": [
     {
       "path": "BUILD-VERIFICATION.md",
-      "sha256": "644e3ea01071560505bd15d1b76df633c38876430b0864c7dff99026e436ef25"
+      "sha256": "5f90016a8036e2a9d9350e0fc4acd52fc16ea5c8078a34f50fc8cb20df4e41b0"
     },
     {
       "path": "README.md",
-      "sha256": "0fc2ae721fe08575afb2072e539b3512f7163cc85835858bba7a53bd464fa641"
+      "sha256": "a637db4e97abbd9d900b456174f0f32c10d5068846cc031c40ef400d9014ea09"
     },
     {
       "path": "RELEASE-NOTES.md",
-      "sha256": "82855cf1824eb52640b9d7372e77cf241430b0b4cdac09227c14310eaf924d2a"
+      "sha256": "f53c796da0da71733d8bdb647c055ef0759403c9c3334a161de062f076763040"
     },
     {
       "path": "Setup.cmd",
@@ -39,7 +39,7 @@
     },
     {
       "path": "source/games/hotd4/src/host.c",
-      "sha256": "bde6027ddf71fe7c77a7bc548f4c2bc4437fe7dfe6f7665bafdaadbdea0af4eb"
+      "sha256": "8cbb6dc0a66368e5cd6e58b7a644fea12870a7f6b281249b054065b822c44127"
     },
     {
       "path": "source/games/hotd4/src/hotd4_hd_textures.c",
@@ -291,7 +291,7 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/hud_widen.c",
-      "sha256": "2b7fe211e4f483cd303d15ef59ae889f6b46a3e15fe3c718febcfd7fdb1d5342"
+      "sha256": "61f1feb0c8def5b603719dc8eda2c2829832a155a51f138807edbb4205a15954"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/input_options.h",
