@@ -3,15 +3,15 @@
   "files": [
     {
       "path": "BUILD-VERIFICATION.md",
-      "sha256": "5c3ee335a06257a05e45e77ff3dcaf3a8d7b46b50aff48c5d96b195999749220"
+      "sha256": "644e3ea01071560505bd15d1b76df633c38876430b0864c7dff99026e436ef25"
     },
     {
       "path": "README.md",
-      "sha256": "b50a506789e27dc8c7d7e127fac8b27cd47c75d80c06ce219f618c4436d82166"
+      "sha256": "0fc2ae721fe08575afb2072e539b3512f7163cc85835858bba7a53bd464fa641"
     },
     {
       "path": "RELEASE-NOTES.md",
-      "sha256": "6048cb3f04085ef730075c08824f2eeaa196db18c59b5796970d5ea21b95176e"
+      "sha256": "82855cf1824eb52640b9d7372e77cf241430b0b4cdac09227c14310eaf924d2a"
     },
     {
       "path": "Setup.cmd",
@@ -39,7 +39,7 @@
     },
     {
       "path": "source/games/hotd4/src/host.c",
-      "sha256": "98d07f5d4805d05100465e6ffca75f6f3f7e8aeb7469bba1c36e1bb160588d35"
+      "sha256": "bde6027ddf71fe7c77a7bc548f4c2bc4437fe7dfe6f7665bafdaadbdea0af4eb"
     },
     {
       "path": "source/games/hotd4/src/hotd4_hd_textures.c",
@@ -95,7 +95,7 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/controls_menu.h",
-      "sha256": "72558e0dadb9f10af45bf567f3b2dba460624499511cf0f1ec479f3fd83bbe17"
+      "sha256": "3b2a96cd7059891e4451669a4efe0d4dce5e4e6c6042a4f2a5c1b908dff65b1f"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/coop_mouse.h",
@@ -131,7 +131,7 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/game_profile.h",
-      "sha256": "0ce834c5c8b07b38ad008994843995d856d4307fc237acf5532d1972970ffd48"
+      "sha256": "e372077efff1311b96b8513323eb77b467a102ed084da3066258929bc25903bb"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/game_states.h",
@@ -263,7 +263,7 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/host_sdl.c",
-      "sha256": "9cd91bb09c8eafe886bbbc59b5d6f859ef957d3786f8c5290a0bc3af7eff09a0"
+      "sha256": "8d034b16972434ec61424b9a285688dcda882dbd1a12259edf4ebb1de5e90e37"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/host_settings.c",
@@ -287,7 +287,7 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/hotd4_controls.h",
-      "sha256": "06b74788f4cac5dacec90413bc408c531894a7d2c5e5c0985a61ad72af877b76"
+      "sha256": "09247d2fc5b547544c273676663bb0ca5b5256eb9efe539ed17b1bc5dacff69c"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/hud_widen.c",
@@ -295,11 +295,11 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/input_options.h",
-      "sha256": "8d2ae0c947146310557558e3ac87ca386f15d80c01a280d4d0596216e1672c11"
+      "sha256": "387465941912c0d4f09a354b53fa55655661de29d0b31415fa928418b0618795"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/lindbergh_rt.h",
-      "sha256": "6ca503efd8202cc0000f32b3bc51030475b55e8034e09e2c652052fc6de30057"
+      "sha256": "3dcf8ff42ef6fb85714d7afde77f491e3d09dec847bd4f4688a73e99680c3688"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/mouse_shake.h",
@@ -352,6 +352,10 @@
     {
       "path": "source/lindberghrecomp/src/runtime/solib.h",
       "sha256": "8a413ce3fb2ff16ff98a4c120a2e1b620d37fac6801e0e947af4dc0d01e061aa"
+    },
+    {
+      "path": "source/lindberghrecomp/src/runtime/solo_player.h",
+      "sha256": "7d399b431d10fad8e99fa8057a95f51ba973fc66b7e63018679022b7a7b7862b"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/stereo.c",
@@ -1523,7 +1527,7 @@
     },
     {
       "path": "ui/hotd4-startmenu.ps1",
-      "sha256": "290f3896e50c285146dff943211bec557017976769232a5d7ea003838a867c68"
+      "sha256": "052e16f14ff983aea2405ff126626d9b0eea632d74cdde42eef0173db683041e"
     },
     {
       "path": "ui/lindbergh.ini",

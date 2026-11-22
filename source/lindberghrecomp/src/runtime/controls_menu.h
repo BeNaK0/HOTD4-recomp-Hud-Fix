@@ -14,7 +14,7 @@ static int controls_panel(PauseMenu*m)
     if(valid){memset(pixels,0,(size_t)w*h*4);HGDIOBJ old=SelectObject(dc,bm),oldfont=SelectObject(dc,font);SetGraphicsMode(dc,GM_ADVANCED);XFORM xf={factor,0,0,factor,0,0};SetWorldTransform(dc,&xf);SetBkMode(dc,TRANSPARENT);
         trophy_box(dc,64,60,1152,600,0,RGB(11,14,20),RGB(104,96,82));pause_text(dc,title,91,90,L"KEY BINDINGS",RGB(229,232,239));pause_text(dc,small,91,135,L"Changes apply immediately and are saved automatically.",RGB(165,173,187));
         for(int i=0;i<HC_COUNT;i++){int x=91+(i/8)*558,y=174+(i%8)*46;wchar_t name[96];hc_name(i,name,96);int sel=m->selected==i;
-            trophy_box(dc,x,y,539,40,3,sel?RGB(70,43,35):RGB(25,30,40),sel?RGB(230,177,104):RGB(58,64,78));pause_text(dc,font,x+12,y+10,hc_labels[i],RGB(225,228,235));trophy_right(dc,font,x+525,y+10,m->binding_capture==i?L"Press a key...":name,RGB(237,199,141));
+            trophy_box(dc,x,y,539,40,3,sel?RGB(70,43,35):RGB(25,30,40),sel?RGB(230,177,104):RGB(58,64,78));pause_text(dc,font,x+12,y+10,hc_label(i),RGB(225,228,235));trophy_right(dc,font,x+525,y+10,m->binding_capture==i?L"Press a key...":name,RGB(237,199,141));
         }
         const wchar_t *hint=m->binding_capture>=0?L"Press a key. Esc cancels (or binds Pause). Mouse buttons are accepted for the four shooting actions.":L"Select an action and press Enter or click its row. Tab / arrow keys navigate. Esc goes back.";
         pause_text(dc,small,91,555,m->binding_message[0]?m->binding_message:hint,RGB(199,185,160));
@@ -41,7 +41,7 @@ static int controls_event(PauseMenu*m,const SDL_Event*e)
         int result=hc_set(m->binding_capture,value);
         if(result==-1)wcscpy(m->binding_message,L"Choose a keyboard key for this action.");
         else if(result==-2)wcscpy(m->binding_message,L"Could not save the controls profile. Check the installation folder is writable.");
-        else if(result>0)swprintf(m->binding_message,200,L"Already assigned to %ls. Choose another key.",hc_labels[result-1]);
+        else if(result>0)swprintf(m->binding_message,200,L"Already assigned to %ls. Choose another key.",hc_label(result-1));
         else {m->binding_capture=-1;wcscpy(m->binding_message,L"Binding saved.");}
         return 1;
     }

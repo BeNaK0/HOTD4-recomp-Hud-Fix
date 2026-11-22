@@ -245,3 +245,15 @@ Both cached Setup runs passed automatic library registration and preserved their
 ## Release v1.3.11 verification
 
 This release includes the shared game selector and installer recovery changes documented above and the normal-game live P1/P2 total-score overlay. Earlier local follow-up notes record pre-publication tests. The release workflow now gates publication on Windows PowerShell 5.1 installer/library tests on windows-latest, plus Python dependency/build/publisher tests and portable runtime checks on Linux. Packages are generated only from the SHA-256 manifest and reject generated game code, executables and arcade asset formats.
+
+## Local follow-up: James/P1 or Kate/P2 solo selection
+
+Added a persistent solo-player preference in launcher Gameplay settings and native pause Gameplay settings. It maps the primary physical input channel to the selected logical player before board/direct switch reads, and maps gun positions, coin/start, trigger/reload/action/fire mode, crosshair seat/color and mouse QTE acceleration consistently. The setting takes effect at process start; mixed co-op modes ignore it, and the game-profile capability flag limits it to normal HOTD4 desktop. Control guides/device labels follow the logical character.
+
+Portable checks cover both seat directions, simultaneous button states, defaults, non-player/service bits, off-screen reload and inactive/mixed co-op behavior. WPF tests cover James default, Kate save/reopen, return to James, updated guides/device labels and mixed-mode disabling. Native assisted test runs passed for James with mouse, Kate with mouse, Kate with Raw Relative mouse and Kate with synthesized absolute Raw Input lightgun packets. Each ran 3,453 frames; after the normal primary Start, only the selected player's original CPlayer was active. Each consumed 30 shots, reloaded natively and consumed exactly one grenade (original player field +0x2a0: 3 to 2). Native score/HUD screenshots showed the selected seat. Hardware packets were exercised through the real decoder and game, not a physical lightgun. No new physical Sinden/DolphinBar/Wiimote test was performed.
+
+Production desktop was rebuilt after private QA hooks were removed and installed locally with the updated menu. Previous files were backed up and installed preferences/cabinet saves were preserved. This follow-up has not been published as a new release.
+
+## Release v1.3.12 verification
+
+This full release includes the James/Kate desktop solo selector documented above. The local follow-up notes describe pre-publication work. The production desktop executable additionally completed a clean 1,803-frame smoke run with Kate selected, using a private prepared 1280x720 ELF and isolated cabinet/settings. No private QA hook is present in production source or the installed executable. Release checks cover solo button mapping and off-screen reload behavior, standard runtime regressions, Windows PowerShell installer/library recovery tests, Python checks and source-only package integrity.

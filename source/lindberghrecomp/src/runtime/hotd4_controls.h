@@ -4,6 +4,16 @@ enum { HC_PAUSE=11,HC_RESTART,HC_FULLSCREEN,HC_CROSSHAIR,HC_MOUSELOCK,HC_COUNT }
 static const char *hc_keys[HC_COUNT]={"coin1","start1","trigger","reload","action","firemode","coin2","start2","test","service","mute","pause","restart","fullscreen","crosshair_toggle","mouse_lock"};
 static const wchar_t *hc_labels[HC_COUNT]={L"Add Coin (P1)",L"Start (P1)",L"Shoot",L"Reload / Shake",L"Grenade",L"Fire Mode",L"Add Coin (P2)",L"Start (P2)",L"Test Menu",L"Service",L"Mute",L"Pause",L"Restart",L"Fullscreen",L"Toggle Crosshair",L"Mouse Lock"};
 static const int hc_defaults[HC_COUNT]={'5','1',-1,-3,' ','f','6','2','t','s','m',SDLK_ESCAPE,SDLK_F6,SDLK_F11,SDLK_F2,SDLK_F1};
+static const wchar_t *hc_label(int id)
+{
+    if(host_solo_player()){
+        if(id==ACT_COIN1)return hc_labels[ACT_COIN2];
+        if(id==ACT_START1)return hc_labels[ACT_START2];
+        if(id==ACT_COIN2)return hc_labels[ACT_COIN1];
+        if(id==ACT_START2)return hc_labels[ACT_START1];
+    }
+    return hc_labels[id];
+}
 static int hc_loaded,hc_custom,hc_values[HC_COUNT];
 static char hc_path[2048];
 static void hc_init(void)

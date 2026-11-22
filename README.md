@@ -1,6 +1,6 @@
 # HOTD4 Local Builder
 
-Download and extract **HOTD4-Local-Builder-v1.3.11.zip** from the [v1.3.11 release](https://github.com/davidptrssvea/HOTD4-recomp/releases/tag/v1.3.11). Run **Setup.cmd**, select your own extracted arcade dump, then wait for the local build. Open **HOTD4-PC\Play HOTD4.exe** for the graphical menu or **Model Viewer.exe** to go directly to the viewer. All menus are in English.
+Download and extract **HOTD4-Local-Builder-v1.3.12.zip** from the [v1.3.12 release](https://github.com/davidptrssvea/HOTD4-recomp/releases/tag/v1.3.12). Run **Setup.cmd**, select your own extracted arcade dump, then wait for the local build. Open **HOTD4-PC\Play HOTD4.exe** for the graphical menu or **Model Viewer.exe** to go directly to the viewer. All menus are in English.
 
 To update, extract the new builder and run `Setup.cmd -InstallDir "C:\Path\To\HOTD4-PC"`, using your existing installation path. Select the same arcade dump when prompted. This keeps your settings, cabinet saves and trophies.
 
@@ -198,3 +198,9 @@ Each run writes a diagnostic log under `%LOCALAPPDATA%\HOTD4-Builder\Logs`. If S
 ## Switch between HOTD4 and HOTD4 Special
 
 Both start menus include **HOTD4** and **HOTD4 SPECIAL** buttons. Select the other installed game to open its menu, with its own chapters, settings and saved progress. The current menu closes during the handoff. Setup registers each installation in your Windows user profile; nearby installations are also detected automatically. If the games are elsewhere, choose **Locate other game...** once and select the other installed game folder. A missing game stays disabled until located. Install each game separately using its own supported arcade dump; linking the menus does not copy any game assets between installations.
+
+## Solo character selection
+
+In the desktop launcher, open **Settings > Gameplay > Solo Player** and choose **James (P1)** or **Kate (P2)**, then Save. The native pause menu exposes the same choice under Settings > Gameplay; restart Arcade/Chapter to apply a change made during play. Available in v1.3.12 and newer.
+
+Your primary mouse or Raw Input lightgun follows the selected character automatically, including the sight, Shoot, Reload/Shake, Grenade, Coin and Start bindings. You can keep using the normal primary Start button (default 1/Enter). The primary Raw Input device is labelled for the selected character. Default James behavior is unchanged. Mixed Gun P1 + Mouse P2 modes retain their normal co-op assignments and disable the solo override. The choice is saved per installation in solo-player.txt. This is a desktop HOTD4 feature; it does not change Special or OpenXR input.

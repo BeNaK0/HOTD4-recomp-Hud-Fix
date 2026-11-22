@@ -4,6 +4,7 @@
 #include <SDL_syswm.h>
 #include "coop_mouse.h"
 static int input_pref_mode, input_active_mode, input_pref_aa, input_prefs_loaded;
+static int input_pref_solo,input_active_solo;
 static int raw_suspended;
 static float input_mouse_speed;
 static int input_mouse_smoothing;
@@ -75,6 +76,8 @@ static void input_options_load(void)
     if(!*input_guns[0])strcpy(input_guns[0],"auto");
     if(!*input_guns[1])strcpy(input_guns[1],"disabled");
     memcpy(raw_active_guns,input_guns,sizeof raw_active_guns);
+    if(input_read("solo-player.txt",value,sizeof value) && !strcmp(value,"1"))input_pref_solo=1;
+    input_active_solo=input_pref_solo;
     input_active_mode=input_pref_mode;
     settings()->raw_mouse=input_active_mode==1;
     if(input_active_mode>=2)settings()->mouse_grab=0;

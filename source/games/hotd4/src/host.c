@@ -71,7 +71,7 @@ static void h_gun_pos(CPU *c)
     uint32_t player = rd32(c->esp + 20);
     if (player < 2) g_gun_adjust[player] = rd32(c->esp + 16);
     int mx, my, w, h;
-    if (player == 1) { if (!host_gun2_state(&mx, &my)) mx = my = -100000; }
+    if ((player^host_solo_player()) == 1) { if (!host_gun2_state(&mx, &my)) mx = my = -100000; }
     else host_mouse_state(&mx, &my, NULL);
     lindbergh_window_size(&w, &h);
     int on = mx >= 0 && my >= 0 && mx < w && my < h;
@@ -115,8 +115,10 @@ static unsigned mouse_grab_buttons(unsigned buttons)
 {
     int shake = mouse_grab_shake();
     if (shake >= 0) {
-        buttons &= ~(CAB_P1_RELOAD | CAB_P1_FIREMODE);
-        if (shake) buttons |= CAB_P1_RELOAD;
+        unsigned reload=host_solo_player()?CAB_P2_RELOAD:CAB_P1_RELOAD;
+        unsigned firemode=host_solo_player()?CAB_P2_FIREMODE:CAB_P1_FIREMODE;
+        buttons &= ~(reload | firemode);
+        if (shake) buttons |= reload;
     }
     return buttons;
 }
@@ -139,7 +141,7 @@ static void h_gun_accel(CPU *c)
     static unsigned left[2];
     int shake = -1;
 #if defined(_WIN64) && !defined(LINDBERGH_OPENXR) && !defined(LINDBERGH_VULKAN)
-    if (!pl) shake = mouse_grab_shake();
+    if (pl==host_solo_player()) shake = mouse_grab_shake();
 #endif
     float v;
     if (shake >= 0) {
@@ -229,6 +231,7 @@ static int hud_anchored(void) { return 1; }
 
 /* What the runtime needs to know about this game (game_profile.h). */
 static const LgGameProfile k_profile = {
+    .solo_characters = 1,
     .title = "The House of the Dead 4",
     /* The monitor the game draws for. 16:9 is the board's 1360x768 mode - its
      * DIP switches have no 1280x720 one - and the game renders and aims for
