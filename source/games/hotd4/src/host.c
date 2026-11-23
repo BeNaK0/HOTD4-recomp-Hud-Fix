@@ -164,7 +164,8 @@ static void h_gun_accel(CPU *c)
  * so the HUD came out at half size in the top-left. In a 16:9 mode the sprite
  * resolution is 640x480, matching the layout; the runtime then draws that
  * 4:3 layout at its own shape in the 16:9 frame (host_hud_widen). */
-static int movie_aspect_active;
+static int movie_aspect_active, screen_four_three;
+static void h_four_three_ratio(CPU*c){c->eax=1;}
 
 static void h_sprite_res(CPU *c)
 {
@@ -177,14 +178,14 @@ static void h_sprite_res(CPU *c)
     if (movie && movie_aspect_active) {
         /* Stock widescreen sprite canvas: keep the original Sofdec layout
          * arithmetic in its own units, including its type-specific crop. */
-        wr32(c->eax,1280);wr32(c->edx,768);c->eax=2;
+        wr32(c->eax,screen_four_three?640:1280);wr32(c->edx,screen_four_three?480:768);c->eax=screen_four_three?1:2;
         return;
     }
     if ((ret >= 0x08210c14 && ret < 0x082127c4) || movie)
         lindbergh_window_size(&w, &h);
     wr32(c->eax, (uint32_t)w);
     wr32(c->edx, (uint32_t)h);
-    c->eax = 5;                 /* 16:9 */
+    c->eax = screen_four_three?1:5; /* native 4:3 or widescreen layout */
 }
 
 /* CSofdecMgr::Load builds four 24-byte texture vertices at +0x98.
@@ -204,7 +205,7 @@ static void h_movie_load(CPU *c)
     if(slot<0 || slot>=2 || movie<0 || movie>=79)return;
     int width,height;lindbergh_window_size(&width,&height);
     if(width<=0 || height<=0)return;
-    float sx=width/1280.0f,sy=height/768.0f;
+    float sx=width/(screen_four_three?640.0f:1280.0f),sy=height/(screen_four_three?480.0f:768.0f);
     uint32_t vertices=manager+0x98+(uint32_t)slot*0xc4;
     float raw[8],mapped[8];
     for(unsigned i=0;i<4;i++){
@@ -983,13 +984,20 @@ int main(int argc, char **argv)
         int w, h;
         lindbergh_window_size(&w, &h);
         float aspect = (h > 0) ? ((float)w / (float)h) : 0.0f;
-        if (fabsf(aspect - (16.0f / 9.0f)) < 0.05f && guest_override("_Z19GetSpriteResolutionPjS_", h_sprite_res)) {
+#if defined(_WIN64) && !defined(LINDBERGH_OPENXR) && !defined(LINDBERGH_VULKAN)
+        screen_four_three=fabsf(aspect-4.0f/3.0f)<0.01f;
+        if(screen_four_three){
+            guest_override("_Z24ConfigMgr_GetScreenRatiov",h_four_three_ratio);
+            guest_override("_ZN10CConfigMgr14GetScreenRatioEv",h_four_three_ratio);
+        }
+#endif
+        if ((screen_four_three || fabsf(aspect - (16.0f / 9.0f)) < 0.05f) && guest_override("_Z19GetSpriteResolutionPjS_", h_sprite_res)) {
             install_movie_aspect();
-            fprintf(stderr, "[hotd4] 16:9 widescreen layout active (%dx%d)\n", w, h);
+            fprintf(stderr, "[hotd4] %s layout active (%dx%d)\n", screen_four_three?"4:3":"16:9",w,h);
 #if defined(_WIN64) && !defined(LINDBERGH_OPENXR) && !defined(LINDBERGH_VULKAN)
             install_wide_hud_layout();
 #endif
-            hud_widen_enable(0.75f, hud_anchored);
+            hud_widen_enable(screen_four_three?1.0f:0.75f,hud_anchored);
             /* the 2D is laid out in 640x480 pixels from the top left, and
              * drawn into the camera's w x h frame */
             hud_widen_layout(w / 640.0f, w / 640.0f - 1.0f, h / 480.0f, 1.0f - h / 480.0f, w - 8);

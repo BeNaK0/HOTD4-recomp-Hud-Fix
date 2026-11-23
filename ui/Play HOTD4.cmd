@@ -98,7 +98,7 @@ function Invoke-Hotd4 {
     $env:HOTD4_HUD_PROFILE = $hudFile
     $env:LINDBERGH_FULLSCREEN = if ($Windowed) { '0' } elseif ($Borderless) { '1' } else { $defaultFullscreen }
     $env:LINDBERGH_NVRAM = $defaultNvram
-    $width, $height = Get-Hotd4RenderSize $Width $Height
+    $width, $height = Get-Hotd4RenderSize $Width $Height (Get-Hotd4AspectRatio $recompDir)
     $env:LINDBERGH_WIDTH = [string]$width
     $env:LINDBERGH_HEIGHT = [string]$height
     $env:LINDBERGH_WINDOW = '{0}x{1}' -f $OutputWidth, $OutputHeight

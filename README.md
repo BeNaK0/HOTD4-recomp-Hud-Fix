@@ -1,8 +1,15 @@
 # HOTD4 Local Builder
 
-Download and extract **HOTD4-Local-Builder-v1.3.15.zip** from the [v1.3.15 release](https://github.com/davidptrssvea/HOTD4-recomp/releases/tag/v1.3.15). Run **Setup.cmd**, select your own extracted arcade dump, then wait for the local build. Open **HOTD4-PC\Play HOTD4.exe** for the graphical menu or **Model Viewer.exe** to go directly to the viewer. All menus are in English.
+Download and extract **HOTD4-Local-Builder-v1.3.16.zip** from the [v1.3.16 release](https://github.com/davidptrssvea/HOTD4-recomp/releases/tag/v1.3.16). Run **Setup.cmd**, select your own extracted arcade dump, then wait for the local build. Open **HOTD4-PC\Play HOTD4.exe** for the graphical menu or **Model Viewer.exe** to go directly to the viewer. All menus are in English.
 
 To update, extract the new builder and run `Setup.cmd -InstallDir "C:\Path\To\HOTD4-PC"`, using your existing installation path. Select the same arcade dump when prompted. This keeps your settings, cabinet saves and trophies.
+
+
+## Display options (v1.3.16)
+
+In **Settings > Graphics / Input**, choose **V-Sync > On** to synchronize desktop presentation with the display. Save and restart the game to apply. Off remains the default. The desktop setting does not alter OpenXR headset timing.
+
+On the main **Settings** page, choose **Aspect Ratio > 4:3** (below Display Mode, next to HUD) for a 4:3 game canvas, including 640 x 480 and 800 x 600 outputs. Wider displays show side bars. The game, HUD and pointer use the same fitted picture area. 16:9 remains the default. Save, exit the game and relaunch to apply an aspect-ratio change. This is a desktop option; OpenXR keeps its headset view.
 
 ## Co-op result panel fix (v1.3.13)
 

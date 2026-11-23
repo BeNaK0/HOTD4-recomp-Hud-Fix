@@ -244,6 +244,19 @@ static void h_glXMakeCurrent(CPU *c)
     if (!A32(2)) { RET(1); return; }
     if (!ensure_window()) { RET(0); return; }
     int i = pb_index(A32(1));
+#if defined(_WIN64) && !defined(LINDBERGH_OPENXR) && !defined(LINDBERGH_VULKAN)
+    /* Pbuffers use cabinet pixels; the desktop window uses the fitted
+     * presentation viewport. A shared GL context must not carry physical
+     * window coordinates into the next pbuffer (or vice versa). */
+    int width,height;lindbergh_window_size(&width,&height);
+    int map_view=!stereo_enabled() && height>0 && width*3==height*4;
+    int changing_window=(g_drawable_pb==0)!=(i<=0);
+    GLint viewport[4],scissor[4];
+    if(map_view && changing_window){
+        glGetIntegerv(GL_VIEWPORT,viewport);glGetIntegerv(GL_SCISSOR_BOX,scissor);
+        if(!g_drawable_pb){host_viewport_unscale(viewport);host_viewport_unscale(scissor);}
+    }
+#endif
     g_drawable_pb = i > 0 ? i : 0;
     /* In the headset a pbuffer is the eyes too. The House of the Dead 4
      * draws its whole 3D scene into one, copies it into a texture and draws
@@ -256,6 +269,16 @@ static void h_glXMakeCurrent(CPU *c)
 #endif
     if (stereo_enabled()) stereo_bind_window();
     else glBindFramebuffer(GL_FRAMEBUFFER, i > 0 ? g_pb[i].fb : 0);
+#if defined(_WIN64) && !defined(LINDBERGH_OPENXR) && !defined(LINDBERGH_VULKAN)
+    if(map_view && changing_window){
+        if(!g_drawable_pb){
+            host_viewport_scale(&viewport[0],&viewport[1],&viewport[2],&viewport[3]);
+            host_viewport_scale(&scissor[0],&scissor[1],&scissor[2],&scissor[3]);
+        }
+        glViewport(viewport[0],viewport[1],viewport[2],viewport[3]);
+        glScissor(scissor[0],scissor[1],scissor[2],scissor[3]);
+    }
+#endif
     {
         static int said;
         if (!said++) fprintf(stderr, "[glX] context current\n");
