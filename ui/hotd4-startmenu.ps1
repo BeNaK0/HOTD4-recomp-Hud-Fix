@@ -1,9 +1,10 @@
-﻿. (Join-Path $PSScriptRoot 'hotd4-game-library.ps1')
+﻿. (Join-Path $PSScriptRoot 'hotd-game-library.ps1')
 function Show-Hotd4StartMenu {
     param(
         [Parameter(Mandatory)] [string] $RecompDir,
         [Parameter(Mandatory)] [int] $DesktopWidth,
-        [Parameter(Mandatory)] [int] $DesktopHeight
+        [Parameter(Mandatory)] [int] $DesktopHeight,
+        [ValidateSet('MainPage','OptionsPage')] [string] $InitialPage = 'MainPage'
     )
 
     . (Join-Path $RecompDir 'hotd4-display.ps1')
@@ -848,7 +849,7 @@ function Show-Hotd4StartMenu {
         & $showPage 'MainPage'
         [void] $controls.Options.Focus()
     } )
-    $window.Add_ContentRendered( { & $showPage 'MainPage' } )
+    $window.Add_ContentRendered( { & $showPage $InitialPage } )
 
     $window.Add_PreviewKeyDown( {
         param($sender, $eventArgs)
@@ -889,7 +890,7 @@ function Show-Hotd4StartMenu {
             }
         }
     } )
-    Add-Hotd4GameSwitcher -Window $window -MainPage $controls.MainPage -RecompDir $RecompDir -CurrentGame Normal
+    [void](Add-Hotd4GameSwitcher $window $controls.MainPage $RecompDir Normal $controls.Arcade $controls.Options)
     . (Join-Path $RecompDir 'hotd-update.ps1')
     Add-HotdUpdater $window $controls.MainPage $RecompDir Normal
     [void] $window.ShowDialog()

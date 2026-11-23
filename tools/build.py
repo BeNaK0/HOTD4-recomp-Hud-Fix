@@ -183,9 +183,9 @@ def main():
  if not a.stage_update:
   (out/'dump-path.txt').write_text(str(localdump),encoding='utf-8')
   try:
-   run(['powershell.exe','-NoProfile','-ExecutionPolicy','Bypass','-File',app/'hotd4-game-library.ps1','-RegisterOnly','-LibraryRecompDir',app,'-LibraryGame','Normal'])
+   run(['powershell.exe','-NoProfile','-ExecutionPolicy','Bypass','-File',app/'hotd-game-library.ps1','-RegisterOnly','-LibraryRecompDir',app,'-LibraryGame','Normal'])
   except subprocess.CalledProcessError:
-   print('The game was installed, but automatic library registration failed. Use Locate other game in the start menu.',flush=True)
+   print('The game was installed, but automatic library registration failed. Use Locate installed game in the Game Library.',flush=True)
  licenses=app/'licenses';licenses.mkdir(exist_ok=True)
  for label,p in [('ports',source/'LICENSE'),('lindberghrecomp',source/'lindberghrecomp/LICENSE'),('pcrecomp',source/'lindberghrecomp/pcrecomp/LICENSE')]:shutil.copy2(p,licenses/(label+'.txt'))
  # Toolchain package license notices for libraries, including indirect DLLs.

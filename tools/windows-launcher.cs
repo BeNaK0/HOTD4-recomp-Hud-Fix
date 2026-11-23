@@ -68,6 +68,8 @@ internal static class Launcher
                     String.Equals(arg, "--skip-launcher", StringComparison.OrdinalIgnoreCase));
                 start.EnvironmentVariables.Remove("HOTD4_4K_MODE");
                 start.EnvironmentVariables["HOTD4_NO_LAUNCHER"] = direct ? "1" : "0";
+                bool settings = Array.Exists(args, arg => String.Equals(arg, "--settings", StringComparison.OrdinalIgnoreCase));
+                start.EnvironmentVariables["HOTD4_INITIAL_PAGE"] = !direct && settings ? "OptionsPage" : "MainPage";
                 if (direct) start.EnvironmentVariables["HOTD4_4K_MODE"] = "0";
                 start.EnvironmentVariables["HOTD4_GUI_LAUNCH"] = "1";
                 start.Arguments += "-Command \"$parts = (Get-Content -Raw -Encoding UTF8 -LiteralPath $env:HOTD4_4K_SCRIPT) " +

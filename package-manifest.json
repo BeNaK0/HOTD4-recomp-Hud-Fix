@@ -7,7 +7,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "09051c4548a1d5bac6a62cf3f27fe5520c503a17bacd614a59ab48ee4adf4723"
+      "sha256": "b86780a4f2089bc1334e1e9018ac2db3759c1aa414f2c50f46a9c9d3daa64134"
     },
     {
       "path": "RELEASE-NOTES.md",
@@ -567,7 +567,7 @@
     },
     {
       "path": "tools/build.py",
-      "sha256": "287d718c8d1ec9866bab16f12e64846d733229a3facd0a3dfeb37a6d82a0db6b"
+      "sha256": "e2de5cf046cc1f39b4705177e0252da7d3bec2c118b716233d1cbe42b1b8f84d"
     },
     {
       "path": "tools/build_support.py",
@@ -607,7 +607,7 @@
     },
     {
       "path": "tools/windows-launcher.cs",
-      "sha256": "e5bff9aa7396401078e0d036a067a6fb687142bf27fb672297b9e62aca7452d1"
+      "sha256": "280e5ba455acd62c4eef8ebf7b8f8b1d38241721ff3469ac1b5b0083bf18bdd2"
     },
     {
       "path": "ui/Model Viewer.cmd",
@@ -623,7 +623,7 @@
     },
     {
       "path": "ui/Play HOTD4.cmd",
-      "sha256": "94f74a21e453a36e1e93d38956ff802fafcf546e2a544c9806ba70cb996ead58"
+      "sha256": "ef502ba778fb910d4a24405b8f0248e5533a827d609ba9136f025a2fcba894b3"
     },
     {
       "path": "ui/achievement-assets/bronze.png",
@@ -1514,8 +1514,8 @@
       "sha256": "843f4e1730662181cf5dea834ca955d8be12460d6de1e3af4b057510a6ac85cb"
     },
     {
-      "path": "ui/hotd4-game-library.ps1",
-      "sha256": "25809b0b3257e509109d8e6bb6a76c3b3d45a5085113186454321fc82db51112"
+      "path": "ui/hotd-game-library.ps1",
+      "sha256": "f155a81cc7c465d5bf90b72b38642c94d936edde1eb01ab51f2c1761f6c22f31"
     },
     {
       "path": "ui/hotd4-model-motion.cs",
@@ -1543,7 +1543,7 @@
     },
     {
       "path": "ui/hotd4-startmenu.ps1",
-      "sha256": "3afb5bf2e402cd0b4954f11f0a101cf3ea320fde2da901cfc3b376212957bc9f"
+      "sha256": "ff617f84733b5cbb7ccefa7cc9fb14b972a6fbb5db900ee73cce98fb2d0e9a8b"
     },
     {
       "path": "ui/lindbergh.ini",

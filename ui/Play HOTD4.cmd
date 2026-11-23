@@ -3,6 +3,9 @@ setlocal
 set "HOTD4_4K_SCRIPT=%~dpnx0"
 set "HOTD4_4K_MODE=%~1"
 set "HOTD4_NO_LAUNCHER=0"
+set "HOTD4_INITIAL_PAGE=MainPage"
+if /I "%~1"=="--settings" set "HOTD4_INITIAL_PAGE=OptionsPage"
+if /I "%~1"=="--settings" set "HOTD4_4K_MODE="
 if /I "%~1"=="--no-launcher" set "HOTD4_NO_LAUNCHER=1"
 if /I "%~1"=="--skip-launcher" set "HOTD4_NO_LAUNCHER=1"
 if "%HOTD4_NO_LAUNCHER%"=="1" set "HOTD4_4K_MODE=0"
@@ -249,8 +252,10 @@ try {
     if (!$mode -and ($env:HOTD4_GUI_LAUNCH -eq '1' -or ![Console]::IsInputRedirected)) {
         $desktopWidth, $desktopHeight = Get-Hotd4DesktopSize
         . (Join-Path $recompDir 'hotd4-startmenu.ps1')
+        $initialPage = if ($env:HOTD4_INITIAL_PAGE -eq 'OptionsPage') { 'OptionsPage' } else { 'MainPage' }
         do {
-            $selection = Show-Hotd4StartMenu -RecompDir $recompDir -DesktopWidth $desktopWidth -DesktopHeight $desktopHeight
+            $selection = Show-Hotd4StartMenu -RecompDir $recompDir -DesktopWidth $desktopWidth -DesktopHeight $desktopHeight -InitialPage $initialPage
+            $initialPage = 'MainPage'
             if (!$selection) { exit 0 }
             $exitCode = Invoke-Hotd4Selection $selection $desktopWidth $desktopHeight
         } while ($exitCode -eq 0)
