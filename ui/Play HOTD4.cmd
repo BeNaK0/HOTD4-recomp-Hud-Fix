@@ -18,7 +18,11 @@ exit /b %HOTD4_EXIT%
 $ErrorActionPreference = 'Stop'
 $gameRoot = Split-Path -Parent $env:HOTD4_4K_SCRIPT
 $recompDir = Join-Path $gameRoot 'HOTD4_Recomp'
-$diskDir = [IO.File]::ReadAllText((Join-Path $gameRoot 'dump-path.txt')).Trim()
+. (Join-Path $recompDir 'hotd-update.ps1')
+$diskDir = Find-HotdUpdateDump $gameRoot (Get-HotdUpdateGame Normal)
+if (!$diskDir) {
+    throw "Could not find the HOTD4 arcade dump. Run Setup or check the path in '$gameRoot\dump-path.txt'."
+}
 $elfDir = Join-Path $diskDir 'elf'
 . (Join-Path $recompDir 'hotd4-native-crosshair.ps1')
 [void](Initialize-Hotd4NativeCrosshair $recompDir $diskDir)

@@ -2,10 +2,37 @@ param([string]$UpdateRequest)
 
 function Get-HotdUpdateGame([string]$Game) {
     switch ($Game) {
-        Normal  { @{ Repo='HOTD4-recomp'; Bundle='HOTD4-Local-Builder'; App='HOTD4_Recomp'; Exe='hotd4-desktop.exe'; VR='hotd4-vr.exe'; Launcher='Play HOTD4.exe'; Dumps=@('game/disk0','The House of the Dead 4/disk0'); Elf='elf/hod4M.elf'; Lock='.hotd4-setup.lock'; RootExe=@('Play HOTD4.exe','Model Viewer.exe') } }
+        Normal  { @{ Repo='HOTD4-recomp'; Bundle='HOTD4-Local-Builder'; App='HOTD4_Recomp'; Exe='hotd4-desktop.exe'; VR='hotd4-vr.exe'; Launcher='Play HOTD4.exe'; Dumps=@('game/disk0','The House of the Dead 4/disk0'); Elf='elf/hod4M.elf'; DumpRecord='dump-path.txt'; Lock='.hotd4-setup.lock'; RootExe=@('Play HOTD4.exe','Model Viewer.exe') } }
         Special { @{ Repo='HOTD-4-Special-recomp'; Bundle='HOTD4SP-Local-Builder'; App='HOTD4SP_Recomp'; Exe='hotd4sp-desktop.exe'; VR='hotd4sp-vr.exe'; Launcher='HOTD4SP_Recomp/Play HOTD4 Special.exe'; Dumps=@('hotd4sp'); Elf='elf/hod4M.elf'; Lock='.hotd4-setup.lock'; RootExe=@() } }
         EX      { @{ Repo='HOTD-EX-recomp'; Bundle='HOTDEX-Local-Builder'; App='HOTDEX_Recomp'; Exe='hotdex-desktop.exe'; Launcher='Play HOTD EX.exe'; Dumps=@('disk0'); Elf='elf/hodexRI.elf'; Lock='.hotdex-setup.lock'; RootExe=@('Play HOTD EX.exe') } }
         default { throw 'Unknown HOTD edition.' }
+    }
+}
+
+function Find-HotdUpdateDump([string]$Root,$Game) {
+    $candidates = @(
+        if ($Game.DumpRecord) {
+            $record = Join-Path $Root $Game.DumpRecord
+            try {
+                $saved = [IO.File]::ReadAllText($record).Trim()
+                if ($saved -match '^(?:[a-z]:[\\/]|\\\\)') { $saved }
+            } catch [IO.IOException] {
+                Write-Verbose "Could not read the saved dump path: $($_.Exception.Message)"
+            } catch [UnauthorizedAccessException] {
+                Write-Verbose "Could not read the saved dump path: $($_.Exception.Message)"
+            }
+        }
+        foreach ($relative in $Game.Dumps) { Join-Path $Root $relative }
+    )
+    foreach ($path in $candidates) {
+        try { $dump = [IO.Path]::GetFullPath($path) }
+        catch [ArgumentException] { continue }
+        catch [NotSupportedException] { continue }
+        catch [IO.PathTooLongException] { continue }
+        if ([IO.File]::Exists([IO.Path]::Combine($dump,$Game.Elf)) -and
+            [IO.Directory]::Exists([IO.Path]::Combine($dump,'fs'))) {
+            return $dump
+        }
     }
 }
 
@@ -80,6 +107,7 @@ function Get-HotdManagedPaths([string]$Stage, [string]$Builder, $Game) {
     foreach ($name in @($Game.RootExe) + @('Play HOTD EX.cmd','Play HOTD EX (Direct).cmd','Settings.cmd','Play HOTD Special.cmd','local-build.json')) {
         if ([IO.File]::Exists((Join-Path $Stage $name))) { $name }
     }
+    if ($Game.DumpRecord) { $Game.DumpRecord }
     $prefix+'hotd-update-version.txt'
 }
 
@@ -380,8 +408,7 @@ function Invoke-HotdUpdateWorker([string]$Request) {
             $job.Package.Hash -notmatch '^[0-9a-f]{64}$' -or $job.Package.Size -le 0 -or $job.Package.Size -gt 50MB) {
             throw 'This update does not match the installed edition and version.'
         }
-        $dump = $game.Dumps | ForEach-Object { Join-Path $root $_ } |
-            Where-Object { Test-Path -LiteralPath (Join-Path $_ $game.Elf) -PathType Leaf } | Select-Object -First 1
+        $dump = Find-HotdUpdateDump $root $game
         if (!$dump) { throw 'The installed arcade dump could not be located.' }
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
         $zip = Join-Path $work 'builder.zip'
@@ -404,6 +431,7 @@ function Invoke-HotdUpdateWorker([string]$Request) {
             !(Test-Path -LiteralPath (Join-Path $builtApp 'hotd-update.ps1') -PathType Leaf)) {
             throw 'The staged update is incomplete.'
         }
+        if ($game.DumpRecord) { [IO.File]::WriteAllText((Join-Path $stage $game.DumpRecord), $dump) }
         [IO.File]::WriteAllText((Join-Path $builtApp 'hotd-update-version.txt'), $job.Package.Tag)
         $files = @(Get-HotdManagedPaths $stage $builder $game | Select-Object -Unique)
         Assert-HotdUpdatePending $owner $cancel

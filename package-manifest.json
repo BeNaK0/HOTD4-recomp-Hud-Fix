@@ -11,7 +11,7 @@
     },
     {
       "path": "RELEASE-NOTES.md",
-      "sha256": "32b7bce90f442b0e05f2cbf6ab79a6572292fe6b2d757461aa7aca1a8b5eb0b2"
+      "sha256": "471d7d65c9cf60ba49f7d7127fa7cce9ea9881dfccdf65005000cdf6b8b92673"
     },
     {
       "path": "Setup.cmd",
@@ -623,7 +623,7 @@
     },
     {
       "path": "ui/Play HOTD4.cmd",
-      "sha256": "ef502ba778fb910d4a24405b8f0248e5533a827d609ba9136f025a2fcba894b3"
+      "sha256": "3d380bf792a0b293b457681e343f243746caf5862f785fcb83810033725da1d9"
     },
     {
       "path": "ui/achievement-assets/bronze.png",
@@ -1495,11 +1495,11 @@
     },
     {
       "path": "ui/hotd-update-version.txt",
-      "sha256": "66ea0e50becaa834b0ba4e0598db615767201b270cbc5b62b264a842d5400ca3"
+      "sha256": "5041983ea60ef96ca9702c11782f0d4479a7aa4a6b601fdc69614c8d7a42ec03"
     },
     {
       "path": "ui/hotd-update.ps1",
-      "sha256": "e756e4dff708bd082e6b702c524672b2ec2ece14260c36e79d1f757e11fe8e78"
+      "sha256": "87e8a61b7141cd862a195fde52be9517b33889d6ceaa074fbfc7f2e0e758eed8"
     },
     {
       "path": "ui/hotd4-achievements.ps1",

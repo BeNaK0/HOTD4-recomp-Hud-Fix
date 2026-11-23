@@ -29,6 +29,9 @@ jobs:
       - name: Test update progress, window switching and cancellation
         shell: powershell
         run: ./.release/test_update_progress.ps1
+      - name: Test legacy install upgrade and launch
+        shell: powershell
+        run: ./.release/test_update_dump_path.ps1
       - name: Test remembered Setup folders and Browse controls
         shell: powershell
         run: ./.release/test_setup_paths.ps1

@@ -1,9 +1,6 @@
-# HOTD4 v1.3.20 - Updater progress and cancellation
+# HOTD4 v1.3.21 - Launcher fix for older installations
 
-- The launcher shows the current update step and elapsed time. You can Alt+Tab to another app while the update runs.
-- Follow the download, toolchain preparation, and local build. Compilation shows completed and total steps when available, including Arcade Test Menu and OpenXR on supported installations.
-- Choose **Cancel** or close the progress window to stop before installation. Cancelling also stops the build processes.
+- The launcher can locate the HOTD4 arcade dump in either supported folder layout when the saved path is missing or stale.
+- The updater preserves a valid configured dump location and writes the resolved path when installing the update. Existing game files and settings stay in place.
 
-## Updating
-
-Choose **Updates > Download and install** in the launcher. If your current launcher still uses the old update dialog, extract this release ZIP and run **Setup.cmd** to update your existing installation.
+Choose **Updates > Download and install** in a working launcher. If an older launcher reports that `dump-path.txt` is missing, open the release ZIP and run **Setup.cmd** with your existing installation and arcade dump.
