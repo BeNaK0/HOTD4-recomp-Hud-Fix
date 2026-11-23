@@ -3,15 +3,15 @@
   "files": [
     {
       "path": "BUILD-VERIFICATION.md",
-      "sha256": "847c932ad870484450b781dc32b0e229f104823725a17548fe86f780f784f698"
+      "sha256": "04e5397943d3af380bca80e404b1632ac29f292d6116a7c27640624d2ef0d09d"
     },
     {
       "path": "README.md",
-      "sha256": "e5c88dec9c1853181b52aafd9b11a0a5fcb5c9fc36035b3dc7c3136f86ec6303"
+      "sha256": "09051c4548a1d5bac6a62cf3f27fe5520c503a17bacd614a59ab48ee4adf4723"
     },
     {
       "path": "RELEASE-NOTES.md",
-      "sha256": "5b57e559131cd455b4075c81885fc8a6937694ae425aa2870bb3d11638c7fc2c"
+      "sha256": "104002f91591a357e2c806b289ca7dff241a3c0e8302f931464de6d97d11c24a"
     },
     {
       "path": "Setup.cmd",
@@ -95,7 +95,7 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/controls_menu.h",
-      "sha256": "3b2a96cd7059891e4451669a4efe0d4dce5e4e6c6042a4f2a5c1b908dff65b1f"
+      "sha256": "31aadfd2c2c8e98f4bd3266c90b14c86cb5291d2c78bb4d91e7fb239dd32a28b"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/coop_mouse.h",
@@ -263,7 +263,7 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/host_sdl.c",
-      "sha256": "c11f8d56b7ed194b086c8835acd2bfabcce1f3b5719e16397607219765a077cf"
+      "sha256": "0fa5d731a9bcbf0da1f9faea9d5a441d95095ce993c091916a1490e9c84f24a8"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/host_settings.c",
@@ -287,7 +287,7 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/hotd4_controls.h",
-      "sha256": "09247d2fc5b547544c273676663bb0ca5b5256eb9efe539ed17b1bc5dacff69c"
+      "sha256": "7ad4a12bbc5d0fe554ac0cec1172769e6282c79a9a2238f01009e4ea4c7496ad"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/hud_widen.c",
@@ -295,7 +295,11 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/input_options.h",
-      "sha256": "43ca11ade58b58a9ad2ccb9bb4dd97b963de848f9f8bcd9a50de60f318dc692d"
+      "sha256": "386876d4108eeed425025cbee3ec3597ca7ad1544b29887bd23d7335f9781f8a"
+    },
+    {
+      "path": "source/lindberghrecomp/src/runtime/keyboard_aim.h",
+      "sha256": "f8fb8d92f64390b4f1bc2d513b6ebd183d8287a876ba4d8799118c70ae410615"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/lindbergh_rt.h",
@@ -1491,7 +1495,7 @@
     },
     {
       "path": "ui/hotd-update-version.txt",
-      "sha256": "b40e71f82425c017e57b6969302c9ed5c806eadcfde778bf76557139e8b04ca3"
+      "sha256": "54cc42452d40b97ba9050a68e258fde3a231ac8ee924b04efe0913963a2a86dd"
     },
     {
       "path": "ui/hotd-update.ps1",
@@ -1503,7 +1507,7 @@
     },
     {
       "path": "ui/hotd4-controls.ps1",
-      "sha256": "8a302015e50e8b93b92b66b10716da7c64f4c4e884f4cf888aa57ccbdabfdff5"
+      "sha256": "9487a7f4868ce6a392feb4ebadbcb3135c684912ab32050061e32dead5d31610"
     },
     {
       "path": "ui/hotd4-display.ps1",
@@ -1539,7 +1543,7 @@
     },
     {
       "path": "ui/hotd4-startmenu.ps1",
-      "sha256": "42f86f15479cbcbbd84a2b6de12752a3cc9a81f46eabec57ba0599bbc450a370"
+      "sha256": "3afb5bf2e402cd0b4954f11f0a101cf3ea320fde2da901cfc3b376212957bc9f"
     },
     {
       "path": "ui/lindbergh.ini",

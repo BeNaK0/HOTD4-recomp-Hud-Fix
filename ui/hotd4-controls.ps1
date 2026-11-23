@@ -3,7 +3,24 @@
         @('coin1','Add Coin (P1)',53),@('start1','Start (P1)',49),@('trigger','Shoot',-1),@('reload','Reload / Shake',-3),
         @('action','Grenade',32),@('firemode','Fire Mode',102),@('coin2','Add Coin (P2)',54),@('start2','Start (P2)',50),
         @('test','Test Menu',116),@('service','Service',115),@('mute','Mute',109),@('pause','Pause',27),
-        @('restart','Restart',1073741887),@('fullscreen','Fullscreen',1073741892),@('crosshair_toggle','Toggle Crosshair',1073741883),@('mouse_lock','Mouse Lock',1073741882)
+        @('restart','Restart',1073741887),@('fullscreen','Fullscreen',1073741892),@('crosshair_toggle','Toggle Crosshair',1073741883),@('mouse_lock','Mouse Lock',1073741882),
+        @('kb1_up','P1 Aim Up (Keyboard)',1073741906),
+        @('kb1_down','P1 Aim Down (Keyboard)',1073741905),
+        @('kb1_left','P1 Aim Left (Keyboard)',1073741904),
+        @('kb1_right','P1 Aim Right (Keyboard)',1073741903),
+        @('kb1_shoot','P1 Shoot (Keyboard)',1073742052),
+        @('kb1_reload','P1 Reload / Shake (Keyboard)',1073742053),
+        @('kb1_grenade','P1 Grenade (Keyboard)',1073742054),
+        @('kb1_firemode','P1 Fire Mode (Keyboard)',1073741901),
+        @('kb2_up','P2 Aim Up (Keyboard)',119),
+        @('kb2_down','P2 Aim Down (Keyboard)',115),
+        @('kb2_left','P2 Aim Left (Keyboard)',97),
+        @('kb2_right','P2 Aim Right (Keyboard)',100),
+        @('kb2_shoot','P2 Shoot (Keyboard)',32),
+        @('kb2_reload','P2 Reload / Shake (Keyboard)',113),
+        @('kb2_grenade','P2 Grenade (Keyboard)',101),
+        @('kb2_firemode','P2 Fire Mode (Keyboard)',9),
+        @('kb_service','Service (Keyboard)',1073741891)
     )
 }
 function Read-Hotd4Controls([string]$RecompDir){
@@ -23,12 +40,19 @@ function Read-Hotd4Controls([string]$RecompDir){
     }}
     @{Values=$values;Custom=$custom}
 }
+function Test-Hotd4BindingConflict([string]$A,[string]$B){
+    $normal=@('trigger','reload','action','firemode','service')
+    return !(($A -in $normal -and $B.StartsWith('kb')) -or ($B -in $normal -and $A.StartsWith('kb')))
+}
 function Write-Hotd4Controls([string]$RecompDir,$Values){
-    $seen=@{};foreach($row in Get-Hotd4ControlCatalog){$v=[int]$Values[$row[0]];if(!$v -or ($v -lt 0 -and $row[0] -notin 'trigger','reload','action','firemode')){throw "Choose a keyboard key for $($row[1])."};if($seen.ContainsKey($v)){throw "Duplicate binding: $($row[1]) and $($seen[$v])."};$seen[$v]=$row[1]}
+    $catalog=@(Get-Hotd4ControlCatalog)
+    foreach($row in $catalog){$v=[int]$Values[$row[0]];if(!$v -or ($v -lt 0 -and $row[0] -notin 'trigger','reload','action','firemode')){throw "Choose a keyboard key for $($row[1])."}
+        foreach($other in $catalog){if($other[0] -ne $row[0] -and [int]$Values[$other[0]] -eq $v -and (Test-Hotd4BindingConflict $row[0] $other[0])){throw "Duplicate binding: $($row[1]) and $($other[1])."}}
+    }
     $text="HOTD4-CONTROLS-1`n";foreach($row in Get-Hotd4ControlCatalog){$text+="$($row[0]) $($Values[$row[0]])`n"}
     $dest=Join-Path $RecompDir 'controls-profile.txt';$temp=$dest+'.new'
     [IO.File]::WriteAllText($temp,$text,[Text.UTF8Encoding]::new($false))
-    if([IO.File]::Exists($dest)){[IO.File]::Replace($temp,$dest,$null)}else{[IO.File]::Move($temp,$dest)}
+    if([IO.File]::Exists($dest)){[IO.File]::Replace($temp,$dest,[NullString]::Value)}else{[IO.File]::Move($temp,$dest)}
 }
 function Get-Hotd4BindingName([int]$Value){
     $names=@{(-1)='Left Mouse';(-2)='Middle Mouse';(-3)='Right Mouse';(-4)='Mouse X1';(-5)='Mouse X2';13='Enter';27='Esc';32='Space';9='Tab';8='Backspace';127='Delete';1073741903='Right';1073741904='Left';1073741905='Down';1073741906='Up';1073741897='Insert';1073741898='Home';1073741901='End';1073741899='Page Up';1073741902='Page Down';1073742048='Left Ctrl';1073742049='Left Shift';1073742050='Left Alt';1073742052='Right Ctrl';1073742053='Right Shift';1073742054='Right Alt';1073741881='Caps Lock';1073741896='Pause/Break';1073741894='Print Screen';1073741895='Scroll Lock';1073741907='Num Lock';1073741908='Num /';1073741909='Num *';1073741910='Num -';1073741911='Num +';1073741912='Num Enter';1073741922='Num 0';1073741923='Num .'}

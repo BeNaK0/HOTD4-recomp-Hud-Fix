@@ -1,5 +1,15 @@
 # Verification of the local builder
 
+## v1.3.17: keyboard aiming (2026-11-23)
+
+- Both native desktop and optional OpenXR targets build successfully. Keyboard aiming is a Windows desktop input mode; headset controls are unchanged.
+- Actual game runs completed 2,400 frames each with isolated NVRAM. SDL key events joined both players, moved each sight, fired independently and reloaded both magazines. Player states and ammo were read from each game's own player objects; no shot/ammo state was injected.
+- Native input tests covered directions, independent buttons, S/Service isolation, saved remaps, focus/pause release, repeated window-open calls and all three pages of in-game Key Bindings. Existing absolute mouse input remained functional.
+- WPF tests exercised all 33 actions, real key capture, Save/reopen, legacy profile loading, duplicate rejection, mode-specific help and the launcher control summary. Display-menu regression checks passed. Menu previews were rendered for visual inspection.
+- Pure C movement checks covered 10/60/144 Hz, opposing keys, clamping and normalized positions at multiple resolutions. These automated SDL tests do not measure physical keyboard rollover/ghosting or constitute full playthroughs.
+
+- Release builder validation: the complete Windows builder used the verified local dump and existing private generation/object caches to build desktop, optional OpenXR and launcher components into a separate staged installation. All launcher code and updater version stamps matched the release source. Both staged menus passed keyboard-binding and display regression checks. Extracted full builder ZIPs passed Windows PowerShell 5.1 integrity and supported-dump validation. No original dump data was copied into the update stage or release package. This was not an empty-toolchain installation.
+
 ## v1.3.16: desktop display options
 
 Aspect Ratio is on the main Settings page next to HUD and saved by Settings > Save. WPF tests verify visibility, page placement, Save/Back behavior, reopening 4:3/16:9, Special framing state and reachable bottom buttons.

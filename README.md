@@ -1,9 +1,24 @@
 # HOTD4 Local Builder
 
-Download and extract **HOTD4-Local-Builder-v1.3.16.zip** from the [v1.3.16 release](https://github.com/davidptrssvea/HOTD4-recomp/releases/tag/v1.3.16). Run **Setup.cmd**, select your own extracted arcade dump, then wait for the local build. Open **HOTD4-PC\Play HOTD4.exe** for the graphical menu or **Model Viewer.exe** to go directly to the viewer. All menus are in English.
+Download and extract **HOTD4-Local-Builder-v1.3.17.zip** from the [v1.3.17 release](https://github.com/davidptrssvea/HOTD4-recomp/releases/tag/v1.3.17). Run **Setup.cmd**, select your own extracted arcade dump, then wait for the local build. Open **HOTD4-PC\Play HOTD4.exe** for the graphical menu or **Model Viewer.exe** to go directly to the viewer. All menus are in English.
 
 To update, extract the new builder and run `Setup.cmd -InstallDir "C:\Path\To\HOTD4-PC"`, using your existing installation path. Select the same arcade dump when prompted. This keeps your settings, cabinet saves and trophies.
 
+
+## Keyboard aiming (v1.3.17)
+
+Choose **Settings > Graphics / Input > Input Mode > Keyboard (P1 + P2)**, save, and restart the game. Open **Settings > Key Bindings** to change either player's movement and action keys. The in-game pause menu also provides Key Bindings (PgUp/PgDn switches pages).
+
+| Action | Player 1 | Player 2 |
+| --- | --- | --- |
+| Aim | Arrow keys | WASD |
+| Shoot | Right Ctrl | Space |
+| Reload / shake | Right Shift | Q |
+| Grenade | Right Alt | E |
+| Fire mode | End | Tab |
+| Coin / Start | 5 / 1 | 6 / 2 |
+
+Keyboard mode keeps the two seats independent. Use P2's Coin and Start to play solo from P2, or join both players for co-op. Movement is frame-rate independent and stops when the game loses focus or opens the pause menu. The keyboard-specific Service key defaults to F10 so S remains available for P2 aiming. Mouse and lightgun modes retain their existing controls and profiles.
 
 ## Display options (v1.3.16)
 
