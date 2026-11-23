@@ -11,7 +11,7 @@
     },
     {
       "path": "RELEASE-NOTES.md",
-      "sha256": "104002f91591a357e2c806b289ca7dff241a3c0e8302f931464de6d97d11c24a"
+      "sha256": "2f37f682de60a749897e861d7c871da0e6b5f3196d6e58f3676afab4ef89b687"
     },
     {
       "path": "Setup.cmd",
@@ -1495,7 +1495,7 @@
     },
     {
       "path": "ui/hotd-update-version.txt",
-      "sha256": "54cc42452d40b97ba9050a68e258fde3a231ac8ee924b04efe0913963a2a86dd"
+      "sha256": "2b0e6ee34afcb7e4327d2d2f4b9ca5b173bcc9e5e7bd5bde4eaf36b259fa8789"
     },
     {
       "path": "ui/hotd-update.ps1",
