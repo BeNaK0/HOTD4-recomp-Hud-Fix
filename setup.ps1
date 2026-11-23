@@ -26,12 +26,11 @@ try {
     Set-BuilderPhase '1/6 Package and dump verification'
     $interactive = !$DumpPath
     if($interactive){
-        Add-Type -AssemblyName System.Windows.Forms
-        Write-Host 'Waiting for your dump selection in the folder dialog...'
-        $picker=New-Object Windows.Forms.FolderBrowserDialog
-        $picker.Description='Select your extracted normal HOTD4 arcade dump (disk0 or its parent folder)'
-        if($picker.ShowDialog() -ne [Windows.Forms.DialogResult]::OK){Write-Host 'Setup cancelled.';exit 0}
-        $DumpPath=$picker.SelectedPath;$picker.Dispose()
+        . (Join-Path $PSScriptRoot 'tools/setup_paths.ps1')
+        Write-Host 'Waiting for your dump and installation folders in the Setup dialog...'
+        $paths=Select-BuilderSetupPaths 'Normal' (Join-Path $PSScriptRoot 'HOTD4-PC') $InstallDir
+        if(!$paths){Write-Host 'Setup cancelled.';exit 0}
+        $DumpPath=$paths.DumpPath;$InstallDir=$paths.InstallDir
     }
     $elfVariants=Get-Content -LiteralPath "$PSScriptRoot\tools\elf-variants.json" -Raw -Encoding UTF8 | ConvertFrom-Json
     $DumpPath=(Resolve-Path -LiteralPath $DumpPath).Path
@@ -184,6 +183,10 @@ try {
         Write-Warning 'The game was installed, but the optional menu background could not be rendered. See HOTD4_Recomp\menu-background.log. Run Setup again to retry; the plain menu remains available.'
     }
     if($OpenXR){Write-Host "VR launcher: $(Join-Path $InstallDir 'Play HOTD4 (VR OpenXR).cmd')"}
+    if(!$StageUpdate){
+        . (Join-Path $PSScriptRoot 'tools/setup_paths.ps1')
+        Save-BuilderPathHistory 'Normal' $dump $InstallDir
+    }
     Write-Host "Ready. Open: $(Join-Path $InstallDir 'Play HOTD4.exe')"
 } catch {
     [Console]::Error.WriteLine("Setup failed during: $setupPhase")

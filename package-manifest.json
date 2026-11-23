@@ -3,15 +3,15 @@
   "files": [
     {
       "path": "BUILD-VERIFICATION.md",
-      "sha256": "5f90016a8036e2a9d9350e0fc4acd52fc16ea5c8078a34f50fc8cb20df4e41b0"
+      "sha256": "4a8133ad82c4a12a5cc875e842943584f097c01ea5f749b7cc9d01906437455b"
     },
     {
       "path": "README.md",
-      "sha256": "efc3d097f7e67d74ea61adc02d6d3f25dce07c1b9c20daaf29c0027f0a376c26"
+      "sha256": "691b77eaa319e5bba445e772b4a54247728a288b40da78b10f09a5abf0c7866d"
     },
     {
       "path": "RELEASE-NOTES.md",
-      "sha256": "f4660147dfb32dbc4c0455bdf376c9c14a4536d77e2e9dce1f50f604c46b0b7f"
+      "sha256": "23bee4a6586192b8bc92cc5bee312ca3ea075d69d38f0493d95111a5ce17937d"
     },
     {
       "path": "Setup.cmd",
@@ -19,7 +19,7 @@
     },
     {
       "path": "setup.ps1",
-      "sha256": "46ad0fc3c91abefea20a7c51e9bf64549de8f7da9306000ba50d0fa54f174557"
+      "sha256": "376763e8a03795394d0607bb5f793b4b03afdda0b70e575c80389a47dfd38482"
     },
     {
       "path": "source/CMakeLists.txt",
@@ -594,20 +594,16 @@
       "sha256": "a9dc03d9fabb4130d52ffe06968e5d21477f32a350c3e4cc0bc41ca262edb405"
     },
     {
+      "path": "tools/setup_paths.ps1",
+      "sha256": "a8d65f8257a4bb2ae69c5a800a1b91f4121e0c23338feab7ebf8bb2ce583b137"
+    },
+    {
       "path": "tools/setup_support.ps1",
       "sha256": "2c42b211a08173056786b0214335af752be9765bf23b202bf3bcb951d7108cde"
     },
     {
       "path": "tools/windows-launcher.cs",
       "sha256": "e5bff9aa7396401078e0d036a067a6fb687142bf27fb672297b9e62aca7452d1"
-    },
-    {
-      "path": "ui/hotd-update-version.txt",
-      "sha256": "c9ce93da3232c1398c60dfbe2687b2d6801f4af66c80f55f7a397c3877026f78"
-    },
-    {
-      "path": "ui/hotd-update.ps1",
-      "sha256": "0823aaba3fb0097d197d43ab14617186c8a84323c439c23e1c0af6ee8def380f"
     },
     {
       "path": "ui/Model Viewer.cmd",
@@ -1492,6 +1488,14 @@
     {
       "path": "ui/crosshair-previews/2-75.png",
       "sha256": "9b250942ff775adc75a907dcc6a63ba7958c6640f85c8a0f453f31bcb7bd246a"
+    },
+    {
+      "path": "ui/hotd-update-version.txt",
+      "sha256": "be2114016424ecbc2de6963e48c591eac7b1aca84b622471c402f5e4f3e67236"
+    },
+    {
+      "path": "ui/hotd-update.ps1",
+      "sha256": "0823aaba3fb0097d197d43ab14617186c8a84323c439c23e1c0af6ee8def380f"
     },
     {
       "path": "ui/hotd4-achievements.ps1",
