@@ -859,6 +859,8 @@ function Show-Hotd4StartMenu {
         }
     } )
     Add-Hotd4GameSwitcher -Window $window -MainPage $controls.MainPage -RecompDir $RecompDir -CurrentGame Normal
+    . (Join-Path $RecompDir 'hotd-update.ps1')
+    Add-HotdUpdater $window $controls.MainPage $RecompDir Normal
     [void] $window.ShowDialog()
     if ($null -ne $state.Mode) { return $state }
 }

@@ -7,11 +7,11 @@
     },
     {
       "path": "README.md",
-      "sha256": "a637db4e97abbd9d900b456174f0f32c10d5068846cc031c40ef400d9014ea09"
+      "sha256": "47545d48ca9e3e8e423165074f69a9f509af8d458e2819bf60beeeb7503a8220"
     },
     {
       "path": "RELEASE-NOTES.md",
-      "sha256": "f53c796da0da71733d8bdb647c055ef0759403c9c3334a161de062f076763040"
+      "sha256": "f4660147dfb32dbc4c0455bdf376c9c14a4536d77e2e9dce1f50f604c46b0b7f"
     },
     {
       "path": "Setup.cmd",
@@ -19,7 +19,7 @@
     },
     {
       "path": "setup.ps1",
-      "sha256": "fa4c339843220f639f4915218c5ef13025369813ba37004d92d85148f627a986"
+      "sha256": "46ad0fc3c91abefea20a7c51e9bf64549de8f7da9306000ba50d0fa54f174557"
     },
     {
       "path": "source/CMakeLists.txt",
@@ -563,7 +563,7 @@
     },
     {
       "path": "tools/build.py",
-      "sha256": "2f092c85e436342a00caacf08d9710e06f069565213d92cbb113f7aaff6ed857"
+      "sha256": "287d718c8d1ec9866bab16f12e64846d733229a3facd0a3dfeb37a6d82a0db6b"
     },
     {
       "path": "tools/build_support.py",
@@ -600,6 +600,14 @@
     {
       "path": "tools/windows-launcher.cs",
       "sha256": "e5bff9aa7396401078e0d036a067a6fb687142bf27fb672297b9e62aca7452d1"
+    },
+    {
+      "path": "ui/hotd-update-version.txt",
+      "sha256": "c9ce93da3232c1398c60dfbe2687b2d6801f4af66c80f55f7a397c3877026f78"
+    },
+    {
+      "path": "ui/hotd-update.ps1",
+      "sha256": "0823aaba3fb0097d197d43ab14617186c8a84323c439c23e1c0af6ee8def380f"
     },
     {
       "path": "ui/Model Viewer.cmd",
@@ -1527,7 +1535,7 @@
     },
     {
       "path": "ui/hotd4-startmenu.ps1",
-      "sha256": "052e16f14ff983aea2405ff126626d9b0eea632d74cdde42eef0173db683041e"
+      "sha256": "02c0db1a941b12bdef08b71da155432753e3a9bf862414e6a8cc14f10202581b"
     },
     {
       "path": "ui/lindbergh.ini",

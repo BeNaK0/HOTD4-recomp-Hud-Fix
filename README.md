@@ -208,3 +208,11 @@ Both start menus include **HOTD4** and **HOTD4 SPECIAL** buttons. Select the oth
 In the desktop launcher, open **Settings > Gameplay > Solo Player** and choose **James (P1)** or **Kate (P2)**, then Save. The native pause menu exposes the same choice under Settings > Gameplay; restart Arcade/Chapter to apply a change made during play. Available in v1.3.12 and newer.
 
 Your primary mouse or Raw Input lightgun follows the selected character automatically, including the sight, Shoot, Reload/Shake, Grenade, Coin and Start bindings. You can keep using the normal primary Start button (default 1/Enter). The primary Raw Input device is labelled for the selected character. Default James behavior is unchanged. Mixed Gun P1 + Mouse P2 modes retain their normal co-op assignments and disable the solo override. The choice is saved per installation in solo-player.txt. This is a desktop HOTD4 feature; it does not change Special or OpenXR input.
+
+## Menu updates
+
+The main menu checks GitHub for the latest stable release in the background. Open **Updates** to read the release notes and choose whether to download and install a newer version. Setup verifies the package and builds the update locally from the arcade dump in your installation. The menu reopens after installation.
+
+The update replaces the launcher and runtime files. It keeps settings, cabinet saves, the existing game dump and installed OpenXR support. The update folder beside the installation holds the Setup log and the previous versions of replaced files. Internet access and free disk space for a local build are required.
+
+To add the updater to an installation from an earlier release, run this builder's Setup and select the existing installation folder. Update `ui/hotd-update-version.txt` to match the tag when preparing a release.

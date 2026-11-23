@@ -64,7 +64,7 @@ def find_operator_elf(dump,layout):
  return None
 
 def main():
- ap=argparse.ArgumentParser();ap.add_argument('--dump',required=True);ap.add_argument('--output',required=True);ap.add_argument('--toolchain',required=True);ap.add_argument('--jobs',type=int,default=0);ap.add_argument('--validate-only',action='store_true');ap.add_argument('--openxr',action='store_true');a=ap.parse_args()
+ ap=argparse.ArgumentParser();ap.add_argument('--dump',required=True);ap.add_argument('--output',required=True);ap.add_argument('--toolchain',required=True);ap.add_argument('--jobs',type=int,default=0);ap.add_argument('--validate-only',action='store_true');ap.add_argument('--openxr',action='store_true');ap.add_argument('--stage-update',action='store_true');a=ap.parse_args()
  a.jobs=build_jobs(a.jobs)
  print(f'Compiler workers: {a.jobs} (use -Jobs N in Setup to override).',flush=True)
  dump, layout=find_dump(Path(a.dump))
@@ -150,21 +150,23 @@ def main():
   run([bin/'strip.exe',app/name])
  for name,p in dlls.items():shutil.copy2(p,app/name)
  # No source game data was packaged: the following copies happen only here.
- localdump=out/'game/disk0';(localdump/'elf').mkdir(parents=True,exist_ok=True)
- for part in ('fs','drv'):
-  shutil.copytree(dump/layout[part],localdump/part,dirs_exist_ok=True)
- with tempfile.NamedTemporaryFile(dir=localdump/'elf',prefix='.hod4-',suffix='.tmp',delete=False) as staged:
-  stage_path=Path(staged.name)
- try:
-  stage_path.write_bytes(image)
-  stage_path.replace(localdump/'elf/hod4M.elf')
- finally:
-  stage_path.unlink(missing_ok=True)
+ if not a.stage_update:
+  localdump=out/'game/disk0';(localdump/'elf').mkdir(parents=True,exist_ok=True)
+  for part in ('fs','drv'):
+   shutil.copytree(dump/layout[part],localdump/part,dirs_exist_ok=True)
+  with tempfile.NamedTemporaryFile(dir=localdump/'elf',prefix='.hod4-',suffix='.tmp',delete=False) as staged:
+   stage_path=Path(staged.name)
+  try:
+   stage_path.write_bytes(image)
+   stage_path.replace(localdump/'elf/hod4M.elf')
+  finally:
+   stage_path.unlink(missing_ok=True)
  if operator_elf:
-  shutil.copy2(operator_elf,localdump/'elf/hod4testM.elf')
-  for name in ('LucidaConsole_12.tga','LucidaConsole_12.abc','logo.tga'):
-   font=operator_elf.parent/name
-   if font.is_file():shutil.copy2(font,localdump/'elf'/name)
+  if not a.stage_update:
+   shutil.copy2(operator_elf,localdump/'elf/hod4testM.elf')
+   for name in ('LucidaConsole_12.tga','LucidaConsole_12.abc','logo.tga'):
+    font=operator_elf.parent/name
+    if font.is_file():shutil.copy2(font,localdump/'elf'/name)
   run(['powershell.exe','-NoProfile','-ExecutionPolicy','Bypass','-File',ROOT/'tools/operator-font.ps1','-OutputDir',app/'operator-assets'])
  for p in (ROOT/'ui').rglob('*'):
   if p.is_file():
@@ -178,11 +180,12 @@ def main():
  for name in ('Play HOTD4.exe','Model Viewer.exe'):
   run([compiler,'/nologo','/target:winexe','/platform:x64','/reference:System.Windows.Forms.dll',
        '/out:'+str(out/name).replace('/', '\\'),str(ROOT/'tools/windows-launcher.cs').replace('/', '\\')])
- (out/'dump-path.txt').write_text(str(localdump),encoding='utf-8')
- try:
-  run(['powershell.exe','-NoProfile','-ExecutionPolicy','Bypass','-File',app/'hotd4-game-library.ps1','-RegisterOnly','-LibraryRecompDir',app,'-LibraryGame','Normal'])
- except subprocess.CalledProcessError:
-  print('The game was installed, but automatic library registration failed. Use Locate other game in the start menu.',flush=True)
+ if not a.stage_update:
+  (out/'dump-path.txt').write_text(str(localdump),encoding='utf-8')
+  try:
+   run(['powershell.exe','-NoProfile','-ExecutionPolicy','Bypass','-File',app/'hotd4-game-library.ps1','-RegisterOnly','-LibraryRecompDir',app,'-LibraryGame','Normal'])
+  except subprocess.CalledProcessError:
+   print('The game was installed, but automatic library registration failed. Use Locate other game in the start menu.',flush=True)
  licenses=app/'licenses';licenses.mkdir(exist_ok=True)
  for label,p in [('ports',source/'LICENSE'),('lindberghrecomp',source/'lindberghrecomp/LICENSE'),('pcrecomp',source/'lindberghrecomp/pcrecomp/LICENSE')]:shutil.copy2(p,licenses/(label+'.txt'))
  # Toolchain package license notices for libraries, including indirect DLLs.
