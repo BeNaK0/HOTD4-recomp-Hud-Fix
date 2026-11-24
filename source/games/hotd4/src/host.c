@@ -929,6 +929,9 @@ static void h_operator_request(CPU *c)
 }
 #endif
 
+void sega_credit_options(uint32_t init, uint32_t config, uint32_t sound, uint32_t free_play_flag,
+                         uint32_t text, uint32_t first, uint32_t last);
+
 int main(int argc, char **argv)
 {
     if (argc < 2) {
@@ -955,6 +958,8 @@ int main(int argc, char **argv)
      * still missing aborts naming itself on first call. */
     gameplay_options_load();
     hle_register_all();
+    sega_credit_options(0x0831cad4u, 0x0831dc05u, 0x0831d895u, 0x0a737cc7u,
+                        0x0831dac2u, 0x080546c9u, 0x08054731u);
     install_blood_effects();
     install_gun_reload_policy();
 #if defined(_WIN32) && defined(LINDBERGH_OPENXR)

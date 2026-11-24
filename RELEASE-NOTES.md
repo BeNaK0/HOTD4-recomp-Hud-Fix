@@ -1,6 +1,6 @@
-# HOTD4 v1.3.21 - Launcher fix for older installations
+# HOTD4 v1.3.22 - Free Play and arcade sound controls
 
-- The launcher can locate the HOTD4 arcade dump in either supported folder layout when the saved path is missing or stale.
-- The updater preserves a valid configured dump location and writes the resolved path when installing the update. Existing game files and settings stay in place.
+- Enable **Free Play (unlimited credits)** in **Settings > Gameplay** to start and continue without inserting coins.
+- Enable **Mute Start and coin sounds** to silence the arcade credit cues while keeping music and gameplay audio.
 
-Choose **Updates > Download and install** in a working launcher. If an older launcher reports that `dump-path.txt` is missing, open the release ZIP and run **Setup.cmd** with your existing installation and arcade dump.
+Save your settings and start or restart the game to apply. Update through **Updates > Download and install** or run **Setup.cmd** from the new builder ZIP.

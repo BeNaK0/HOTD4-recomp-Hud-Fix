@@ -11,7 +11,7 @@
     },
     {
       "path": "RELEASE-NOTES.md",
-      "sha256": "471d7d65c9cf60ba49f7d7127fa7cce9ea9881dfccdf65005000cdf6b8b92673"
+      "sha256": "1372d86383776edfb18cd2e9b8b99d70bc933103a99e79728b98595943034194"
     },
     {
       "path": "Setup.cmd",
@@ -39,7 +39,7 @@
     },
     {
       "path": "source/games/hotd4/src/host.c",
-      "sha256": "5eb7d0b1d57457993686f71b90708bc65b2ae32bb02589fdcbc58e3ddae005ea"
+      "sha256": "dfe90511ce827159cf93bfc24f347b2977144122e8f20e839788efbf3f207b88"
     },
     {
       "path": "source/games/hotd4/src/hotd4_hd_textures.c",
@@ -139,11 +139,11 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/gameplay_options.c",
-      "sha256": "7e31a1d088965e186523d18ae6d826868cf9ded0ceeff64190967084306e5d73"
+      "sha256": "a5ced13b1c1ced86f4f1216e9ddae5b19954b1d91fa945638a3e83f8a57c79d3"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/gameplay_options.h",
-      "sha256": "34a17c2733c4388d7ff4efa93a0944ccb278f1d1062bd069f26f2c738940c178"
+      "sha256": "8b376992e17edc7567095eba36d28372446d9d87429de499429dd1caf9e1661e"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/gl_posix.h",
@@ -239,7 +239,7 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/hle_sega.c",
-      "sha256": "1554af5519c062d45a9350b86afe2e17d91b6945fa69b6bc6e0e0bdb0701a4ee"
+      "sha256": "1ed11ee2b568fd84026638b326780be5ed60857546b75823a45b696c0d13b768"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/hle_segaapi.c",
@@ -263,7 +263,7 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/host_sdl.c",
-      "sha256": "0fa5d731a9bcbf0da1f9faea9d5a441d95095ce993c091916a1490e9c84f24a8"
+      "sha256": "b5189c5a9d5ef5766a5bca53988f5a8a0ed71f37dd7dfa11624ffac9f63635d0"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/host_settings.c",
@@ -1495,7 +1495,7 @@
     },
     {
       "path": "ui/hotd-update-version.txt",
-      "sha256": "5041983ea60ef96ca9702c11782f0d4479a7aa4a6b601fdc69614c8d7a42ec03"
+      "sha256": "347101e4161904e3cf9ac12f64f4c3ee776ea6fe82fca25dcd7c733fd5d7e7a7"
     },
     {
       "path": "ui/hotd-update.ps1",
@@ -1543,7 +1543,7 @@
     },
     {
       "path": "ui/hotd4-startmenu.ps1",
-      "sha256": "ff617f84733b5cbb7ccefa7cc9fb14b972a6fbb5db900ee73cce98fb2d0e9a8b"
+      "sha256": "1b425d84411b9b1b2bb062cd9f591c1a803de5b8c804eefda346892e8600f189"
     },
     {
       "path": "ui/lindbergh.ini",
