@@ -1,7 +1,9 @@
-# HOTD4 v1.3.23 - Updater and launcher fixes
+# HOTD4 v1.3.24 – Gamepad support
 
-- Retry temporary Windows file replacement errors during updates. If a file still cannot be replaced, the updater preserves the existing installation where possible and logs the affected path and Windows error code in `update-error.log`.
-- Show the installed builder version directly in the main menu.
-- Fix **Free Play (unlimited credits)** and **Mute Start and coin sounds** when a Windows settings path contains non-ASCII characters.
+- Added two-player gamepad support to Windows desktop play. Either stick aims, RT or A shoots, X or LB reloads, and LT or B throws a grenade.
+- Press View or Back to pause. Use the D-pad to navigate the pause menu and A to select. The system mouse pointer is hidden during gamepad play.
+- Updated Game Library with installed versions, display and input summaries, per-game release checks, and a mouse and lightgun input test.
 
-If the previous updater failed, close the game and launcher, extract this release's Local Builder ZIP into a separate folder, and run `Setup.cmd` against your existing installation folder. Use the same arcade dump to keep your settings and saves. You can also use **Updates > Download and install** from a working launcher.
+Enable **Gamepad (P1 + P2)** under **Settings > Graphics / Input** and save. Press **Menu / Start** to join.
+
+Update from **Updates > Download and install**. For a manual update, extract the Local Builder ZIP, run `Setup.cmd`, and select your existing installation and game files.

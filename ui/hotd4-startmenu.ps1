@@ -551,7 +551,7 @@ function Show-Hotd4StartMenu {
     $inputDefaults = @{ InputMode='1'; Gun1='auto'; Gun2='disabled'; AntiAliasing='4'; VSync='0'; Aspect='16:9'; MouseSpeed='1.00'; MouseSmoothing='0' }
     $inputState = $inputDefaults.Clone()
     $choices = @{
-        InputMode = [ordered]@{'0'='Mouse (Absolute)'; '1'='Mouse (Raw Relative)'; '2'='Lightgun (Raw Input)'; '3'='Co-op: Gun P1 + Mouse P2'; '4'='Co-op: Gun P1 + Mouse P2 (Relative)';'5'='Keyboard (P1 + P2)'}
+        InputMode = [ordered]@{'0'='Mouse (Absolute)'; '1'='Mouse (Raw Relative)'; '2'='Lightgun (Raw Input)'; '3'='Co-op: Gun P1 + Mouse P2'; '4'='Co-op: Gun P1 + Mouse P2 (Relative)'; '5'='Keyboard (P1 + P2)'; '6'='Gamepad (P1 + P2)'}
         MouseSpeed = [ordered]@{}
         MouseSmoothing = [ordered]@{'0'='Off'; '1'='Low'; '2'='High'}
         Aspect = [ordered]@{'16:9'='16:9'; '4:3'='4:3'}
@@ -595,15 +595,15 @@ function Show-Hotd4StartMenu {
     $updateDeviceFields = {
         $mode=if($null -ne $controls.InputMode.SelectedItem){[string]$controls.InputMode.SelectedItem.Tag}else{'1'}
         $controls.KeyboardHelp.Visibility=if($mode -eq '5'){'Visible'}else{'Collapsed'}
-        $controls.GeneralInputHelp.Text=if($mode -eq '5'){'Use arrows for P1 and WASD for P2. P1 Shoot / Reload / Grenade: Right Ctrl / Right Shift / Right Alt. P2: Space / Q / E. Coin / Start: 5 / 1 for P1, 6 / 2 for P2. Customize all keys in Key Bindings. Restart after changing input mode.'}else{$defaultInputHelp}
+        $controls.GeneralInputHelp.Text=if($mode -eq '6'){'Gamepad: either stick aims. RT / A shoots, X / LB reloads, LT / B throws a grenade, Y / RB changes fire mode, and Menu starts. Click the left stick for a credit. View pauses. Restart after changing input mode.'}elseif($mode -eq '5'){'Use arrows for P1 and WASD for P2. P1 Shoot / Reload / Grenade: Right Ctrl / Right Shift / Right Alt. P2: Space / Q / E. Coin / Start: 5 / 1 for P1, 6 / 2 for P2. Customize all keys in Key Bindings. Restart after changing input mode.'}else{$defaultInputHelp}
         $controls.Gun1.IsEnabled=$mode -in '2','3','4'
         $controls.Gun2.IsEnabled=$mode -eq '2'
-        $controls.Gun2.Visibility=if($mode -in '3','4','5'){'Collapsed'}else{'Visible'}
-        $controls.Gun1.Visibility=$controls.Gun1Label.Visibility=$controls.Gun2Label.Visibility=if($mode -eq '5'){'Collapsed'}else{'Visible'}
+        $controls.Gun2.Visibility=if($mode -in '3','4','5','6'){'Collapsed'}else{'Visible'}
+        $controls.Gun1.Visibility=$controls.Gun1Label.Visibility=$controls.Gun2Label.Visibility=if($mode -in '5','6'){'Collapsed'}else{'Visible'}
         $kate=$mode -notin '3','4','5' -and $controls.SoloPlayer.SelectedItem -and $controls.SoloPlayer.SelectedItem.Tag -eq '1'
         $controls.Gun1Label.Content=if($kate){'Primary Device: Kate (P2)'}else{'Player 1 Device'}
         $controls.Gun2Label.Content=if($mode -eq '5'){'Player 2: Keyboard'}elseif($mode -in '3','4'){'Player 2: Parsec / remote mouse (automatic)'}elseif($kate){'Second Device: James (P1)'}else{'Player 2 Device'}
-        $controls.SoloPlayer.IsEnabled=$mode -notin '3','4','5'
+        $controls.SoloPlayer.IsEnabled=$mode -notin '3','4','5','6'
         $controls.SoloPlayerHint.Text=if($mode -in '3','4','5'){'Co-op modes use their normal P1/P2 assignments.'}else{'Primary mouse / gun, Coin and Start follow your character. Restart the game to apply.'}
         $controls.CoopGuide.Visibility=if($mode -in '3','4'){'Visible'}else{'Collapsed'}
         $controls.RawGuide.Visibility=if($mode -in '3','4','5'){'Collapsed'}else{'Visible'}

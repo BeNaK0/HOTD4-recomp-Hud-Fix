@@ -7,11 +7,11 @@
     },
     {
       "path": "README.md",
-      "sha256": "2e2fa60945e6a8f742bb39c5073fb331443084f5b768b2019a58b598056da083"
+      "sha256": "f1c25ba052d3c0d9c0b66207ee7123bfc8cf8602c73c59115a24f8f597aa7e8a"
     },
     {
       "path": "RELEASE-NOTES.md",
-      "sha256": "c700c15a8055410a9d1f231f45bac4dce2a5b6a1b21731d64f81c27c26b3f60f"
+      "sha256": "0acd47a1b0c69ec2b48211b3589acbeeb4bff1716d6475b564d56f28bb2a00e1"
     },
     {
       "path": "Setup.cmd",
@@ -263,7 +263,7 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/host_sdl.c",
-      "sha256": "b5189c5a9d5ef5766a5bca53988f5a8a0ed71f37dd7dfa11624ffac9f63635d0"
+      "sha256": "33b46aecb65eb3e6c529d7ba93a50e2ac6ece8e4815a67266c1370c814a82291"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/host_settings.c",
@@ -295,7 +295,7 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/input_options.h",
-      "sha256": "386876d4108eeed425025cbee3ec3597ca7ad1544b29887bd23d7335f9781f8a"
+      "sha256": "3054581af780db716ddcde23056465a4b0250e0da6fe2131446e4f9a7c2182fe"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/keyboard_aim.h",
@@ -1495,7 +1495,7 @@
     },
     {
       "path": "ui/hotd-update-version.txt",
-      "sha256": "3d53f5c5da3bf82e888644d3092114acb07ec5b8ee689c665c64bd697166803a"
+      "sha256": "ad0ee8c026757265117287d6b520e623394692eed586571fda9ea04a3fc33a57"
     },
     {
       "path": "ui/hotd-update.ps1",
@@ -1515,7 +1515,7 @@
     },
     {
       "path": "ui/hotd-game-library.ps1",
-      "sha256": "f155a81cc7c465d5bf90b72b38642c94d936edde1eb01ab51f2c1761f6c22f31"
+      "sha256": "752eb02a1aa941c0282d70c4dbe6ce1a1526a60c349d8f0c0b132777df2cfab2"
     },
     {
       "path": "ui/hotd4-model-motion.cs",
@@ -1543,7 +1543,7 @@
     },
     {
       "path": "ui/hotd4-startmenu.ps1",
-      "sha256": "b6c105fea6aea1d1b588ca6c2ffe45ee442f1011a696d9610a831eb82c7c0b84"
+      "sha256": "0a1360d7147c25b29e1a861973eabee6cbfda2955053b64509ec3a2ad6360215"
     },
     {
       "path": "ui/lindbergh.ini",

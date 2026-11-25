@@ -1,5 +1,9 @@
 # HOTD4 Local Builder
 
+## Gamepad
+
+In the Windows desktop launcher, choose **Gamepad (P1 + P2)** in **Settings → Graphics / Input** and save. The first controller is assigned to P1 and the second to P2. Either stick aims. **RT / A** shoots, **X / LB** reloads, **LT / B** throws a grenade, **Y / RB** changes fire mode and **Menu / Start** joins. Click the left stick to insert a credit. **View / Back** opens the pause menu, where the D-pad navigates and **A** selects.
+
 Download and extract **HOTD4-Local-Builder-v*.zip** from the [latest release](https://github.com/davidptrssvea/HOTD4-recomp/releases/latest). Run **Setup.cmd**, select your own extracted arcade dump, then wait for the local build. Open **HOTD4-PC\Play HOTD4.exe** for the graphical menu or **Model Viewer.exe** to go directly to the viewer. All menus are in English.
 
 To update, extract the new builder and run `Setup.cmd -InstallDir "C:\Path\To\HOTD4-PC"`, using your existing installation path. Select the same arcade dump when prompted. This keeps your settings, cabinet saves and trophies.
