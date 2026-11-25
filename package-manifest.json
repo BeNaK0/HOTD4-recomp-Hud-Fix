@@ -7,11 +7,11 @@
     },
     {
       "path": "README.md",
-      "sha256": "b86780a4f2089bc1334e1e9018ac2db3759c1aa414f2c50f46a9c9d3daa64134"
+      "sha256": "2e2fa60945e6a8f742bb39c5073fb331443084f5b768b2019a58b598056da083"
     },
     {
       "path": "RELEASE-NOTES.md",
-      "sha256": "1372d86383776edfb18cd2e9b8b99d70bc933103a99e79728b98595943034194"
+      "sha256": "c700c15a8055410a9d1f231f45bac4dce2a5b6a1b21731d64f81c27c26b3f60f"
     },
     {
       "path": "Setup.cmd",
@@ -139,7 +139,7 @@
     },
     {
       "path": "source/lindberghrecomp/src/runtime/gameplay_options.c",
-      "sha256": "a5ced13b1c1ced86f4f1216e9ddae5b19954b1d91fa945638a3e83f8a57c79d3"
+      "sha256": "1c403f814bdb365f005da0d02b80e430d6803f823887df39bfc2b0935fbbeccc"
     },
     {
       "path": "source/lindberghrecomp/src/runtime/gameplay_options.h",
@@ -1495,11 +1495,11 @@
     },
     {
       "path": "ui/hotd-update-version.txt",
-      "sha256": "347101e4161904e3cf9ac12f64f4c3ee776ea6fe82fca25dcd7c733fd5d7e7a7"
+      "sha256": "3d53f5c5da3bf82e888644d3092114acb07ec5b8ee689c665c64bd697166803a"
     },
     {
       "path": "ui/hotd-update.ps1",
-      "sha256": "87e8a61b7141cd862a195fde52be9517b33889d6ceaa074fbfc7f2e0e758eed8"
+      "sha256": "ab6c2f12313c840571fc39ccfb4305be0a27e7c4ac49b85ca97cfb95ff6e73ec"
     },
     {
       "path": "ui/hotd4-achievements.ps1",
@@ -1543,7 +1543,7 @@
     },
     {
       "path": "ui/hotd4-startmenu.ps1",
-      "sha256": "1b425d84411b9b1b2bb062cd9f591c1a803de5b8c804eefda346892e8600f189"
+      "sha256": "b6c105fea6aea1d1b588ca6c2ffe45ee442f1011a696d9610a831eb82c7c0b84"
     },
     {
       "path": "ui/lindbergh.ini",
